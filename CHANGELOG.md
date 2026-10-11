@@ -2,7 +2,7 @@
 
 Registro do que foi entregue em cada milestone (ver `PLAN.md`).
 
-## M3 — Adesivo do capacete e impressão (em revisão)
+## M3 — Adesivo do capacete e impressão (concluído em 11/10/2026)
 
 ### Adicionado
 - Adesivo 60 × 80 mm em **ZPL e TSPL** (QR desenhado pela impressora, **só com o token**), com prévia igual ao protótipo na ficha da pessoa.

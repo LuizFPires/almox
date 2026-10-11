@@ -17,7 +17,7 @@ Fonte da verdade do produto: `PRD.md`. Regras para quem codifica: `CLAUDE.md`.
 | M0 | Fundação do projeto | ✅ Concluído | 11/10/2026 |
 | M1 | Banco, autenticação e perfis | ✅ Concluído | 11/10/2026 |
 | M2 | Cadastros do engenheiro | ✅ Concluído | 11/10/2026 |
-| M3 | Adesivo do capacete e impressão | 🟨 Em andamento | |
+| M3 | Adesivo do capacete e impressão | ✅ Concluído (critério de 10 s conferido no simulador; falta a impressora real) | 11/10/2026 |
 | M4 | Identificação por QR e ficha da pessoa | ⬜ A fazer | |
 | M5 | Retirada | ⬜ A fazer | |
 | M6 | Devolução e avaria | ⬜ A fazer | |

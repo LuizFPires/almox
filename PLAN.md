@@ -180,8 +180,8 @@ Legenda: ⬜ A fazer · 🟨 Em andamento · ✅ Concluído · ⛔ Bloqueado
 - [x] **RN-02/RN-06** aplicadas no servidor: devolução de item com `via = qr` exige identificação por QR na sessão; sem QR, só itens `via = manual`
 - [x] Ficha: botão Devolução desabilitado com explicação quando não permitido + atalho "Ler capacete do {nome}"
 - [x] RPC `registrar_devolucao` transacional
-- [ ] Estorno: engenheiro pode estornar um movimento com motivo (novo movimento `estorno`), nunca editar
-- [ ] Manutenção: lista das peças em manutenção (com foto e motivo); "Voltou do conserto" (volta a livre, engenheiro ou almoxarife) e "Dar baixa" (sai do estoque, só engenheiro)
+- [x] Estorno: engenheiro pode estornar um movimento com motivo (novo movimento `estorno`), nunca editar
+- [x] Manutenção: lista das peças em manutenção (com foto e motivo); "Voltou do conserto" (volta a livre, engenheiro ou almoxarife) e "Dar baixa" (sai do estoque, só engenheiro)
 
 **Critérios de aceite**
 - Joaquim devolve 1 de 2 pás, 1 avariada com foto: 1 unidade em manutenção, 1 pá continua com ele.

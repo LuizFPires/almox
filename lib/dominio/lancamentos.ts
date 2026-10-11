@@ -1,6 +1,8 @@
 /** Linha de "Últimos lançamentos" (F-01): retirada, devolução ou ocorrência. */
 export type Lancamento =
   | {
+      /** Movimento (abre o detalhe, com estorno para o engenheiro). */
+      id?: string
       tipo: 'retirada' | 'devolucao' | 'estorno'
       quando: string
       pessoa: string

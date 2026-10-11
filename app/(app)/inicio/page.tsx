@@ -98,7 +98,14 @@ export default async function PaginaInicio() {
             rotulo={restrita ? `com a ${restrita.nome}` : 'no canteiro'}
           />
           {!restrita && <Indicador valor={resumo.noAlmox} rotulo="no almox" />}
-          {!restrita && <Indicador valor={resumo.manutencao} rotulo="manutenção" />}
+          {!restrita &&
+            (lanca ? (
+              <Link href="/manutencao" className="rounded-botao underline-offset-4 hover:underline">
+                <Indicador valor={resumo.manutencao} rotulo="manutenção" />
+              </Link>
+            ) : (
+              <Indicador valor={resumo.manutencao} rotulo="manutenção" />
+            ))}
           <Indicador
             valor={resumo.pendencias}
             rotulo={resumo.pendencias === 1 ? 'pendência' : 'pendências'}
@@ -177,8 +184,8 @@ export default async function PaginaInicio() {
             <Cartao className="flex flex-col divide-y divide-borda py-1">
               {ultimos.map((l, i) => {
                 const { texto, alerta } = descreverLancamento(l)
-                return (
-                  <div key={`${l.quando}-${i}`} className="flex items-center gap-3 py-2.5">
+                const conteudo = (
+                  <>
                     <span
                       aria-hidden="true"
                       className={`flex size-8 shrink-0 items-center justify-center rounded-full text-sm font-bold ${
@@ -211,6 +218,16 @@ export default async function PaginaInicio() {
                     <span className="shrink-0 font-mono text-[13px] text-texto-2">
                       {formatarHora(l.quando)}
                     </span>
+                  </>
+                )
+                const classe = 'flex min-h-toque items-center gap-3 py-2.5'
+                return l.tipo !== 'ocorrencia' && l.id ? (
+                  <Link key={`${l.quando}-${i}`} href={`/lancamento/${l.id}`} className={classe}>
+                    {conteudo}
+                  </Link>
+                ) : (
+                  <div key={`${l.quando}-${i}`} className={classe}>
+                    {conteudo}
                   </div>
                 )
               })}

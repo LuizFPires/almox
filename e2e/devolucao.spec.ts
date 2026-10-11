@@ -158,4 +158,80 @@ test.describe('devolução e avaria', () => {
     const [u] = await eng.get<{ status: string }[]>(`unidade?select=status&tipo_id=eq.${tipo}`)
     expect(u?.status).toBe('livre')
   })
+
+  test('engenheiro estorna uma devolução e conserta a peça avariada', async ({
+    page,
+    request,
+  }, info) => {
+    const nome = `Martelo dev ${info.project.name}-${Date.now() % 100000}`
+    const { tipo, pessoa, eng } = await preparar(request, 'Sandro Melo', nome, 2)
+    const alm = await api(request, 'almoxarife')
+    await alm.post('rpc/registrar_retirada', {
+      p_obra: OBRA,
+      p_pessoa: pessoa,
+      p_identificacao: null,
+      p_itens: [{ tipo, quantidade: 1 }],
+      p_confirmado: true,
+    })
+    const devolucao = (
+      await alm.post('rpc/registrar_devolucao', {
+        p_obra: OBRA,
+        p_pessoa: pessoa,
+        p_identificacao: null,
+        p_itens: [{ tipo, quantidade: 1 }],
+      })
+    ).corpo as string
+
+    // Estorno pela tela do lançamento, com motivo.
+    await entrarComo(page, 'engenheiro', '/inicio')
+    await page.goto(`/lancamento/${devolucao}`)
+    await page.getByRole('button', { name: 'Estornar este lançamento' }).click()
+    await page.getByLabel('Motivo').fill('Devolução lançada por engano')
+    await page.getByRole('button', { name: 'Confirmar estorno' }).click()
+    await expect(page.getByText(/Estornado em .*Devolução lançada por engano/)).toBeVisible()
+    const [u] = await eng.get<{ status: string }[]>(
+      `unidade?select=status&tipo_id=eq.${tipo}&status=neq.livre`,
+    )
+    expect(u?.status).toBe('em_uso') // voltou para o nome do Sandro
+
+    // Peça avariada (foto enviada ao Storage): "Voltou do conserto" volta a livre.
+    await eng.post('rpc/registrar_retirada', {
+      p_obra: OBRA,
+      p_pessoa: pessoa,
+      p_identificacao: null,
+      p_itens: [{ tipo, quantidade: 1 }],
+      p_confirmado: true,
+    })
+    const foto = `${OBRA}/${crypto.randomUUID()}.jpg`
+    const { url: u2, chave: k2 } = ambiente()
+    const login = await request.post(`${u2}/auth/v1/token?grant_type=password`, {
+      headers: { apikey: k2 },
+      data: { email: USUARIOS.engenheiro, password: SENHA_SEED },
+    })
+    const jwt = ((await login.json()) as { access_token: string }).access_token
+    await request.post(`${u2}/storage/v1/object/avarias/${foto}`, {
+      headers: { apikey: k2, Authorization: `Bearer ${jwt}`, 'Content-Type': 'image/jpeg' },
+      data: FOTO.buffer,
+    })
+    await eng.post('rpc/registrar_devolucao', {
+      p_obra: OBRA,
+      p_pessoa: pessoa,
+      p_identificacao: null,
+      p_itens: [{ tipo, quantidade: 1, avarias: [{ motivo: 'quebrada', foto }] }],
+    })
+    await page.goto('/manutencao')
+    const linha = page
+      .locator('div')
+      .filter({ hasText: nome })
+      .filter({ has: page.getByRole('button', { name: 'Voltou do conserto' }) })
+      .last()
+    await expect(linha.getByRole('img', { name: /Foto da avaria/ })).toBeVisible()
+    await expect(linha.getByText('Quebrada')).toBeVisible()
+    await linha.getByRole('button', { name: 'Voltou do conserto' }).click()
+    await expect(page.getByText(nome)).toHaveCount(0)
+    const emManutencao = await eng.get<unknown[]>(
+      `unidade?select=id&tipo_id=eq.${tipo}&status=eq.manutencao`,
+    )
+    expect(emManutencao).toHaveLength(0)
+  })
 })

@@ -39,6 +39,8 @@ test.describe('app no celular', () => {
     const alvos = page.locator('main a, main button, nav a, header a').filter({ visible: true })
     for (const alvo of await alvos.all()) {
       const caixa = await alvo.boundingBox()
+      // O Início atualiza ao vivo: alvo trocado no meio da medição não conta.
+      if (!caixa) continue
       const nome = (await alvo.getAttribute('aria-label')) ?? (await alvo.innerText())
       expect.soft(caixa?.height ?? 0, nome).toBeGreaterThanOrEqual(44)
       expect.soft(caixa?.width ?? 0, nome).toBeGreaterThanOrEqual(44)

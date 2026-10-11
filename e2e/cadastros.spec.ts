@@ -74,7 +74,7 @@ test.describe('cadastros do engenheiro', () => {
     await campo(page, 'Valor de reposição (por unidade)').fill('2.890,00')
     for (let i = 0; i < 4; i++) await page.getByRole('button', { name: 'Aumentar unidade' }).click()
     await expect(page.getByText(/Unidades novas/)).toContainText('-01 a ')
-    await page.getByRole('button', { name: 'Salvar ferramenta' }).click()
+    await page.getByRole('button', { name: 'Salvar 5 unidades' }).click()
     await page.waitForURL((u) => u.pathname === '/cadastros/ferramentas')
     const linha = page.getByRole('link', { name: new RegExp(ferramenta) })
     await expect(linha).toContainText('5 un.')
@@ -94,7 +94,7 @@ test.describe('cadastros do engenheiro', () => {
     await entrarComo(page, 'almoxarife', '/inicio')
     await page.goto('/cadastros/ferramenta/nova')
     await expect(page.getByText('Só o engenheiro cadastra')).toBeVisible()
-    await expect(page.getByRole('button', { name: 'Salvar ferramenta' })).toHaveCount(0)
+    await expect(page.getByRole('button', { name: /^Salvar/ })).toHaveCount(0)
 
     const { url, chave } = ambiente()
     const token = await tokenDe(page, USUARIOS.almoxarife)

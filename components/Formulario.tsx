@@ -11,10 +11,21 @@ type PropsCampo = InputHTMLAttributes<HTMLInputElement> & {
   rotulo: string
   ajuda?: ReactNode
   erro?: string
+  /** Texto fixo à esquerda do campo (ex.: "R$"). */
+  prefixo?: string
 }
 
 /** Campo de texto com rótulo, ajuda e erro ligados por aria. */
-export function Campo({ rotulo, ajuda, erro, id, name, className = '', ...resto }: PropsCampo) {
+export function Campo({
+  rotulo,
+  ajuda,
+  erro,
+  prefixo,
+  id,
+  name,
+  className = '',
+  ...resto
+}: PropsCampo) {
   // useId: o Next mantém telas anteriores escondidas no DOM; id fixo repetiria entre elas.
   const automatico = useId()
   const campoId = id ?? `campo-${name}-${automatico}`
@@ -23,14 +34,24 @@ export function Campo({ rotulo, ajuda, erro, id, name, className = '', ...resto 
       <label htmlFor={campoId} className="text-sm font-semibold">
         {rotulo}
       </label>
-      <input
-        id={campoId}
-        name={name}
-        aria-invalid={erro ? true : undefined}
-        aria-describedby={erro ? `${campoId}-erro` : ajuda ? `${campoId}-ajuda` : undefined}
-        className={`${CLASSE_CAMPO} ${className}`}
-        {...resto}
-      />
+      <div className="relative">
+        {prefixo && (
+          <span
+            aria-hidden="true"
+            className="pointer-events-none absolute top-1/2 left-3 -translate-y-1/2 font-semibold text-texto-2"
+          >
+            {prefixo}
+          </span>
+        )}
+        <input
+          id={campoId}
+          name={name}
+          aria-invalid={erro ? true : undefined}
+          aria-describedby={erro ? `${campoId}-erro` : ajuda ? `${campoId}-ajuda` : undefined}
+          className={`${CLASSE_CAMPO} ${prefixo ? 'pl-10!' : ''} ${className}`}
+          {...resto}
+        />
+      </div>
       {erro ? (
         <span id={`${campoId}-erro`} className="text-sm font-semibold text-erro">
           {erro}

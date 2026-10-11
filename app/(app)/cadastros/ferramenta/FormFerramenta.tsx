@@ -120,6 +120,7 @@ export function FormFerramenta({ tipo, prefixosUsados }: Props) {
           defaultValue={v.valor ?? (tipo ? centavosParaCampo(tipo.valor_reposicao) : '')}
           placeholder="0,00"
           required
+          prefixo="R$"
           ajuda="Base para cobrar a reposição na medição da empreiteira."
           erro={erros.valor}
         />
@@ -159,19 +160,30 @@ export function FormFerramenta({ tipo, prefixosUsados }: Props) {
         {erros.quantidade && (
           <span className="text-sm font-semibold text-erro">{erros.quantidade}</span>
         )}
-        {quantidade > 0 && prefixo && (
-          <p className="rounded-cartao bg-sutil px-3.5 py-3 text-sm">
-            Unidades novas:{' '}
-            <b className="font-mono">{previaCodigos(prefixo, tipo?.codigos ?? [], quantidade)}</b>
-          </p>
-        )}
+        <p className="rounded-cartao bg-sutil px-3.5 py-3 text-sm" aria-live="polite">
+          Unidades novas:{' '}
+          {!prefixo ? (
+            <b>escolha o nome e o prefixo</b>
+          ) : quantidade === 0 ? (
+            <b>nenhuma (só muda o valor)</b>
+          ) : (
+            <>
+              <b className="font-mono">{previaCodigos(prefixo, tipo?.codigos ?? [], quantidade)}</b>
+              {' · '}total passa a {(tipo?.codigos.length ?? 0) + quantidade}
+            </>
+          )}
+        </p>
 
         <ErroFormulario mensagem={estado.erro} />
       </div>
 
       <RodapeAcao>
         <Botao type="submit" tamanho="g" larguraTotal disabled={salvando}>
-          {salvando ? 'Salvando…' : novo ? 'Salvar ferramenta' : 'Salvar alterações'}
+          {salvando
+            ? 'Salvando…'
+            : quantidade === 0
+              ? 'Salvar valor'
+              : `Salvar ${quantidade} ${quantidade === 1 ? 'unidade' : 'unidades'}`}
         </Botao>
       </RodapeAcao>
     </form>

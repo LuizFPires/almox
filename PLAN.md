@@ -14,7 +14,7 @@ Fonte da verdade do produto: `PRD.md`. Regras para quem codifica: `CLAUDE.md`.
 
 | # | Milestone | Status | Concluído em |
 |---|---|---|---|
-| M0 | Fundação do projeto | 🟨 Em andamento | |
+| M0 | Fundação do projeto | ✅ Concluído | 11/10/2026 |
 | M1 | Banco, autenticação e perfis | ⬜ A fazer | |
 | M2 | Cadastros do engenheiro | ⬜ A fazer | |
 | M3 | Adesivo do capacete e impressão | ⬜ A fazer | |

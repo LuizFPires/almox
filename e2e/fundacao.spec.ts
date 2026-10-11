@@ -7,15 +7,17 @@ test.describe('app no celular', () => {
     await page.goto('/')
     await expect(page).toHaveURL(/\/inicio$/)
     await expect(page.getByText('ALMOX', { exact: true })).toBeVisible()
-    await expect(page.getByRole('button', { name: /Retirada/ })).toBeVisible()
-    await expect(page.getByRole('button', { name: /Devolução/ })).toBeVisible()
+    const lerQr = page.getByRole('button', { name: /Ler QR do capacete/ })
+    await expect(lerQr).toBeVisible()
+    await expect(page.getByRole('link', { name: 'Ver quem está com o quê' }).last()).toBeVisible()
+    await expect(page.getByRole('link', { name: /Ferramentas na obra/ })).toBeVisible()
+    for (const rotulo of ['no canteiro', 'no almox', 'manutenção', 'pendências']) {
+      await expect(page.getByText(rotulo, { exact: true })).toBeVisible()
+    }
     await expect(page.getByText('Nenhum lançamento ainda.')).toBeVisible()
 
-    // Amarelo segurança no atalho de retirada e fundo claro do app.
-    await expect(page.getByRole('button', { name: /Retirada/ })).toHaveCSS(
-      'background-color',
-      'rgb(245, 184, 0)',
-    )
+    // Botão escuro com ícone amarelo segurança e fundo claro do app.
+    await expect(lerQr).toHaveCSS('background-color', 'rgb(28, 27, 25)')
     await expect(page.locator('body')).toHaveCSS('background-color', 'rgb(244, 242, 238)')
   })
 
@@ -27,10 +29,23 @@ test.describe('app no celular', () => {
     }))
     expect(larguras.pagina).toBeLessThanOrEqual(larguras.tela)
 
-    for (const link of await page.getByRole('navigation').getByRole('link').all()) {
-      const caixa = await link.boundingBox()
-      expect(caixa?.height ?? 0).toBeGreaterThanOrEqual(44)
+    for (const alvo of await page.locator('main a, main button, nav a, header a').all()) {
+      const caixa = await alvo.boundingBox()
+      const nome = (await alvo.getAttribute('aria-label')) ?? (await alvo.innerText())
+      expect.soft(caixa?.height ?? 0, nome).toBeGreaterThanOrEqual(44)
+      expect.soft(caixa?.width ?? 0, nome).toBeGreaterThanOrEqual(44)
     }
+  })
+
+  test('a barra inferior segue a ordem do PRD', async ({ page }) => {
+    await page.goto('/inicio')
+    await expect(page.getByRole('navigation').getByRole('link')).toHaveText([
+      'Início',
+      'Lista',
+      'Estoque',
+      'Fechamento',
+      'Cadastros',
+    ])
   })
 
   test('a barra inferior navega entre as abas', async ({ page }) => {
@@ -46,6 +61,8 @@ test.describe('app no celular', () => {
 })
 
 test.describe('PWA', () => {
+  test.skip(({ isMobile }) => !isMobile, 'instalação é no celular')
+
   test('manifest instalável com ícones válidos', async ({ page, request }) => {
     await page.goto('/inicio')
     const href = await page.locator('link[rel="manifest"]').getAttribute('href')
@@ -96,9 +113,6 @@ test.describe('painel da TV', () => {
     await page.goto('/tv')
     await expect(page.getByText('QUEM ESTÁ COM O QUÊ')).toBeVisible()
     await expect(page.getByText(/^\d{2}:\d{2}$/)).toBeVisible()
-    await expect(page.locator('div:has(> header)').first()).toHaveCSS(
-      'background-color',
-      'rgb(17, 19, 23)',
-    )
+    await expect(page.getByTestId('painel-tv')).toHaveCSS('background-color', 'rgb(17, 19, 23)')
   })
 })

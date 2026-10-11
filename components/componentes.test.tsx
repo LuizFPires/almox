@@ -44,15 +44,15 @@ describe('Contador', () => {
   it('soma e tira dentro dos limites', () => {
     const onChange = vi.fn()
     render(<Contador valor={1} maximo={2} rotulo="Pá" onChange={onChange} />)
-    fireEvent.click(screen.getByRole('button', { name: 'Somar uma Pá' }))
-    fireEvent.click(screen.getByRole('button', { name: 'Tirar uma Pá' }))
+    fireEvent.click(screen.getByRole('button', { name: 'Aumentar Pá' }))
+    fireEvent.click(screen.getByRole('button', { name: 'Diminuir Pá' }))
     expect(onChange.mock.calls).toEqual([[2], [0]])
   })
 
   it('desabilita os botões nos limites', () => {
     render(<Contador valor={0} maximo={0} rotulo="Pá" onChange={() => {}} />)
-    expect(screen.getByRole('button', { name: 'Tirar uma Pá' }).hasAttribute('disabled')).toBe(true)
-    expect(screen.getByRole('button', { name: 'Somar uma Pá' }).hasAttribute('disabled')).toBe(true)
+    expect(screen.getByRole('button', { name: 'Diminuir Pá' }).hasAttribute('disabled')).toBe(true)
+    expect(screen.getByRole('button', { name: 'Aumentar Pá' }).hasAttribute('disabled')).toBe(true)
   })
 })
 

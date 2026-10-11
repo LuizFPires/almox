@@ -8,6 +8,11 @@ describe('normalizarTexto', () => {
     expect(normalizarTexto('Fôrmas Ribeiro')).toBe('formas ribeiro')
     expect(normalizarTexto('Açaí')).toBe('acai')
   })
+
+  it('mantém sinais que não são acento', () => {
+    expect(normalizarTexto('MT-02 · 1/2"')).toBe('mt-02 · 1/2"')
+    expect(normalizarTexto('x^2')).toBe('x^2')
+  })
 })
 
 describe('contemTexto', () => {

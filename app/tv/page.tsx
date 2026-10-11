@@ -6,7 +6,10 @@ export const metadata: Metadata = { title: 'Painel · Almox' }
 /** Esqueleto do painel da TV (M8 traz o loop de cartões e colunas). */
 export default function PaginaTv() {
   return (
-    <div className="flex h-dvh flex-col gap-4 overflow-hidden bg-tv-fundo px-10 py-7 text-tv-texto">
+    <div
+      data-testid="painel-tv"
+      className="flex h-dvh flex-col gap-4 overflow-hidden bg-tv-fundo px-10 py-7 text-tv-texto"
+    >
       <header className="flex h-16 items-center gap-7">
         <div className="flex items-baseline gap-4">
           <span className="font-condensada text-[44px] leading-none font-bold tracking-[3px] text-amarelo">

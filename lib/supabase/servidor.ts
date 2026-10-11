@@ -18,7 +18,8 @@ export async function criarClienteServidor() {
         try {
           for (const { name, value, options } of lista) loja.set(name, value, options)
         } catch {
-          // Server Component não grava cookies; o proxy renova a sessão.
+          // Server Component não grava cookies. O proxy.ts (M1) renova a sessão e aplica
+          // os cabeçalhos anti-cache que o @supabase/ssr passa no 2º argumento do setAll.
         }
       },
     },

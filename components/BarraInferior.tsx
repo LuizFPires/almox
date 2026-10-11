@@ -1,5 +1,6 @@
 import Link from 'next/link'
 
+// Ordem do PRD F-01: Início · Lista · Estoque · Fechamento · Cadastros.
 const ITENS = [
   { chave: 'inicio', rotulo: 'Início', href: '/inicio', d: 'M3 10l9-6 9 6v10H3z', lanca: false },
   {
@@ -7,6 +8,13 @@ const ITENS = [
     rotulo: 'Lista',
     href: '/lista',
     d: 'M9 6h11 M9 12h11 M9 18h11 M4 6h.01 M4 12h.01 M4 18h.01',
+    lanca: false,
+  },
+  {
+    chave: 'estoque',
+    rotulo: 'Estoque',
+    href: '/estoque',
+    d: 'M4 7l8-4 8 4v10l-8 4-8-4z M4 7l8 4 8-4 M12 11v10',
     lanca: false,
   },
   {
@@ -23,13 +31,6 @@ const ITENS = [
     d: 'M6 11h12v10H6z M8.5 11V7.5a3.5 3.5 0 0 1 7 0V11',
     lanca: true,
   },
-  {
-    chave: 'estoque',
-    rotulo: 'Estoque',
-    href: '/estoque',
-    d: 'M4 7l8-4 8 4v10l-8 4-8-4z M4 7l8 4 8-4 M12 11v10',
-    lanca: false,
-  },
 ] as const
 
 export type AbaInferior = (typeof ITENS)[number]['chave']
@@ -44,7 +45,7 @@ export function BarraInferior({ ativa, podeLancar }: Props) {
   return (
     <nav
       aria-label="Navegação principal"
-      className="flex h-[76px] border-t border-borda bg-cartao pb-2"
+      className="flex h-[calc(76px+env(safe-area-inset-bottom))] border-t border-borda bg-cartao pb-[max(0.5rem,env(safe-area-inset-bottom))]"
     >
       {ITENS.filter((item) => podeLancar || !item.lanca).map((item) => {
         const atual = item.chave === ativa

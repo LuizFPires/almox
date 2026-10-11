@@ -1,7 +1,7 @@
 type Props = {
   valor: number
   onChange: (valor: number) => void
-  /** Item contado, usado nos aria-labels ("Tirar uma Pá"). */
+  /** Item contado, usado nos aria-labels ("Diminuir Pá"). */
   rotulo: string
   minimo?: number
   maximo: number
@@ -18,7 +18,7 @@ export function Contador({ valor, onChange, rotulo, minimo = 0, maximo }: Props)
       <button
         type="button"
         className={CLASSE_BOTAO}
-        aria-label={`Tirar uma ${rotulo}`}
+        aria-label={`Diminuir ${rotulo}`}
         disabled={valor <= minimo}
         onClick={() => mudar(valor - 1)}
       >
@@ -33,7 +33,7 @@ export function Contador({ valor, onChange, rotulo, minimo = 0, maximo }: Props)
       <button
         type="button"
         className={CLASSE_BOTAO}
-        aria-label={`Somar uma ${rotulo}`}
+        aria-label={`Aumentar ${rotulo}`}
         disabled={valor >= maximo}
         onClick={() => mudar(valor + 1)}
       >

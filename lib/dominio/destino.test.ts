@@ -31,5 +31,8 @@ describe('destinoSeguro', () => {
   it('devolve o caminho normalizado', () => {
     expect(destinoSeguro('/lista/../estoque')).toBe('/estoque')
     expect(destinoSeguro('/./login')).toBe('/inicio')
+    expect(destinoSeguro('/.//golpe.exemplo')).toBe('/inicio')
+    expect(destinoSeguro('/a/..//golpe.exemplo')).toBe('/inicio')
+    expect(destinoSeguro('/%2e//golpe.exemplo')).toBe('/inicio')
   })
 })

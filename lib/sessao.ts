@@ -1,6 +1,7 @@
 import 'server-only'
 import { cookies } from 'next/headers'
 import { redirect } from 'next/navigation'
+import { connection } from 'next/server'
 import { cache } from 'react'
 import type { Perfil } from '@/lib/dominio/permissoes'
 import { criarClienteServidor } from '@/lib/supabase/servidor'
@@ -26,6 +27,8 @@ export type Sessao = {
  * obra escolhida. Chame dentro de um <Suspense>. Sem login → /login; sem obra → /sem-acesso.
  */
 export const obterSessao = cache(async (): Promise<Sessao> => {
+  // Sessão é sempre da requisição: o cliente do Supabase usa Date.now() para validar o JWT.
+  await connection()
   const supabase = await criarClienteServidor()
   const { data: dadosClaims } = await supabase.auth.getClaims()
   const id = dadosClaims?.claims?.sub

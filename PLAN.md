@@ -137,7 +137,7 @@ Legenda: ⬜ A fazer · 🟨 Em andamento · ✅ Concluído · ⛔ Bloqueado
 - [x] **Bloqueio** (RN-04): "Nada foi registrado", grava `ocorrencia`, notifica encarregado; opções "Ler o capacete certo" / "Escolher na lista (manual)"
 - [x] **Ficha da pessoa** (F-04): o que está com ela (com hora e marca "sem QR"), equipe da empresa, identificação usada
 - [x] Perfil consulta: QR abre direto a ficha, sem botões de lançamento
-- [ ] Lista manual (F-08) com busca por nome/apelido sem acento
+- [x] Lista manual (F-08) com busca por nome/apelido sem acento
 - [ ] Tela inicial (F-01) com resumo e últimos lançamentos (dados reais)
 
 **Critérios de aceite**

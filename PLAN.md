@@ -19,7 +19,7 @@ Fonte da verdade do produto: `PRD.md`. Regras para quem codifica: `CLAUDE.md`.
 | M2 | Cadastros do engenheiro | ✅ Concluído | 11/10/2026 |
 | M3 | Adesivo do capacete e impressão | ✅ Concluído (critério de 10 s conferido no simulador; falta a impressora real) | 11/10/2026 |
 | M4 | Identificação por QR e ficha da pessoa | ✅ Concluído (câmera conferida no Chromium; falta testar no Android e no iPhone reais) | 11/10/2026 |
-| M5 | Retirada | ⬜ A fazer | |
+| M5 | Retirada | 🟨 Em andamento | |
 | M6 | Devolução e avaria | ⬜ A fazer | |
 | M7 | Lista, estoque e busca | ⬜ A fazer | |
 | M8 | Painel da TV | ⬜ A fazer | |
@@ -383,3 +383,6 @@ Legenda: ⬜ A fazer · 🟨 Em andamento · ✅ Concluído · ⛔ Bloqueado
 | 11/10/2026 | M4 (revisão, aceito sem mudança): para a consulta, `?via=qr` só muda o texto "QR do capacete lido" (cosmético: consulta não lança). "Não é ele" derruba as conferências vigentes da pessoa de todos os usuários (capacete com outra pessoa). A limpeza das identificações vencidas fica para o M10. |
 | 11/10/2026 | M4 (comparação, decidido pelo dono): no Início da **consulta de empreiteira** só aparecem números da própria empresa ("com a {empresa}" e pendências). "No almox" e "manutenção" (da obra toda) ficam para o Estoque. |
 | 11/10/2026 | M4 (comparação, aceito sem mudança): barra inferior também na ficha; selo ALTO VALOR e ponto da cor da empresa na ficha; várias pendências listadas, com plural; selo do perfil no cabeçalho do Início (a lista geral tem atalho próprio); nome da ferramenta embaixo do ícone (regra do CLAUDE.md); "Ler capacete do …" e "Receber" abrem a leitura sem alvo (a câmera lê o capacete que estiver na frente); link "Sem capacete?" também na tela de leitura; apelido na lista manual; botões no rodapé. |
+| 11/10/2026 | M5: quem tem **pendência** (ferramenta desde antes de hoje) **pode retirar**; a revisão mostra o aviso em destaque ("Está com Martelete MT-01 desde ontem") antes da confirmação, e o almoxarife decide. |
+| 11/10/2026 | M5: `registrar_retirada` recebe o id da conferência (M4). É QR só com identificação válida da mesma pessoa; sem ela, é manual. Unidades livres em ordem de código (PA-100 depois de PA-99), travadas na transação: quem perder a corrida recebe "acabou de sair". A confirmação "Conferi pessoalmente…" (RN-11) é exigida no servidor. |
+| 11/10/2026 | M5: o aviso de retirada sem QR segue o PRD (RN-06: o que sai sem QR pode voltar sem QR), não o texto do protótipo. A grade mostra todos os tipos (o protótipo cortava em 12). Últimos lançamentos atualizam em tempo real (Supabase Realtime). A frase "Já atualizado no painel da TV" só entra com o M8. |

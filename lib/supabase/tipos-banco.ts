@@ -23,6 +23,58 @@ export type Database = {
   }
   public: {
     Tables: {
+      alteracao: {
+        Row: {
+          campo: string
+          criado_em: string
+          de: string | null
+          id: string
+          obra_id: string
+          para: string | null
+          registro_id: string
+          tabela: string
+          usuario_id: string | null
+        }
+        ComputedFields: never
+        Insert: {
+          campo: string
+          criado_em?: string
+          de?: string | null
+          id?: string
+          obra_id: string
+          para?: string | null
+          registro_id: string
+          tabela: string
+          usuario_id?: string | null
+        }
+        Update: {
+          campo?: string
+          criado_em?: string
+          de?: string | null
+          id?: string
+          obra_id?: string
+          para?: string | null
+          registro_id?: string
+          tabela?: string
+          usuario_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: 'alteracao_obra_id_fkey'
+            columns: ['obra_id']
+            isOneToOne: false
+            referencedRelation: 'obra'
+            referencedColumns: ['id']
+          },
+          {
+            foreignKeyName: 'alteracao_usuario_id_fkey'
+            columns: ['usuario_id']
+            isOneToOne: false
+            referencedRelation: 'usuario'
+            referencedColumns: ['id']
+          },
+        ]
+      }
       avaria: {
         Row: {
           criado_em: string
@@ -804,6 +856,7 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      adicionar_unidades: { Args: { p_quantidade: number; p_tipo: string }; Returns: string[] }
       registrar_devolucao: {
         Args: {
           p_itens: Json

@@ -2,6 +2,15 @@
 -- 2 obras, 6 empresas, 30 pessoas, 13 tipos de ferramenta, retiradas do dia e
 -- usuários de teste para cada perfil (senha abaixo, só para desenvolvimento).
 
+-- Trava: o seed só roda em banco vazio. Nunca rode em produção (db push sem --include-seed).
+do $$
+begin
+  if exists (select 1 from public.obra) then
+    raise exception 'Seed recusado: o banco já tem obras. O seed é só para banco vazio de desenvolvimento.';
+  end if;
+end;
+$$;
+
 -- Obras ------------------------------------------------------------------------------
 
 insert into public.obra (id, nome, endereco) values

@@ -16,7 +16,8 @@ async function Formulario({
     <>
       {erro === 'link' && (
         <p role="alert" className="rounded-botao bg-erro-claro px-3 py-2.5 text-[15px] text-erro">
-          O link expirou ou já foi usado. Peça outro.
+          O link não funcionou. Ele vale uma vez, por pouco tempo, e no mesmo celular em que foi
+          pedido. Peça outro.
         </p>
       )}
       <FormLogin volta={destinoSeguro(volta)} />

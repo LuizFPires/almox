@@ -15,7 +15,7 @@ npx supabase status -o env   # copie URL e PUBLISHABLE_KEY para o .env.local (mo
 npm run dev                  # http://localhost:3000
 ```
 
-Usuários de teste do seed (só local e `almox-dev`, senha `almox-dev-2026`):
+Usuários de teste do seed (senha `almox-dev-2026` **só no Supabase local e no CI**; no `almox-dev` as senhas são outras e ficam fora do git, em `.env.dev-usuarios` na máquina do dono):
 
 | E-mail | Perfil |
 |---|---|

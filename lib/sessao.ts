@@ -25,6 +25,8 @@ export type Sessao = {
 /**
  * Camada de acesso à sessão: lê o usuário logado (JWT validado), suas obras e a
  * obra escolhida. Chame dentro de um <Suspense>. Sem login → /login; sem obra → /sem-acesso.
+ * Falha ao consultar o banco vira erro (tela de erro), nunca redirecionamento: o proxy
+ * mandaria de /login de volta para /inicio e o usuário ficaria preso num laço.
  */
 export const obterSessao = cache(async (): Promise<Sessao> => {
   // Sessão é sempre da requisição: o cliente do Supabase usa Date.now() para validar o JWT.
@@ -33,9 +35,10 @@ export const obterSessao = cache(async (): Promise<Sessao> => {
   const { data: dadosClaims } = await supabase.auth.getClaims()
   const id = dadosClaims?.claims?.sub
   if (!id) redirect('/login')
+  const email = typeof dadosClaims?.claims?.email === 'string' ? dadosClaims.claims.email : ''
 
-  const [{ data: usuario }, { data: vinculos }] = await Promise.all([
-    supabase.from('usuario').select('id, nome, email').eq('id', id).single(),
+  const [resUsuario, resVinculos] = await Promise.all([
+    supabase.from('usuario').select('id, nome').eq('id', id).maybeSingle(),
     supabase
       .from('usuario_obra')
       .select(
@@ -43,7 +46,12 @@ export const obterSessao = cache(async (): Promise<Sessao> => {
       )
       .eq('usuario_id', id),
   ])
-  if (!usuario) redirect('/login')
+  if (resUsuario.error || resVinculos.error) {
+    throw new Error('Não foi possível carregar a sua sessão. Tente de novo.')
+  }
+  if (!resUsuario.data) redirect('/sem-acesso')
+  const usuario = { ...resUsuario.data, email }
+  const vinculos = resVinculos.data
 
   const obras: ObraDoUsuario[] = (vinculos ?? [])
     .filter((v) => v.obra)

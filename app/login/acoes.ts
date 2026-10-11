@@ -32,17 +32,21 @@ export async function enviarLinkMagico(_: EstadoLogin, form: FormData): Promise<
   const email = lerEmail(form)
   if (!EMAIL.test(email)) return { erro: 'Informe um e-mail válido.', email }
 
-  const origem = (await headers()).get('origin') ?? process.env.NEXT_PUBLIC_SITE_URL ?? ''
+  // Endereço confiável do app; o Origin da requisição só vale onde não há SITE_URL (dev local).
+  const origem = process.env.NEXT_PUBLIC_SITE_URL || ((await headers()).get('origin') ?? '')
   const volta = destinoSeguro(String(form.get('volta') ?? ''))
   const supabase = await criarClienteServidor()
   // Só quem já foi convidado recebe link: não cria usuário novo.
-  await supabase.auth.signInWithOtp({
+  const { error } = await supabase.auth.signInWithOtp({
     email,
     options: {
       shouldCreateUser: false,
       emailRedirectTo: `${origem}/auth/confirmar?volta=${encodeURIComponent(volta)}`,
     },
   })
+  // Registra só o código do erro (limite de envio, SMTP), nunca o e-mail.
+  if (error && error.code !== 'otp_disabled')
+    console.error('Link mágico falhou:', error.code ?? error.status)
   // Mesma resposta exista ou não o e-mail, para não revelar quem tem login.
   return { aviso: 'Se este e-mail tiver acesso, o link de entrada chega em instantes.', email }
 }

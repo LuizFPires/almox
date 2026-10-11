@@ -54,6 +54,13 @@ export type Database = {
         }
         Relationships: [
           {
+            foreignKeyName: 'avaria_item_fk'
+            columns: ['movimento_id', 'unidade_id']
+            isOneToOne: false
+            referencedRelation: 'movimento_item'
+            referencedColumns: ['movimento_id', 'unidade_id']
+          },
+          {
             foreignKeyName: 'avaria_movimento_id_obra_id_fkey'
             columns: ['movimento_id', 'obra_id']
             isOneToOne: false
@@ -207,6 +214,13 @@ export type Database = {
             referencedColumns: ['id', 'obra_id']
           },
           {
+            foreignKeyName: 'empresa_encarregado_mesma_empresa_fk'
+            columns: ['encarregado_pessoa_id', 'id']
+            isOneToOne: false
+            referencedRelation: 'pessoa'
+            referencedColumns: ['id', 'empresa_id']
+          },
+          {
             foreignKeyName: 'empresa_obra_id_fkey'
             columns: ['obra_id']
             isOneToOne: false
@@ -340,11 +354,11 @@ export type Database = {
         }
         Relationships: [
           {
-            foreignKeyName: 'movimento_estorno_de_fkey'
-            columns: ['estorno_de']
+            foreignKeyName: 'movimento_estorno_mesma_obra_fk'
+            columns: ['estorno_de', 'obra_id']
             isOneToOne: false
             referencedRelation: 'movimento'
-            referencedColumns: ['id']
+            referencedColumns: ['id', 'obra_id']
           },
           {
             foreignKeyName: 'movimento_obra_id_fkey'
@@ -556,6 +570,13 @@ export type Database = {
           via?: Database['public']['Enums']['via_movimento']
         }
         Relationships: [
+          {
+            foreignKeyName: 'posse_item_retirada_fk'
+            columns: ['movimento_retirada_id', 'unidade_id']
+            isOneToOne: false
+            referencedRelation: 'movimento_item'
+            referencedColumns: ['movimento_id', 'unidade_id']
+          },
           {
             foreignKeyName: 'posse_movimento_retirada_id_obra_id_fkey'
             columns: ['movimento_retirada_id', 'obra_id']

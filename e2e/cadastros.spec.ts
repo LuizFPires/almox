@@ -146,3 +146,39 @@ test.describe('cadastros do engenheiro', () => {
     )
   })
 })
+
+test.describe('cadastros: tela anterior não volta com dados velhos', () => {
+  test.skip(({ isMobile }) => !isMobile, 'telas do celular')
+  test.skip(semSeed, 'precisa dos usuários do seed')
+
+  test('dar acesso duas vezes seguidas não mostra a senha anterior', async ({ page }, info) => {
+    const base = `duas-${info.project.name}-${Date.now()}`
+    await entrarComo(page, 'engenheiro', '/inicio')
+    await page.goto('/cadastros/usuarios')
+
+    const dar = async (email: string) => {
+      await page.getByRole('link', { name: 'Dar acesso' }).click()
+      await page.waitForURL((u) => u.pathname === '/cadastros/acesso/novo')
+      await expect(campo(page, 'E-mail')).toHaveValue('')
+      await campo(page, 'Nome').fill('Duas Vezes')
+      await campo(page, 'E-mail').fill(email)
+      await page
+        .locator('label')
+        .filter({ hasText: 'Almoxarife' })
+        .filter({ visible: true })
+        .click()
+      await page.getByRole('button', { name: 'Dar acesso' }).click()
+      const senha = page.getByLabel('Senha provisória').filter({ visible: true })
+      await expect(senha).toBeVisible()
+      const texto = await senha.innerText()
+      await page.getByRole('link', { name: 'Pronto' }).filter({ visible: true }).click()
+      await page.waitForURL((u) => u.pathname === '/cadastros/usuarios')
+      return texto
+    }
+
+    const primeira = await dar(`${base}-1@teste.exemplo`)
+    const segunda = await dar(`${base}-2@teste.exemplo`)
+    expect(segunda).not.toBe(primeira)
+    await expect(page.getByText(`${base}-2@teste.exemplo`).filter({ visible: true })).toBeVisible()
+  })
+})

@@ -22,6 +22,11 @@ export function FormNovoAcesso({ empreiteiras }: { empreiteiras: { id: string; n
           <p className="text-[15px]">
             <b>{estado.criado.email}</b> já pode entrar no Almox.
           </p>
+          {estado.criado.jaExistia && (
+            <p className="text-sm text-texto-2">
+              Este e-mail já tinha login em outra obra: o nome continua o do cadastro dele.
+            </p>
+          )}
           {estado.criado.senha ? (
             <>
               <p className="text-[15px]">Senha provisória (aparece só agora):</p>
@@ -37,9 +42,7 @@ export function FormNovoAcesso({ empreiteiras }: { empreiteiras: { id: string; n
               </p>
             </>
           ) : (
-            <p className="text-sm text-texto-2">
-              Este e-mail já tinha login em outra obra: ela entra com a senha que já usa.
-            </p>
+            <p className="text-sm text-texto-2">A pessoa entra com a senha que já usa.</p>
           )}
         </Cartao>
         <Link

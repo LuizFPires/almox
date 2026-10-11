@@ -2,6 +2,7 @@ import type { Metadata } from 'next'
 import { notFound } from 'next/navigation'
 import { Botao } from '@/components/Botao'
 import { Cabecalho } from '@/components/Cabecalho'
+import { ErroFormulario } from '@/components/Formulario'
 import { listarAcessos } from '@/lib/dados/acessos'
 import { listarEmpresas } from '@/lib/dados/empresas'
 import { obterSessao } from '@/lib/sessao'
@@ -10,8 +11,19 @@ import { CamposPerfil } from '../CamposPerfil'
 
 export const metadata: Metadata = { title: 'Acesso · Almox' }
 
-export default async function PaginaAcesso({ params }: PageProps<'/cadastros/acesso/[usuarioId]'>) {
+const ERROS = {
+  perfil: 'Escolha um perfil válido.',
+  empresa: 'Consulta restrita só pode ser de empreiteira.',
+  salvar: 'Não foi possível alterar o acesso. Tente de novo.',
+  remover: 'Não foi possível remover o acesso. Tente de novo.',
+} as const
+
+export default async function PaginaAcesso({
+  params,
+  searchParams,
+}: PageProps<'/cadastros/acesso/[usuarioId]'>) {
   const { usuarioId } = await params
+  const { erro } = (await searchParams) as { erro?: keyof typeof ERROS }
   const { obraAtual, usuario } = await obterSessao()
   const [acessos, empresas] = await Promise.all([
     listarAcessos(obraAtual.id),
@@ -29,6 +41,7 @@ export default async function PaginaAcesso({ params }: PageProps<'/cadastros/ace
         voltarPara="/cadastros/usuarios"
       />
       <form action={alterarAcesso} className="flex flex-col gap-5 px-5 pt-2 pb-4">
+        <ErroFormulario mensagem={erro ? ERROS[erro] : undefined} />
         <input type="hidden" name="usuario_id" value={acesso.usuario_id} />
         <CamposPerfil
           perfil={acesso.perfil}

@@ -2,6 +2,7 @@ import type { Metadata } from 'next'
 import { notFound } from 'next/navigation'
 import { Botao } from '@/components/Botao'
 import { Cabecalho } from '@/components/Cabecalho'
+import { ErroFormulario } from '@/components/Formulario'
 import { listarEmpresas } from '@/lib/dados/empresas'
 import { buscarPessoa, listarPessoas } from '@/lib/dados/pessoas'
 import { obterSessao } from '@/lib/sessao'
@@ -10,8 +11,12 @@ import { FormPessoa } from '../FormPessoa'
 
 export const metadata: Metadata = { title: 'Editar pessoa · Almox' }
 
-export default async function PaginaEditarPessoa({ params }: PageProps<'/cadastros/pessoa/[id]'>) {
+export default async function PaginaEditarPessoa({
+  params,
+  searchParams,
+}: PageProps<'/cadastros/pessoa/[id]'>) {
   const { id } = await params
+  const { erro } = (await searchParams) as { erro?: string }
   const { obraAtual } = await obterSessao()
   const [pessoa, empresas, pessoas] = await Promise.all([
     buscarPessoa(obraAtual.id, id),
@@ -42,6 +47,11 @@ export default async function PaginaEditarPessoa({ params }: PageProps<'/cadastr
           .map((p) => p.nome_capacete)}
       />
       <form action={alternarAtiva} className="px-5 pb-6">
+        {erro === 'situacao' && (
+          <div className="mb-2">
+            <ErroFormulario mensagem="Não foi possível alterar a situação. Tente de novo." />
+          </div>
+        )}
         <input type="hidden" name="id" value={pessoa.id} />
         <input type="hidden" name="ativa" value={String(!pessoa.ativa)} />
         {pessoa.ativa && itens > 0 && (

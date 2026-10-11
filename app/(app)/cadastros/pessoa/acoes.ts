@@ -81,7 +81,7 @@ export async function alternarAtiva(form: FormData) {
     .eq('obra_id', obraId)
     .select('id')
     .maybeSingle()
-  if (error || !data) throw new Error('Não foi possível alterar a situação da pessoa.')
+  if (error || !data) redirect(`/cadastros/pessoa/${id}?erro=situacao`)
   revalidatePath('/cadastros/pessoas')
   redirect('/cadastros/pessoas')
 }

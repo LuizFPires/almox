@@ -45,6 +45,8 @@ describe('lerBRL', () => {
     expect(lerBRL('1,234')).toBeNull()
     expect(lerBRL('-10,00')).toBeNull()
     expect(lerBRL('12.34.567,00')).toBeNull()
+    expect(lerBRL('1.5')).toBeNull()
+    expect(lerBRL('2.890')).toBe(289000)
   })
 
   it('volta ao mesmo valor depois de formatar', () => {

@@ -28,9 +28,13 @@ type Props = {
 export function CamposPerfil({ perfil: inicial, empresaId, empreiteiras, erros = {} }: Props) {
   const [perfil, setPerfil] = useState(inicial ?? '')
   const idEmpresa = useId()
+  const idErroPerfil = useId()
   return (
     <>
-      <fieldset className="flex flex-col gap-2">
+      <fieldset
+        className="flex flex-col gap-2"
+        aria-describedby={erros.perfil ? idErroPerfil : undefined}
+      >
         <legend className="mb-1.5 text-sm font-semibold">Perfil</legend>
         {OPCOES.map((o) => (
           <label
@@ -51,7 +55,11 @@ export function CamposPerfil({ perfil: inicial, empresaId, empreiteiras, erros =
             <span className="text-sm text-texto-2">{o.ajuda}</span>
           </label>
         ))}
-        {erros.perfil && <span className="text-sm font-semibold text-erro">{erros.perfil}</span>}
+        {erros.perfil && (
+          <span id={idErroPerfil} className="text-sm font-semibold text-erro">
+            {erros.perfil}
+          </span>
+        )}
       </fieldset>
       {perfil === 'consulta' && (
         <div className="flex flex-col gap-1.5">

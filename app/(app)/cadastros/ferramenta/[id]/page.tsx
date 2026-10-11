@@ -79,7 +79,7 @@ export default async function PaginaEditarFerramenta({
                 {descreverMudanca(h.campo, h.de, h.para)}
               </span>
               <span className="text-[13px] text-texto-2">
-                {formatarDataHora(h.criado_em)} · {h.usuario?.nome || 'carga inicial'}
+                {formatarDataHora(h.criado_em)} · {h.usuario_nome ?? 'carga inicial'}
               </span>
             </div>
           ))}

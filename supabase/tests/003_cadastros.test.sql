@@ -71,8 +71,9 @@ select is(
 );
 
 select is(
-  (select count(*)::int from public.listar_acessos('a0000000-0000-4000-8000-000000000001')),
-  4, 'engenheira lista os acessos da obra'
+  (select count(*)::int from public.listar_acessos('a0000000-0000-4000-8000-000000000001')
+    where email like '%@almox.exemplo'),
+  4, 'engenheira lista os acessos da obra (os 4 do seed)'
 );
 select is(
   (select email from public.listar_acessos('a0000000-0000-4000-8000-000000000001')

@@ -3,7 +3,7 @@
 import { revalidatePath } from 'next/cache'
 import { redirect } from 'next/navigation'
 import { exigirEngenheiro } from '@/lib/acesso'
-import { validarEmail } from '@/lib/dominio/cadastros'
+import { dataValida, validarEmail } from '@/lib/dominio/cadastros'
 import { valoresDoForm, type Valores } from '@/lib/formulario'
 
 export type EstadoEmpresa = {
@@ -38,7 +38,7 @@ export async function salvarEmpresa(_: EstadoEmpresa, form: FormData): Promise<E
   if (erroDono) campos.dono_email = erroDono
   const erroEnc = validarEmail(dados.encarregado_email ?? '')
   if (erroEnc) campos.encarregado_email = erroEnc
-  if (dados.proxima_medicao && !/^\d{4}-\d{2}-\d{2}$/.test(dados.proxima_medicao)) {
+  if (dados.proxima_medicao && !dataValida(dados.proxima_medicao)) {
     campos.proxima_medicao = 'Data inválida.'
   }
   const valores = valoresDoForm(form)
@@ -63,6 +63,12 @@ export async function salvarEmpresa(_: EstadoEmpresa, form: FormData): Promise<E
   if (error) {
     if (error.code === '23505')
       return { campos: { nome: 'Já existe uma empresa com esse nome.' }, valores }
+    if (error.code === '23514') {
+      return {
+        erro: 'Há acessos de consulta restritos a esta empresa. Mude esses acessos antes de torná-la própria.',
+        valores,
+      }
+    }
     if (error.code === '23503')
       return { erro: 'O encarregado precisa ser uma pessoa desta empresa.', valores }
     return { erro: 'Não foi possível salvar. Tente de novo.', valores }

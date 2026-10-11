@@ -34,6 +34,7 @@ export type Database = {
           registro_id: string
           tabela: string
           usuario_id: string | null
+          usuario_nome: string | null
         }
         ComputedFields: never
         Insert: {
@@ -46,6 +47,7 @@ export type Database = {
           registro_id: string
           tabela: string
           usuario_id?: string | null
+          usuario_nome?: string | null
         }
         Update: {
           campo?: string
@@ -57,6 +59,7 @@ export type Database = {
           registro_id?: string
           tabela?: string
           usuario_id?: string | null
+          usuario_nome?: string | null
         }
         Relationships: [
           {

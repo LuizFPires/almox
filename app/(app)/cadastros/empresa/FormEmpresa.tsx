@@ -4,7 +4,7 @@ import { useActionState, useId, useState } from 'react'
 import { Botao } from '@/components/Botao'
 import { CLASSE_CAMPO, Campo, ErroFormulario, Secao } from '@/components/Formulario'
 import { RodapeAcao } from '@/components/RodapeAcao'
-import { CORES_EMPRESA } from '@/lib/dominio/cadastros'
+import { CORES_EMPRESA, NOMES_CORES } from '@/lib/dominio/cadastros'
 import { salvarEmpresa } from './acoes'
 
 type Props = {
@@ -61,7 +61,7 @@ export function FormEmpresa({ empresa, pessoas, corSugerida }: Props) {
                   tipo === valor
                     ? 'border-2 border-escuro bg-cartao'
                     : 'border-borda bg-cartao text-texto-2'
-                }`}
+                } has-[:focus-visible]:outline-3 has-[:focus-visible]:outline-foco`}
               >
                 <input
                   type="radio"
@@ -89,7 +89,7 @@ export function FormEmpresa({ empresa, pessoas, corSugerida }: Props) {
                   checked={cor === c}
                   onChange={() => setCor(c)}
                   className="peer sr-only"
-                  aria-label={`Cor ${c}`}
+                  aria-label={`Cor ${NOMES_CORES[c]}`}
                 />
                 <span
                   aria-hidden="true"
@@ -162,6 +162,11 @@ export function FormEmpresa({ empresa, pessoas, corSugerida }: Props) {
           </>
         ) : (
           <p className="rounded-cartao bg-sutil px-3.5 py-3 text-sm">
+            {empresa?.tipo === 'empreiteira' && (
+              <b className="mb-1 block text-aviso">
+                Ao salvar como própria, dono, e-mails, encarregado e medição serão apagados.
+              </b>
+            )}
             Pendências de funcionários próprios não geram desconto: vão só para o engenheiro.
           </p>
         )}

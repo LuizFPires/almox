@@ -1,5 +1,6 @@
 import type { Metadata } from 'next'
 import { Cabecalho } from '@/components/Cabecalho'
+import { NovaVisita } from '@/components/NovaVisita'
 import { listarTipos } from '@/lib/dados/ferramentas'
 import { obterSessao } from '@/lib/sessao'
 import { FormFerramenta } from '../FormFerramenta'
@@ -16,7 +17,9 @@ export default async function PaginaNovaFerramenta() {
         subtitulo={obraAtual.nome}
         voltarPara="/cadastros/ferramentas"
       />
-      <FormFerramenta prefixosUsados={tipos.map((t) => t.prefixo)} />
+      <NovaVisita>
+        <FormFerramenta prefixosUsados={tipos.map((t) => t.prefixo)} />
+      </NovaVisita>
     </>
   )
 }

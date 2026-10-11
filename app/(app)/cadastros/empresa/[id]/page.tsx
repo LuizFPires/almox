@@ -26,7 +26,23 @@ export default async function PaginaEditarEmpresa({
         subtitulo="Editar empresa"
         voltarPara="/cadastros/empresas"
       />
-      <FormEmpresa empresa={empresa} pessoas={pessoas} corSugerida={empresa.cor} />
+      <FormEmpresa
+        empresa={empresa}
+        pessoas={
+          // Encarregado inativado continua na lista: senão salvar a empresa o apagaria.
+          empresa.encarregado_pessoa_id &&
+          !pessoas.some((p) => p.id === empresa.encarregado_pessoa_id)
+            ? [
+                ...pessoas,
+                {
+                  id: empresa.encarregado_pessoa_id,
+                  nome: `${empresa.encarregado?.nome ?? 'Encarregado'} (inativo)`,
+                },
+              ]
+            : pessoas
+        }
+        corSugerida={empresa.cor}
+      />
     </>
   )
 }

@@ -140,3 +140,33 @@ export function faltaEmail(empresa: {
 }): boolean {
   return empresa.tipo === 'empreiteira' && (!empresa.dono_email || !empresa.encarregado_email)
 }
+
+/** Nome de cada cor do painel (lido pelo leitor de tela no lugar do código hex). */
+export const NOMES_CORES: Record<(typeof CORES_EMPRESA)[number], string> = {
+  '#F4B400': 'amarelo',
+  '#4C8DFF': 'azul',
+  '#FF8A3D': 'laranja',
+  '#9A6BFF': 'roxo',
+  '#3DC9B0': 'verde-água',
+  '#E86FA8': 'rosa',
+  '#7CB342': 'verde',
+  '#00ACC1': 'azul-petróleo',
+}
+
+/** Data `yyyy-MM-dd` que existe no calendário (2026-02-31 não passa). */
+export function dataValida(texto: string): boolean {
+  const m = /^(\d{4})-(\d{2})-(\d{2})$/.exec(texto)
+  if (!m) return false
+  const [ano, mes, dia] = [Number(m[1]), Number(m[2]), Number(m[3])]
+  const data = new Date(Date.UTC(ano, mes - 1, dia))
+  return (
+    data.getUTCFullYear() === ano && data.getUTCMonth() === mes - 1 && data.getUTCDate() === dia
+  )
+}
+
+/** Ordena códigos de unidade pelo número (FUR-99 antes de FUR-100). */
+export function compararCodigos(a: string, b: string): number {
+  const [pa, na] = [a.replace(/-\d+$/, ''), Number(/-(\d+)$/.exec(a)?.[1] ?? 0)]
+  const [pb, nb] = [b.replace(/-\d+$/, ''), Number(/-(\d+)$/.exec(b)?.[1] ?? 0)]
+  return pa === pb ? na - nb : pa.localeCompare(pb)
+}

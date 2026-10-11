@@ -16,7 +16,7 @@ export type EstadoAcesso = {
   erro?: string
   campos?: Partial<Record<'nome' | 'email' | 'perfil' | 'empresa_id', string>>
   /** Mostrada uma única vez, só quando o login foi criado agora. */
-  criado?: { email: string; senha: string | null }
+  criado?: { email: string; senha: string | null; jaExistia: boolean }
 }
 
 const texto = (form: FormData, chave: string) =>
@@ -58,7 +58,17 @@ export async function darAcesso(_: EstadoAcesso, form: FormData): Promise<Estado
 
   let usuarioId = existente?.id ?? null
   let senha: string | null = null
-  if (!usuarioId) {
+  const jaExistia = Boolean(usuarioId)
+  if (usuarioId) {
+    // Login de outra obra que nunca trocou a provisória: gera outra, senão a pessoa fica sem senha.
+    const { data } = await admin.auth.admin.getUserById(usuarioId)
+    if (data.user?.app_metadata?.trocar_senha) {
+      senha = gerarSenhaProvisoria()
+      const { error } = await admin.auth.admin.updateUserById(usuarioId, { password: senha })
+      if (error)
+        return { erro: 'Não foi possível gerar a senha provisória. Tente de novo.', valores }
+    }
+  } else {
     senha = gerarSenhaProvisoria()
     const { data, error } = await admin.auth.admin.createUser({
       email,
@@ -78,7 +88,7 @@ export async function darAcesso(_: EstadoAcesso, form: FormData): Promise<Estado
     .insert({ usuario_id: usuarioId, obra_id: obraId, perfil, empresa_id: empresaId })
   if (error) {
     // Login criado agora sem vínculo não serve para nada: desfaz.
-    if (senha) await admin.auth.admin.deleteUser(usuarioId)
+    if (!jaExistia) await admin.auth.admin.deleteUser(usuarioId)
     if (error.code === '23505')
       return { campos: { email: 'Esta pessoa já tem acesso à obra.' }, valores }
     if (error.code === '23514') {
@@ -88,14 +98,15 @@ export async function darAcesso(_: EstadoAcesso, form: FormData): Promise<Estado
   }
 
   revalidatePath('/cadastros/usuarios')
-  return { criado: { email, senha } }
+  return { criado: { email, senha, jaExistia } }
 }
 
 export async function alterarAcesso(form: FormData) {
   const { supabase, obraId } = await exigirEngenheiro()
   const usuarioId = texto(form, 'usuario_id')
   const { perfil, empresaId } = lerPerfil(form)
-  if (!PERFIS.includes(perfil)) throw new Error('Perfil inválido.')
+  const voltar = `/cadastros/acesso/${usuarioId}`
+  if (!PERFIS.includes(perfil)) redirect(`${voltar}?erro=perfil`)
   // A RLS impede o engenheiro de alterar o próprio vínculo.
   const { data, error } = await supabase
     .from('usuario_obra')
@@ -104,7 +115,7 @@ export async function alterarAcesso(form: FormData) {
     .eq('obra_id', obraId)
     .select('usuario_id')
     .maybeSingle()
-  if (error || !data) throw new Error('Não foi possível alterar o acesso.')
+  if (error || !data) redirect(`${voltar}?erro=${error?.code === '23514' ? 'empresa' : 'salvar'}`)
   revalidatePath('/cadastros/usuarios')
   redirect('/cadastros/usuarios')
 }
@@ -120,7 +131,7 @@ export async function removerAcesso(form: FormData) {
     .eq('obra_id', obraId)
     .select('usuario_id')
     .maybeSingle()
-  if (error || !data) throw new Error('Não foi possível remover o acesso.')
+  if (error || !data) redirect(`/cadastros/acesso/${usuarioId}?erro=remover`)
   revalidatePath('/cadastros/usuarios')
   redirect('/cadastros/usuarios')
 }

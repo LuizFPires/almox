@@ -1,5 +1,6 @@
 import type { Metadata } from 'next'
 import { Cabecalho } from '@/components/Cabecalho'
+import { NovaVisita } from '@/components/NovaVisita'
 import { listarEmpresas } from '@/lib/dados/empresas'
 import { proximaCor } from '@/lib/dominio/cadastros'
 import { obterSessao } from '@/lib/sessao'
@@ -17,7 +18,9 @@ export default async function PaginaNovaEmpresa() {
         subtitulo={obraAtual.nome}
         voltarPara="/cadastros/empresas"
       />
-      <FormEmpresa pessoas={[]} corSugerida={proximaCor(empresas.map((e) => e.cor))} />
+      <NovaVisita>
+        <FormEmpresa pessoas={[]} corSugerida={proximaCor(empresas.map((e) => e.cor))} />
+      </NovaVisita>
     </>
   )
 }

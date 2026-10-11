@@ -1,6 +1,7 @@
 import type { Metadata } from 'next'
 import Link from 'next/link'
 import { Cabecalho } from '@/components/Cabecalho'
+import { NovaVisita } from '@/components/NovaVisita'
 import { Cartao } from '@/components/Cartao'
 import { listarEmpresas } from '@/lib/dados/empresas'
 import { listarPessoas } from '@/lib/dados/pessoas'
@@ -29,10 +30,12 @@ export default async function PaginaNovaPessoa() {
           </Cartao>
         </main>
       ) : (
-        <FormPessoa
-          empresas={empresas.map(({ id, nome, cor }) => ({ id, nome, cor }))}
-          capacetesUsados={pessoas.filter((p) => p.ativa).map((p) => p.nome_capacete)}
-        />
+        <NovaVisita>
+          <FormPessoa
+            empresas={empresas.map(({ id, nome, cor }) => ({ id, nome, cor }))}
+            capacetesUsados={pessoas.filter((p) => p.ativa).map((p) => p.nome_capacete)}
+          />
+        </NovaVisita>
       )}
     </>
   )

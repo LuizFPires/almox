@@ -1,5 +1,6 @@
 import 'server-only'
 import type { ChaveIcone } from '@/components/icones-ferramenta'
+import { compararCodigos } from '@/lib/dominio/cadastros'
 import { criarClienteServidor } from '@/lib/supabase/servidor'
 
 export type TipoFerramenta = {
@@ -18,7 +19,8 @@ export type AlteracaoValor = {
   de: string | null
   para: string | null
   criado_em: string
-  usuario: { nome: string } | null
+  /** Nome gravado no momento da alteração (continua se a pessoa sair da obra). */
+  usuario_nome: string | null
 }
 
 const CAMPOS =
@@ -36,7 +38,7 @@ export async function listarTipos(obraId: string): Promise<TipoFerramenta[]> {
   if (error) throw new Error('Não foi possível carregar as ferramentas.')
   return data.map((t) => ({
     ...t,
-    unidades: [...t.unidades].sort((a, b) => a.codigo.localeCompare(b.codigo)),
+    unidades: [...t.unidades].sort((a, b) => compararCodigos(a.codigo, b.codigo)),
   }))
 }
 
@@ -50,7 +52,7 @@ export async function historicoDoTipo(obraId: string, id: string): Promise<Alter
   const supabase = await criarClienteServidor()
   const { data, error } = await supabase
     .from('alteracao')
-    .select('id, campo, de, para, criado_em, usuario:usuario!alteracao_usuario_id_fkey (nome)')
+    .select('id, campo, de, para, criado_em, usuario_nome')
     .eq('obra_id', obraId)
     .eq('tabela', 'tipo_ferramenta')
     .eq('registro_id', id)

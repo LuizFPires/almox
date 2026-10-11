@@ -38,7 +38,12 @@ export async function trocarSenha(_: EstadoSenha, form: FormData): Promise<Estad
       app_metadata: { trocar_senha: false },
     })
     if (erroAdmin) return { erro: 'Senha trocada, mas não foi possível concluir. Entre de novo.' }
-    await supabase.auth.refreshSession()
+    const { error: erroSessao } = await supabase.auth.refreshSession()
+    if (erroSessao) {
+      // O token antigo ainda diria "troca pendente": melhor entrar de novo com a senha nova.
+      await supabase.auth.signOut()
+      redirect('/login?senha=trocada')
+    }
   }
   redirect('/inicio')
 }

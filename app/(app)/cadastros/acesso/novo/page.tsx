@@ -1,5 +1,6 @@
 import type { Metadata } from 'next'
 import { Cabecalho } from '@/components/Cabecalho'
+import { NovaVisita } from '@/components/NovaVisita'
 import { listarEmpresas } from '@/lib/dados/empresas'
 import { obterSessao } from '@/lib/sessao'
 import { FormNovoAcesso } from '../FormNovoAcesso'
@@ -12,11 +13,13 @@ export default async function PaginaNovoAcesso() {
   return (
     <>
       <Cabecalho titulo="Dar acesso" subtitulo={obraAtual.nome} voltarPara="/cadastros/usuarios" />
-      <FormNovoAcesso
-        empreiteiras={empresas
-          .filter((e) => e.tipo === 'empreiteira')
-          .map(({ id, nome }) => ({ id, nome }))}
-      />
+      <NovaVisita>
+        <FormNovoAcesso
+          empreiteiras={empresas
+            .filter((e) => e.tipo === 'empreiteira')
+            .map(({ id, nome }) => ({ id, nome }))}
+        />
+      </NovaVisita>
     </>
   )
 }

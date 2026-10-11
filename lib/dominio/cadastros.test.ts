@@ -1,6 +1,8 @@
 import { describe, expect, it } from 'vitest'
 import {
   capaceteRepetido,
+  compararCodigos,
+  dataValida,
   faltaEmail,
   lerValorReposicao,
   normalizarNomeCapacete,
@@ -91,5 +93,30 @@ describe('ferramentas', () => {
     expect(previaCodigos('MT', ['MT-01', 'MT-02', 'MT-03', 'FUR-09'], 5)).toBe('MT-04 a MT-08')
     expect(previaCodigos('PA', [], 1)).toBe('PA-01')
     expect(previaCodigos('PA', [], 0)).toBe('')
+  })
+})
+
+describe('revisão do M2', () => {
+  it('data real do calendário', () => {
+    expect(dataValida('2026-10-23')).toBe(true)
+    expect(dataValida('2028-02-29')).toBe(true)
+    expect(dataValida('2026-02-31')).toBe(false)
+    expect(dataValida('23/10/2026')).toBe(false)
+  })
+
+  it('ordena códigos pelo número', () => {
+    const codigos = ['FUR-100', 'FUR-11', 'FUR-02', 'ESC-01', 'FUR-99']
+    expect([...codigos].sort(compararCodigos)).toEqual([
+      'ESC-01',
+      'FUR-02',
+      'FUR-11',
+      'FUR-99',
+      'FUR-100',
+    ])
+  })
+
+  it('prévia de códigos passa de 99 para 100', () => {
+    const existentes = Array.from({ length: 99 }, (_, i) => `SER-${String(i + 1).padStart(2, '0')}`)
+    expect(previaCodigos('SER', existentes, 2)).toBe('SER-100 a SER-101')
   })
 })

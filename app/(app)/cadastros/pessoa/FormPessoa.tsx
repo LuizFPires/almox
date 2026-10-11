@@ -1,6 +1,6 @@
 'use client'
 
-import { useActionState, useState } from 'react'
+import { useActionState, useId, useState } from 'react'
 import { Botao } from '@/components/Botao'
 import { Campo, ErroFormulario } from '@/components/Formulario'
 import { RodapeAcao } from '@/components/RodapeAcao'
@@ -24,6 +24,8 @@ const CLASSE_CHIP =
 
 export function FormPessoa({ pessoa, empresas, capacetesUsados }: Props) {
   const [estado, acao, salvando] = useActionState(salvarPessoa, {})
+  const idErroFuncao = useId()
+  const idErroEmpresa = useId()
   const erros = estado.campos ?? {}
   const funcaoInicial = pessoa?.funcao ?? ''
   const ehSugerida = (FUNCOES_SUGERIDAS as readonly string[]).includes(funcaoInicial)
@@ -73,7 +75,10 @@ export function FormPessoa({ pessoa, empresas, capacetesUsados }: Props) {
           }
         />
 
-        <fieldset className="flex flex-col gap-2">
+        <fieldset
+          className="flex flex-col gap-2"
+          aria-describedby={erros.funcao ? idErroFuncao : undefined}
+        >
           <legend className="mb-1.5 text-sm font-semibold">Função</legend>
           <div className="flex flex-wrap gap-2">
             {[...FUNCOES_SUGERIDAS, 'Outra'].map((f) => (
@@ -101,10 +106,17 @@ export function FormPessoa({ pessoa, empresas, capacetesUsados }: Props) {
               required
             />
           )}
-          {erros.funcao && <span className="text-sm font-semibold text-erro">{erros.funcao}</span>}
+          {erros.funcao && (
+            <span id={idErroFuncao} className="text-sm font-semibold text-erro">
+              {erros.funcao}
+            </span>
+          )}
         </fieldset>
 
-        <fieldset className="flex flex-col gap-2">
+        <fieldset
+          className="flex flex-col gap-2"
+          aria-describedby={erros.empresa_id ? idErroEmpresa : undefined}
+        >
           <legend className="mb-1.5 text-sm font-semibold">Empresa</legend>
           <div className="flex flex-wrap gap-2">
             {empresas.map((e) => (
@@ -130,7 +142,9 @@ export function FormPessoa({ pessoa, empresas, capacetesUsados }: Props) {
             ))}
           </div>
           {erros.empresa_id && (
-            <span className="text-sm font-semibold text-erro">{erros.empresa_id}</span>
+            <span id={idErroEmpresa} className="text-sm font-semibold text-erro">
+              {erros.empresa_id}
+            </span>
           )}
         </fieldset>
 

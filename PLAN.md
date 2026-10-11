@@ -20,7 +20,7 @@ Fonte da verdade do produto: `PRD.md`. Regras para quem codifica: `CLAUDE.md`.
 | M3 | Adesivo do capacete e impressão | ✅ Concluído (critério de 10 s conferido no simulador; falta a impressora real) | 11/10/2026 |
 | M4 | Identificação por QR e ficha da pessoa | ✅ Concluído (câmera conferida no Chromium; falta testar no Android e no iPhone reais) | 11/10/2026 |
 | M5 | Retirada | ✅ Concluído | 11/10/2026 |
-| M6 | Devolução e avaria | ⬜ A fazer | |
+| M6 | Devolução e avaria | 🟨 Em andamento | |
 | M7 | Lista, estoque e busca | ⬜ A fazer | |
 | M8 | Painel da TV | ⬜ A fazer | |
 | M9 | Fechamento do dia e avisos às empreiteiras | ⬜ A fazer | |
@@ -181,6 +181,7 @@ Legenda: ⬜ A fazer · 🟨 Em andamento · ✅ Concluído · ⛔ Bloqueado
 - [ ] Ficha: botão Devolução desabilitado com explicação quando não permitido + atalho "Ler capacete do {nome}"
 - [ ] RPC `registrar_devolucao` transacional
 - [ ] Estorno: engenheiro pode estornar um movimento com motivo (novo movimento `estorno`), nunca editar
+- [ ] Manutenção: lista das peças em manutenção (com foto e motivo); "Voltou do conserto" (volta a livre, engenheiro ou almoxarife) e "Dar baixa" (sai do estoque, só engenheiro)
 
 **Critérios de aceite**
 - Joaquim devolve 1 de 2 pás, 1 avariada com foto: 1 unidade em manutenção, 1 pá continua com ele.
@@ -389,3 +390,7 @@ Legenda: ⬜ A fazer · 🟨 Em andamento · ✅ Concluído · ⛔ Bloqueado
 | 11/10/2026 | M5 (revisão): retirada **idempotente**. O celular gera uma chave ao entrar na revisão; repetir "Concluir" depois de a rede cair devolve o mesmo movimento, sem duplicar. Cada item da lista é validado no servidor. O Início ao vivo usa um canal novo a cada abertura. O rodapé fixo deixa espaço para o campo em foco. |
 | 11/10/2026 | M5 (revisão, aceito sem mudança): com `skip locked`, se outro celular segura a unidade e desiste, este pode receber um "acabou de sair" falso e resolve tentando de novo. Esperar a trava evitaria isso, mas abriria risco de deadlock entre pedidos com vários tipos. O e2e de dois celulares testa o comportamento (um leva, o outro é avisado), não a simultaneidade exata no banco. |
 | 11/10/2026 | M5 (comparação com o protótipo): selo SAÍDA, "−" com "toque no ícone: +1", ícone em fundo branco quando escolhido, confirmação marcada em grafite com check amarelo, botão desligado em cinza (em todo o app) e botões lado a lado no sucesso. Aceito sem mudança: nome da ferramenta embaixo do ícone (regra do CLAUDE.md) em vez de ao lado; "todas escolhidas" no limite, porque avisa por que o toque não soma. |
+| 11/10/2026 | M6 (decidido pelo dono): **uma foto e um motivo por peça avariada** (2 pás avariadas = 2 fotos). O **sistema escolhe** quais códigos ficam como avariados, entre os que voltam, como no protótipo. Fotos em Storage privado, comprimidas no celular, vistas só por URL assinada. |
+| 11/10/2026 | M6 (decidido pelo dono): **estorno** de retirada e de devolução, só pelo engenheiro e com motivo, a partir do lançamento. Não deixa se as peças já tiveram outro movimento depois (corrige do mais novo para o mais velho). O movimento original fica como está (RN-18). |
+| 11/10/2026 | M6 (decidido pelo dono): **manutenção** entra no M6. "Voltou do conserto" (volta a livre; engenheiro ou almoxarife) e "Dar baixa" (sai do estoque; só engenheiro). Antes nenhum milestone previa a peça voltar. |
+| 11/10/2026 | M6: devolução com QR exige a conferência do M4 (mesma regra da retirada); sem ela, só os itens que saíram sem QR (RN-02/RN-06), conferido no servidor. Devolução idempotente (chave do celular), como a retirada. |

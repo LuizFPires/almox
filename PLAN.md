@@ -366,3 +366,6 @@ Legenda: ⬜ A fazer · 🟨 Em andamento · ✅ Concluído · ⛔ Bloqueado
 | 11/10/2026 | M3: o agente **consulta a fila a cada 2 s** por RPC (só conexões de saída, sem sessão para renovar) em vez de Realtime. |
 | 11/10/2026 | M3: **um token por mini PC** (cadastro "dispositivo da obra") para TV e agente; o banco guarda só o hash; revogar desliga os dois. |
 | 11/10/2026 | M3: agente roda com **Node 24 + script que instala como serviço** (Windows e Linux). |
+| 11/10/2026 | M3: agente de impressão em **TypeScript rodado direto pelo Node** (sem build, sem dependências); no Windows roda como *Serviço Local* com a pasta gravável só por administradores, no Linux como unidade systemd. Log só de eventos, sem token nem conteúdo das etiquetas. |
+| 11/10/2026 | M3: "Salvar e imprimir adesivo" é o botão principal da pessoa nova (com "Salvar sem imprimir" ao lado) e leva à ficha, onde ficam a prévia, a situação das impressões e "Reimprimir" (1 a 5 cópias, mesmo token). Falha ao mandar para a fila **não desfaz o cadastro**: vira aviso na ficha. |
+| 11/10/2026 | M3: agente "online" = deu sinal nos últimos 30 s; sem impressora escolhida, Cadastros mostra o cartão da impressora com borda vermelha. Trabalho parado em "enviando" por mais de 1 minuto volta para a fila. |

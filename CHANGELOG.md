@@ -2,6 +2,20 @@
 
 Registro do que foi entregue em cada milestone (ver `PLAN.md`).
 
+## M3 — Adesivo do capacete e impressão (em revisão)
+
+### Adicionado
+- Adesivo 60 × 80 mm em **ZPL e TSPL** (QR desenhado pela impressora, **só com o token**), com prévia igual ao protótipo na ficha da pessoa.
+- Fila de impressão (`trabalho_impressao`: pendente → enviando → enviado / erro) só por RPC; conteúdo da etiqueta ilegível pelo app.
+- Tela **Impressora** (engenheiro): impressora da obra (IP, porta, linguagem, rolo), etiqueta de teste, situação do agente, últimas impressões; cartão da impressora no topo de Cadastros.
+- Mini PC da obra com **token mostrado uma vez** (só o hash no banco) e revogação.
+- Pessoa nova com **"Salvar e imprimir adesivo"**; "Reimprimir" com 1 a 5 cópias; mensagens de agente desligado e impressora sem resposta.
+- **Agente de impressão** (`agente-impressao/`): consulta a fila a cada 2 s, manda para `ip:9100`, informa o resultado; impressora simulada; instaladores de serviço para Windows e Linux; guia `LEIA-ME.md`.
+- 27 testes pgTAP do M3 (100 no total), 91 unitários e e2e de ponta a ponta com o agente de verdade (adesivo sai em menos de 1 s com a impressora simulada).
+
+### Pendente
+- Critério "imprime em até 10 s" com a **impressora real** (ainda não comprada).
+
 ## M2 — Cadastros do engenheiro (concluído em 11/10/2026)
 
 ### Adicionado

@@ -6,7 +6,7 @@ import { buscarFicha, identificacaoValida } from '@/lib/dados/ficha'
 import { agruparParaDevolver, type ItemComEla } from '@/lib/dominio/devolucao'
 import { textoIdentificacao } from '@/lib/dominio/ficha'
 import { primeiroNome } from '@/lib/dominio/leitura'
-import { podeLancar } from '@/lib/dominio/permissoes'
+import { podeLancar, rotuloPerfil } from '@/lib/dominio/permissoes'
 import { obterSessao } from '@/lib/sessao'
 import { FluxoDevolucao } from './FluxoDevolucao'
 
@@ -19,7 +19,7 @@ export default async function PaginaDevolucao({
 }: PageProps<'/pessoa/[id]/devolucao'>) {
   const { id } = await params
   const { ident, via } = (await searchParams) as { ident?: string; via?: string }
-  const { obraAtual } = await obterSessao()
+  const { obraAtual, usuario } = await obterSessao()
   if (!podeLancar(obraAtual.perfil)) redirect(`/pessoa/${id}`)
   const [pessoa, conferidaAte] = await Promise.all([
     buscarFicha(obraAtual.id, id),
@@ -49,6 +49,7 @@ export default async function PaginaDevolucao({
   return (
     <FluxoDevolucao
       obraId={obraAtual.id}
+      autor={`${usuario.nome} (${rotuloPerfil(obraAtual.perfil).toLowerCase()})`}
       pessoa={{ id: pessoa.id, nome: pessoa.nome, primeiro, iniciais: iniciais(pessoa.nome) }}
       identificacao={textoIdentificacao(
         conferida ? 'qr' : via === 'manual' ? 'manual' : 'lista',

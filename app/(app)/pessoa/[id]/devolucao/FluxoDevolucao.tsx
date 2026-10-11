@@ -16,11 +16,14 @@ import {
   type GrupoDevolucao,
 } from '@/lib/dominio/devolucao'
 import type { TextoIdentificacao } from '@/lib/dominio/ficha'
+import { formatarHora } from '@/lib/formatos/datas'
 import { registrarDevolucao, type FalhaDevolucao } from './acoes'
 import { descartarFoto, FotoAvaria, type FotoFeita } from './FotoAvaria'
 
 type Props = {
   obraId: string
+  /** "Ana (almoxarife)" para o carimbo da foto. */
+  autor: string
   pessoa: { id: string; nome: string; primeiro: string; iniciais: string }
   identificacao: TextoIdentificacao
   /** Id da conferência do capacete; null = sem QR (só volta o que saiu sem QR). */
@@ -32,6 +35,25 @@ type Props = {
   voltarParaFicha: string
 }
 
+function IconeCamera() {
+  return (
+    <svg
+      width="20"
+      height="20"
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth={2}
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      aria-hidden="true"
+    >
+      <path d="M4 8h3l2-3h6l2 3h3v11H4z" />
+      <circle cx="12" cy="13" r="3.5" />
+    </svg>
+  )
+}
+
 const SELO_ENTRADA = (
   <span className="rounded-full bg-escuro px-3 py-1 text-xs font-bold tracking-wide text-white">
     ENTRADA
@@ -41,7 +63,11 @@ const SELO_ENTRADA = (
 function Contador(props: {
   rotulo: string
   ajuda?: string
-  valor: string
+  valor: number
+  /** " de N" em letra menor, como no protótipo. */
+  de?: number
+  /** Painel: fundo cinza claro (Devolvendo) ou com borda (Avariadas). */
+  painel: 'cheio' | 'borda'
   menos: () => void
   mais: () => void
   podeMenos: boolean
@@ -50,7 +76,11 @@ function Contador(props: {
   alerta?: boolean
 }) {
   return (
-    <div className="flex items-center gap-2">
+    <div
+      className={`flex items-center gap-2 rounded-botao px-3 py-2 ${
+        props.painel === 'cheio' ? 'bg-sutil' : 'border border-borda'
+      }`}
+    >
       <span className="flex flex-1 flex-col">
         <span className={`text-[15px] font-semibold ${props.alerta ? 'text-erro' : ''}`}>
           {props.rotulo}
@@ -68,9 +98,10 @@ function Contador(props: {
       </button>
       <output
         aria-live="polite"
-        className={`min-w-14 text-center font-bold tabular-nums ${props.alerta ? 'text-erro' : ''}`}
+        className={`min-w-16 text-center tabular-nums ${props.alerta ? 'text-erro' : ''}`}
       >
-        {props.valor}
+        <span className="text-[28px] leading-none font-bold">{props.valor}</span>
+        {props.de !== undefined && <span className="text-sm text-texto-2"> de {props.de}</span>}
       </output>
       <button
         type="button"
@@ -87,7 +118,8 @@ function Contador(props: {
 
 /** Devolução (F-06): por tipo, "Devolvendo" e "Avariadas" com foto por peça (RN-09). */
 export function FluxoDevolucao(props: Props) {
-  const { obraId, pessoa, identificacao, conferencia, grupos, todos, voltarParaFicha } = props
+  const { obraId, autor, pessoa, identificacao, conferencia, grupos, todos, voltarParaFicha } =
+    props
   const [dev, setDev] = useState<Record<string, number>>({})
   const [avarias, setAvarias] = useState<Record<string, (FotoFeita | null)[]>>({})
   const [fotografando, setFotografando] = useState<{ tipoId: string; indice: number } | null>(null)
@@ -153,6 +185,7 @@ export function FluxoDevolucao(props: Props) {
     return (
       <FotoAvaria
         obraId={obraId}
+        autor={autor}
         tipo={grupo?.tipo ?? ''}
         qual={n > 1 ? `· avariada ${fotografando.indice + 1} de ${n}` : ''}
         selo={SELO_ENTRADA}
@@ -207,9 +240,7 @@ export function FluxoDevolucao(props: Props) {
                   onClick={() => mudarDevolvendo(g.tipoId, q + 1)}
                   className="shrink-0 rounded-full disabled:opacity-60"
                 >
-                  {ehChaveIcone(g.icone) && (
-                    <IconeFerramenta icone={g.icone} nome={g.tipo} tamanho="p" />
-                  )}
+                  {ehChaveIcone(g.icone) && <IconeFerramenta icone={g.icone} nome={g.tipo} />}
                 </button>
                 <span className="text-[13px] text-texto-2">
                   Toque no ícone: +1 · com ele: {g.codigos.length} ·{' '}
@@ -219,7 +250,9 @@ export function FluxoDevolucao(props: Props) {
               <Contador
                 rotulo="Devolvendo"
                 nome={`devolvendo ${g.tipo}`}
-                valor={`${q} de ${g.codigos.length}`}
+                valor={q}
+                de={g.codigos.length}
+                painel="cheio"
                 podeMenos={q > 0}
                 podeMais={q < g.codigos.length}
                 menos={() => mudarDevolvendo(g.tipoId, q - 1)}
@@ -230,7 +263,8 @@ export function FluxoDevolucao(props: Props) {
                   rotulo="Avariadas"
                   ajuda="das que estão voltando"
                   nome={`avariadas ${g.tipo}`}
-                  valor={String(av.length)}
+                  valor={av.length}
+                  painel="borda"
                   alerta={av.length > 0}
                   podeMenos={av.length > 0}
                   podeMais={av.length < q}
@@ -248,7 +282,9 @@ export function FluxoDevolucao(props: Props) {
                     <img src={a.previa} alt="" className="size-12 rounded-botao object-cover" />
                     <span className="flex flex-1 flex-col text-sm">
                       <span className="font-bold text-erro">Foto anexada</span>
-                      <span>{rotuloMotivo(a.motivo)}</span>
+                      <span>
+                        {rotuloMotivo(a.motivo)} · foto {formatarHora(a.hora)}
+                      </span>
                     </span>
                     <button
                       type="button"
@@ -263,8 +299,9 @@ export function FluxoDevolucao(props: Props) {
                     key={i}
                     type="button"
                     onClick={() => setFotografando({ tipoId: g.tipoId, indice: i })}
-                    className="flex min-h-toque items-center justify-center rounded-botao bg-erro px-4 font-bold text-white"
+                    className="flex min-h-toque items-center justify-center gap-2 rounded-botao bg-erro px-4 font-bold text-white"
                   >
+                    <IconeCamera />
                     Fotografar a avaria{av.length > 1 ? ` ${i + 1}` : ''}
                   </button>
                 ),

@@ -4,15 +4,17 @@ import { useEffect, useRef, useState } from 'react'
 import { Botao } from '@/components/Botao'
 import { Cabecalho } from '@/components/Cabecalho'
 import { RodapeAcao } from '@/components/RodapeAcao'
-import { MOTIVOS, rotuloMotivo, type Motivo } from '@/lib/dominio/devolucao'
+import { MOTIVOS, rotuloMotivo, textoCarimbo, type Motivo } from '@/lib/dominio/devolucao'
 import { comprimirFoto } from '@/lib/imagem'
 import { criarClienteNavegador } from '@/lib/supabase/navegador'
 
-export type FotoFeita = { motivo: Motivo; foto: string; previa: string }
+export type FotoFeita = { motivo: Motivo; foto: string; previa: string; hora: string }
 
 type Props = {
   obraId: string
   tipo: string
+  /** Quem fotografa, para o carimbo ("Ana (almoxarife)"). */
+  autor: string
   /** "1 de 2" quando há mais de uma peça avariada do tipo. */
   qual: string
   aoVoltar: () => void
@@ -24,9 +26,9 @@ type Props = {
  * Foto da avaria (RN-09): câmera traseira do celular, compressão aqui mesmo e envio ao Storage
  * privado; depois o motivo. Uma foto por peça avariada (decisão do M6).
  */
-export function FotoAvaria({ obraId, tipo, qual, aoVoltar, aoUsar, selo }: Props) {
+export function FotoAvaria({ obraId, tipo, autor, qual, aoVoltar, aoUsar, selo }: Props) {
   const entrada = useRef<HTMLInputElement>(null)
-  const [foto, setFoto] = useState<{ blob: Blob; previa: string } | null>(null)
+  const [foto, setFoto] = useState<{ blob: Blob; previa: string; hora: string } | null>(null)
   const [motivo, setMotivo] = useState<Motivo | null>(null)
   const [enviando, setEnviando] = useState(false)
   const [erro, setErro] = useState<string | null>(null)
@@ -37,8 +39,10 @@ export function FotoAvaria({ obraId, tipo, qual, aoVoltar, aoUsar, selo }: Props
     if (!arquivo) return
     setErro(null)
     try {
-      const blob = await comprimirFoto(arquivo)
-      setFoto({ blob, previa: URL.createObjectURL(blob) })
+      const agora = new Date()
+      // Carimbo gravado na imagem (decisão do M6): ferramenta · data e hora · quem fotografou.
+      const blob = await comprimirFoto(arquivo, textoCarimbo(tipo, agora, autor))
+      setFoto({ blob, previa: URL.createObjectURL(blob), hora: agora.toISOString() })
     } catch {
       setErro('Não foi possível ler a foto. Tente de novo.')
     }
@@ -58,7 +62,7 @@ export function FotoAvaria({ obraId, tipo, qual, aoVoltar, aoUsar, selo }: Props
       return
     }
     // A prévia segue viva com a tela de devolução (que a libera ao refazer ou concluir).
-    aoUsar({ motivo, foto: caminho, previa: URL.createObjectURL(foto.blob) })
+    aoUsar({ motivo, foto: caminho, previa: URL.createObjectURL(foto.blob), hora: foto.hora })
   }
 
   const textoBotao = !foto ? 'Tire a foto' : !motivo ? 'Escolha o problema' : 'Usar esta foto'
@@ -123,7 +127,7 @@ export function FotoAvaria({ obraId, tipo, qual, aoVoltar, aoUsar, selo }: Props
                   key={m.valor}
                   className={`flex min-h-toque cursor-pointer items-center rounded-full border-2 px-4 text-[15px] font-semibold has-[:focus-visible]:outline-3 has-[:focus-visible]:outline-foco ${
                     motivo === m.valor
-                      ? 'border-erro bg-erro-claro text-erro'
+                      ? 'border-erro bg-erro-claro text-texto'
                       : 'border-borda bg-cartao'
                   }`}
                 >

@@ -1,6 +1,8 @@
 import type { Metadata } from 'next'
 import Link from 'next/link'
 import { notFound } from 'next/navigation'
+import { IconeFerramenta } from '@/components/IconeFerramenta'
+import { ehChaveIcone } from '@/components/icones-ferramenta'
 import { IconeInterface } from '@/components/IconeInterface'
 import { buscarDevolucao } from '@/lib/dados/devolucao'
 import { compararCodigos } from '@/lib/dominio/cadastros'
@@ -21,10 +23,14 @@ export default async function PaginaDevolucaoFeita({
   const devolucao = mov && UUID.test(mov) ? await buscarDevolucao(obraAtual.id, mov) : null
   if (!devolucao) notFound()
 
-  const porTipo = new Map<string, { codigos: string[]; avariadas: number }>()
+  const porTipo = new Map<string, { icone: string; codigos: string[]; avariadas: number }>()
   for (const item of devolucao.itens) {
     const nome = item.unidade?.tipo?.nome ?? ''
-    const g = porTipo.get(nome) ?? { codigos: [], avariadas: 0 }
+    const g = porTipo.get(nome) ?? {
+      icone: item.unidade?.tipo?.icone ?? '',
+      codigos: [],
+      avariadas: 0,
+    }
     g.codigos.push(item.unidade?.codigo ?? '')
     if (item.avariada) g.avariadas++
     porTipo.set(nome, g)
@@ -46,17 +52,18 @@ export default async function PaginaDevolucaoFeita({
       </div>
       <ul className="flex flex-col divide-y divide-borda rounded-cartao bg-cartao px-4 py-1">
         {[...porTipo.entries()].map(([tipo, g]) => (
-          <li key={tipo} className="flex flex-col py-3">
-            <span className="font-bold">
-              {tipo} ×{g.codigos.length}{' '}
-              <span className="font-mono text-sm font-normal">
-                {[...g.codigos].sort(compararCodigos).join(', ')}
+          <li key={tipo} className="flex items-center gap-3 py-3">
+            {ehChaveIcone(g.icone) && <IconeFerramenta icone={g.icone} nome={tipo} tamanho="p" />}
+            <span className="flex min-w-0 flex-col">
+              <span className="font-bold">
+                ×{g.codigos.length}{' '}
+                <span className="font-mono text-xs font-normal text-texto-2">
+                  {[...g.codigos].sort(compararCodigos).join(', ')}
+                </span>
               </span>
-            </span>
-            <span
-              className={`text-[13px] font-semibold ${g.avariadas > 0 ? 'text-erro' : 'text-sucesso'}`}
-            >
-              {statusDevolvido(g.codigos.length, g.avariadas)}
+              <span className={`text-[13px] ${g.avariadas > 0 ? 'text-erro' : 'text-sucesso'}`}>
+                {statusDevolvido(g.codigos.length, g.avariadas)}
+              </span>
             </span>
           </li>
         ))}

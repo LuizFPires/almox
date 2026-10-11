@@ -8,7 +8,7 @@ export type DevolucaoFeita = {
   pessoa: { id: string; nome: string } | null
   itens: {
     avariada: boolean
-    unidade: { codigo: string; tipo: { nome: string } | null } | null
+    unidade: { codigo: string; tipo: { nome: string; icone: string } | null } | null
   }[]
 }
 
@@ -20,7 +20,7 @@ export async function buscarDevolucao(obraId: string, id: string): Promise<Devol
     .select(
       'id, via, criado_em, pessoa:pessoa!movimento_pessoa_id_obra_id_fkey (id, nome), ' +
         'itens:movimento_item!movimento_item_movimento_id_obra_id_fkey (avariada, ' +
-        'unidade:unidade!movimento_item_unidade_id_obra_id_fkey (codigo, tipo:tipo_ferramenta!unidade_tipo_id_obra_id_fkey (nome)))',
+        'unidade:unidade!movimento_item_unidade_id_obra_id_fkey (codigo, tipo:tipo_ferramenta!unidade_tipo_id_obra_id_fkey (nome, icone)))',
     )
     .eq('obra_id', obraId)
     .eq('id', id)

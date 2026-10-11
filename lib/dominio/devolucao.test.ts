@@ -5,6 +5,7 @@ import {
   rotuloMotivo,
   statusDevolvido,
   textoFicaComEle,
+  textoCarimbo,
   textoRegistrar,
   type ItemComEla,
 } from './devolucao'
@@ -67,5 +68,11 @@ describe('devolução', () => {
   it('rótulos dos motivos', () => {
     expect(rotuloMotivo('cabo_rompido')).toBe('Cabo rompido')
     expect(rotuloMotivo('nao_liga')).toBe('Não liga')
+  })
+
+  it('carimbo da foto: ferramenta, data e hora da obra, quem fotografou', () => {
+    expect(textoCarimbo('Pá', new Date('2026-10-11T17:32:00Z'), 'Ana (almoxarife)')).toBe(
+      'Pá · 11/10/2026 14:32 · Ana (almoxarife)',
+    )
   })
 })

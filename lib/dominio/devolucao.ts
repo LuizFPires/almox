@@ -1,3 +1,4 @@
+import { formatarDataHora } from '@/lib/formatos/datas'
 import { compararCodigos } from './cadastros'
 
 /** Motivos de avaria (RN-09), na ordem do protótipo. */
@@ -92,4 +93,9 @@ export function statusDevolvido(quantidade: number, avariadas: number): string {
     return quantidade === 1 ? 'avariada · foi para manutenção' : 'avariadas · foram para manutenção'
   }
   return `${quantidade - avariadas} em ordem · ${avariadas} para manutenção`
+}
+
+/** Carimbo gravado na foto da avaria: "Pá · 11/10/2026 14:32 · Ana (almoxarife)". */
+export function textoCarimbo(tipo: string, quando: Date, autor: string): string {
+  return `${tipo} · ${formatarDataHora(quando)} · ${autor}`
 }

@@ -4,6 +4,8 @@
  */
 export async function comprimirFoto(
   arquivo: File,
+  /** Texto gravado no pé da foto (ferramenta · data e hora · quem fotografou). */
+  carimbo?: string,
   ladoMaximo = 1280,
   qualidade = 0.7,
 ): Promise<Blob> {
@@ -18,6 +20,7 @@ export async function comprimirFoto(
   if (!contexto) throw new Error('Não foi possível preparar a foto.')
   contexto.drawImage(imagem.fonte, 0, 0, largura, altura)
   imagem.fechar()
+  if (carimbo) carimbar(contexto, carimbo, largura, altura)
   return new Promise((resolver, rejeitar) =>
     tela.toBlob(
       (blob) => (blob ? resolver(blob) : rejeitar(new Error('Não foi possível preparar a foto.'))),
@@ -59,4 +62,25 @@ async function abrirImagem(arquivo: Blob): Promise<ImagemAberta> {
     height: img.naturalHeight,
     fechar: () => URL.revokeObjectURL(url),
   }
+}
+
+/** Faixa escura no pé da foto com o carimbo (fica gravado na imagem, como prova). */
+function carimbar(
+  contexto: CanvasRenderingContext2D,
+  texto: string,
+  largura: number,
+  altura: number,
+) {
+  const faixa = Math.max(28, Math.round(altura * 0.07))
+  let fonte = Math.round(faixa * 0.5)
+  contexto.font = `600 ${fonte}px sans-serif`
+  while (fonte > 10 && contexto.measureText(texto).width > largura - faixa) {
+    fonte -= 1
+    contexto.font = `600 ${fonte}px sans-serif`
+  }
+  contexto.fillStyle = 'rgba(16, 23, 32, 0.72)'
+  contexto.fillRect(0, altura - faixa, largura, faixa)
+  contexto.fillStyle = '#ffffff'
+  contexto.textBaseline = 'middle'
+  contexto.fillText(texto, Math.round(faixa / 2), altura - faixa / 2)
 }

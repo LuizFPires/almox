@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation'
 import { useState, useTransition } from 'react'
 import { Botao } from '@/components/Botao'
 import { Cabecalho } from '@/components/Cabecalho'
+import { CartaoPessoaLancamento } from '@/components/CartaoPessoaLancamento'
 import { IconeFerramenta } from '@/components/IconeFerramenta'
 import { ehChaveIcone } from '@/components/icones-ferramenta'
 import { RodapeAcao } from '@/components/RodapeAcao'
@@ -37,27 +38,6 @@ const SELO_SAIDA = (
     SAÍDA
   </span>
 )
-
-const TONS = { sucesso: 'text-sucesso', erro: 'text-erro', neutro: 'text-texto-2' } as const
-
-function CartaoPessoa({ pessoa, identificacao }: Pick<Props, 'pessoa' | 'identificacao'>) {
-  return (
-    <div className="flex items-center gap-3 rounded-cartao bg-cartao px-4 py-3">
-      <span
-        aria-hidden="true"
-        className="flex size-11 shrink-0 items-center justify-center rounded-full bg-escuro font-bold text-amarelo"
-      >
-        {pessoa.iniciais}
-      </span>
-      <span className="flex min-w-0 flex-col">
-        <span className="truncate text-base font-bold">{pessoa.nome}</span>
-        <span className={`text-[13px] font-semibold ${TONS[identificacao.tom]}`}>
-          {identificacao.texto}
-        </span>
-      </span>
-    </div>
-  )
-}
 
 /** Retirada (F-05): grade de tipos (toque soma 1) → revisão com confirmação → concluir. */
 export function FluxoRetirada(props: Props) {
@@ -131,7 +111,7 @@ export function FluxoRetirada(props: Props) {
           aoVoltar={() => setEtapa('grade')}
         />
         <main className="flex flex-1 flex-col gap-3.5 px-5 pt-2 pb-4">
-          <CartaoPessoa pessoa={pessoa} identificacao={identificacao} />
+          <CartaoPessoaLancamento pessoa={pessoa} identificacao={identificacao} />
           <div className="flex flex-col divide-y divide-borda rounded-cartao bg-cartao px-4 py-1">
             {marcadas.map(({ tipo, quantidade }) => (
               <div key={tipo.id} className="flex items-center gap-3 py-3">
@@ -189,7 +169,7 @@ export function FluxoRetirada(props: Props) {
         <RodapeAcao
           resumo={
             <span className="flex justify-between gap-3 text-sm">
-              <span className="font-normal text-texto-2">Identificação</span>
+              <span className="shrink-0 font-normal text-texto-2">Identificação</span>
               <span>{manual ? 'manual · sem QR' : 'QR do capacete'}</span>
             </span>
           }
@@ -221,7 +201,7 @@ export function FluxoRetirada(props: Props) {
         voltarPara={voltarParaFicha}
       />
       <main className="flex flex-1 flex-col gap-3.5 px-5 pt-2 pb-4">
-        <CartaoPessoa pessoa={pessoa} identificacao={identificacao} />
+        <CartaoPessoaLancamento pessoa={pessoa} identificacao={identificacao} />
         {avisoFalha}
         <h2 className="text-[13px] font-bold tracking-[1.2px] text-texto-2">
           CADA TOQUE NO ÍCONE SOMA 1
@@ -276,7 +256,7 @@ export function FluxoRetirada(props: Props) {
       <RodapeAcao
         resumo={
           <span className="flex justify-between gap-3 text-sm">
-            <span className="font-normal text-texto-2">Selecionados</span>
+            <span className="shrink-0 font-normal text-texto-2">Selecionados</span>
             <span className="truncate">{resumoEscolhas(escolhas)}</span>
           </span>
         }

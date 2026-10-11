@@ -9,7 +9,7 @@ export type ItemComPessoa = {
   via: 'qr' | 'manual'
   unidade: {
     codigo: string
-    tipo: { nome: string; icone: string; alto_valor: boolean } | null
+    tipo: { id: string; nome: string; icone: string; alto_valor: boolean } | null
   } | null
 }
 
@@ -36,7 +36,7 @@ export async function buscarFicha(obraId: string, id: string): Promise<FichaPess
         'empresa:empresa!pessoa_empresa_id_obra_id_fkey (id, nome, cor), ' +
         'posses:posse!posse_pessoa_id_obra_id_fkey (unidade_id, desde, via, ' +
         'unidade:unidade!posse_unidade_id_obra_id_fkey (codigo, ' +
-        'tipo:tipo_ferramenta!unidade_tipo_id_obra_id_fkey (nome, icone, alto_valor)))',
+        'tipo:tipo_ferramenta!unidade_tipo_id_obra_id_fkey (id, nome, icone, alto_valor)))',
     )
     .eq('obra_id', obraId)
     .eq('id', id)

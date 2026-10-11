@@ -83,6 +83,7 @@ export async function resumoDoDia(
 }
 
 type MovimentoLinha = {
+  id: string
   tipo: 'retirada' | 'devolucao' | 'estorno'
   via: 'qr' | 'manual'
   criado_em: string
@@ -101,7 +102,7 @@ export async function ultimosLancamentos(obraId: string): Promise<Lancamento[]> 
     supabase
       .from('movimento')
       .select(
-        'tipo, via, criado_em, pessoa:pessoa!movimento_pessoa_id_obra_id_fkey (nome), ' +
+        'id, tipo, via, criado_em, pessoa:pessoa!movimento_pessoa_id_obra_id_fkey (nome), ' +
           'itens:movimento_item!movimento_item_movimento_id_obra_id_fkey (' +
           'unidade:unidade!movimento_item_unidade_id_obra_id_fkey (codigo, tipo:tipo_ferramenta!unidade_tipo_id_obra_id_fkey (nome)))',
       )
@@ -122,6 +123,7 @@ export async function ultimosLancamentos(obraId: string): Promise<Lancamento[]> 
   }
   return maisRecentes([
     ...movimentos.data.map((m): Lancamento => ({
+      id: m.id,
       tipo: m.tipo,
       via: m.via,
       quando: m.criado_em,

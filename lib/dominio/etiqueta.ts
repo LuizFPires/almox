@@ -46,6 +46,11 @@ function tokenSeguro(token: string) {
   return token
 }
 
+/** Segmento único de bytes no QR: "B" + tamanho com 4 dígitos + dados (ZPL e TSPL). */
+function qrBytes(token: string) {
+  return `B${String(token.length).padStart(4, '0')}${token}`
+}
+
 function copiasValidas(copias: number) {
   if (!Number.isInteger(copias) || copias < 1 || copias > 5) {
     throw new Error('Cópias de 1 a 5.')
@@ -116,7 +121,9 @@ export function gerarAdesivoZpl(d: DadosAdesivo, copias = 1): string {
     `^LL${ALTURA}`,
     '^LH0,0',
     // QR: modelo 2, correção M, só o token.
-    `^FO${l.qr.x},${l.qr.y}^BQN,2,${l.qr.ampliacao}^FDMA,${tokenSeguro(d.token)}^FS`,
+    // Modo manual, um segmento só de bytes ("MM,B" + tamanho): o modo automático pode
+    // misturar segmento numérico e de bytes, e alguns leitores (zxing) não leem.
+    `^FO${l.qr.x},${l.qr.y}^BQN,2,${l.qr.ampliacao}^FDMM,${qrBytes(tokenSeguro(d.token))}^FS`,
     texto(l.capacete.y, l.capacete.altura, 1, 'C', l.capacete.texto),
     texto(l.nome.y, l.nome.altura, 1, 'C', l.nome.texto),
     texto(l.funcao.y, l.funcao.altura, 2, 'C', l.funcao.texto),
@@ -142,8 +149,8 @@ export function gerarAdesivoTspl(d: DadosAdesivo, copias = 1): string {
     'DIRECTION 1',
     'CODEPAGE UTF-8',
     'CLS',
-    // QRCODE x,y,correção,célula,modo(A=automático),rotação,"dados" — só o token.
-    `QRCODE ${l.qr.x},${l.qr.y},M,${l.qr.ampliacao},A,0,"${tokenSeguro(d.token)}"`,
+    // QRCODE x,y,correção,célula,modo(M=manual),rotação,"dados" — só o token, em bytes.
+    `QRCODE ${l.qr.x},${l.qr.y},M,${l.qr.ampliacao},M,0,"${qrBytes(tokenSeguro(d.token))}"`,
     bloco(l.capacete.y, l.capacete.altura, 1, 2, l.capacete.texto),
     bloco(l.nome.y, l.nome.altura, 1, 2, l.nome.texto),
     bloco(l.funcao.y, l.funcao.altura, 2, 2, l.funcao.texto),

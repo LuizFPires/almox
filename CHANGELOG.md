@@ -2,6 +2,43 @@
 
 Registro do que foi entregue em cada milestone (ver `PLAN.md`).
 
+## M6 — Devolução e avaria (concluído em 11/10/2026)
+
+### Adicionado
+- **Devolução** pela ficha, agrupada por tipo:
+  - toque no ícone soma 1, com "Devolvendo" (− / x de N / +), "Devolveu tudo" e "Avariadas" (no máximo o que está voltando);
+  - rodapé "Fica com ele";
+  - com QR devolve tudo; sem QR, só o que saiu sem QR (RN-02/RN-06, conferido no servidor).
+- **Avaria com foto por peça** (decisão do dono):
+  - a câmera do celular tira a foto, que é comprimida no aparelho e vai para um Storage privado;
+  - o motivo é um de: Quebrada, Cabo rompido, Não liga, Desgaste, Peça faltando;
+  - sem foto, a devolução não conclui (RN-09);
+  - as peças avariadas vão para manutenção.
+- **`registrar_devolucao`** transacional:
+  - voltam as mais antigas (RN-08);
+  - é idempotente: repetir o pedido depois de uma falha de rede não devolve duas vezes;
+  - guarda de qual retirada cada peça veio.
+- **Estorno** pelo lançamento, só pelo engenheiro e com motivo:
+  - na retirada, as peças voltam ao estoque; na devolução, a posse volta como estava;
+  - o original fica como está (RN-18);
+  - não estorna se as peças já tiveram outro movimento depois.
+- **Manutenção:** lista das peças avariadas com foto, com "Voltou do conserto" e "Dar baixa" (só o engenheiro). Isso fica no log de alterações.
+- Tela **"Devolução registrada"**. Os últimos lançamentos do Início abrem o detalhe do lançamento.
+- 41 testes pgTAP novos (216 no total).
+- e2e dos 3 critérios de aceite, com foto de verdade, mais estorno e conserto.
+
+### Revisão e comparação com o protótipo
+- **QR do capacete sempre em um segmento só de bytes** (ZPL `MM,B…`, TSPL manual, prévia). Token que começava com dígitos gerava um QR que o leitor do app não lia (achado no e2e). Falta conferir com a impressora real.
+- **Foto:**
+  - plano B na compressão para celulares mais antigos;
+  - quem enviou apaga a própria foto ainda não usada ("Refazer");
+  - foto que prova avaria ninguém apaga;
+  - carimbo gravado na foto: ferramenta, data e hora, quem fotografou.
+- **Manutenção:** confirmação com "Cancelar", erros conforme o motivo e nome de quem fez no log.
+- **Telas como o protótipo:** contadores grandes em painéis, ícone de câmera, "· foto HH:MM" e ícones no sucesso.
+- **CI:** agora sobe Realtime e Storage.
+- **Testes:** 47 pgTAP da devolução (222 no total), 142 unitários e 55 e2e.
+
 ## M5 — Retirada (concluído em 11/10/2026)
 
 ### Adicionado

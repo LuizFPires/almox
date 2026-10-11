@@ -93,7 +93,7 @@ test.describe('impressão do adesivo', () => {
     // O que chegou na impressora: QR só com o token, nome só no texto.
     const adesivo = recebidas.find((r) => r.includes(nome))
     expect(adesivo).toBeDefined()
-    const qr = /\^BQN,2,\d+\^FDMA,([^^]*)\^FS/.exec(adesivo ?? '')?.[1]
+    const qr = /\^BQN,2,\d+\^FDMM,B\d{4}([^^]*)\^FS/.exec(adesivo ?? '')?.[1]
     expect(qr).toMatch(/^[0-9a-f]{16,64}$/)
     expect(adesivo).toContain('^PQ2')
     await page.getByRole('link', { name: 'Concluir' }).click()

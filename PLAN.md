@@ -20,7 +20,7 @@ Fonte da verdade do produto: `PRD.md`. Regras para quem codifica: `CLAUDE.md`.
 | M3 | Adesivo do capacete e impressão | ✅ Concluído (critério de 10 s conferido no simulador; falta a impressora real) | 11/10/2026 |
 | M4 | Identificação por QR e ficha da pessoa | ✅ Concluído (câmera conferida no Chromium; falta testar no Android e no iPhone reais) | 11/10/2026 |
 | M5 | Retirada | ✅ Concluído | 11/10/2026 |
-| M6 | Devolução e avaria | ⬜ A fazer | |
+| M6 | Devolução e avaria | ✅ Concluído | 11/10/2026 |
 | M7 | Lista, estoque e busca | ⬜ A fazer | |
 | M8 | Painel da TV | ⬜ A fazer | |
 | M9 | Fechamento do dia e avisos às empreiteiras | ⬜ A fazer | |
@@ -174,13 +174,14 @@ Legenda: ⬜ A fazer · 🟨 Em andamento · ✅ Concluído · ⛔ Bloqueado
 **Objetivo:** devolver por quantidade, registrar avarias com foto, cumprir "quem pegou, devolve".
 
 **Entregas**
-- [ ] Devolução agrupada por tipo; contador "Devolvendo" (toque no ícone +1, −, "Devolveu tudo"); contador "Avariadas" ≤ devolvendo
-- [ ] Avaria: **foto obrigatória** (câmera, compressão no celular, upload para Storage) + motivo; sem foto não conclui (RN-09)
-- [ ] Unidades devolvidas escolhidas pelas mais antigas (RN-08); avariadas vão para `manutencao`
-- [ ] **RN-02/RN-06** aplicadas no servidor: devolução de item com `via = qr` exige identificação por QR na sessão; sem QR, só itens `via = manual`
-- [ ] Ficha: botão Devolução desabilitado com explicação quando não permitido + atalho "Ler capacete do {nome}"
-- [ ] RPC `registrar_devolucao` transacional
-- [ ] Estorno: engenheiro pode estornar um movimento com motivo (novo movimento `estorno`), nunca editar
+- [x] Devolução agrupada por tipo; contador "Devolvendo" (toque no ícone +1, −, "Devolveu tudo"); contador "Avariadas" ≤ devolvendo
+- [x] Avaria: **foto obrigatória** (câmera, compressão no celular, upload para Storage) + motivo; sem foto não conclui (RN-09)
+- [x] Unidades devolvidas escolhidas pelas mais antigas (RN-08); avariadas vão para `manutencao`
+- [x] **RN-02/RN-06** aplicadas no servidor: devolução de item com `via = qr` exige identificação por QR na sessão; sem QR, só itens `via = manual`
+- [x] Ficha: botão Devolução desabilitado com explicação quando não permitido + atalho "Ler capacete do {nome}"
+- [x] RPC `registrar_devolucao` transacional
+- [x] Estorno: engenheiro pode estornar um movimento com motivo (novo movimento `estorno`), nunca editar
+- [x] Manutenção: lista das peças em manutenção (com foto e motivo); "Voltou do conserto" (volta a livre, engenheiro ou almoxarife) e "Dar baixa" (sai do estoque, só engenheiro)
 
 **Critérios de aceite**
 - Joaquim devolve 1 de 2 pás, 1 avariada com foto: 1 unidade em manutenção, 1 pá continua com ele.
@@ -389,3 +390,12 @@ Legenda: ⬜ A fazer · 🟨 Em andamento · ✅ Concluído · ⛔ Bloqueado
 | 11/10/2026 | M5 (revisão): retirada **idempotente**. O celular gera uma chave ao entrar na revisão; repetir "Concluir" depois de a rede cair devolve o mesmo movimento, sem duplicar. Cada item da lista é validado no servidor. O Início ao vivo usa um canal novo a cada abertura. O rodapé fixo deixa espaço para o campo em foco. |
 | 11/10/2026 | M5 (revisão, aceito sem mudança): com `skip locked`, se outro celular segura a unidade e desiste, este pode receber um "acabou de sair" falso e resolve tentando de novo. Esperar a trava evitaria isso, mas abriria risco de deadlock entre pedidos com vários tipos. O e2e de dois celulares testa o comportamento (um leva, o outro é avisado), não a simultaneidade exata no banco. |
 | 11/10/2026 | M5 (comparação com o protótipo): selo SAÍDA, "−" com "toque no ícone: +1", ícone em fundo branco quando escolhido, confirmação marcada em grafite com check amarelo, botão desligado em cinza (em todo o app) e botões lado a lado no sucesso. Aceito sem mudança: nome da ferramenta embaixo do ícone (regra do CLAUDE.md) em vez de ao lado; "todas escolhidas" no limite, porque avisa por que o toque não soma. |
+| 11/10/2026 | M6 (decidido pelo dono): **uma foto e um motivo por peça avariada** (2 pás avariadas = 2 fotos). O **sistema escolhe** quais códigos ficam como avariados, entre os que voltam, como no protótipo. Fotos em Storage privado, comprimidas no celular, vistas só por URL assinada. |
+| 11/10/2026 | M6 (decidido pelo dono): **estorno** de retirada e de devolução, só pelo engenheiro e com motivo, a partir do lançamento. Não deixa se as peças já tiveram outro movimento depois (corrige do mais novo para o mais velho). O movimento original fica como está (RN-18). |
+| 11/10/2026 | M6 (decidido pelo dono): **manutenção** entra no M6. "Voltou do conserto" (volta a livre; engenheiro ou almoxarife) e "Dar baixa" (sai do estoque; só engenheiro). Antes nenhum milestone previa a peça voltar. |
+| 11/10/2026 | M6: devolução com QR exige a conferência do M4 (mesma regra da retirada); sem ela, só os itens que saíram sem QR (RN-02/RN-06), conferido no servidor. Devolução idempotente (chave do celular), como a retirada. |
+| 11/10/2026 | M6 (revisão): compressão da foto com plano B para celulares mais antigos (sem `imageOrientation` ou sem `createImageBitmap`, usa `<img>`). Quem enviou apaga a **própria foto ainda não usada** ("Refazer" ou menos avariadas), pela API do Storage; foto que prova avaria ninguém apaga nem troca. Mesma foto duas vezes no pedido é recusada. Manutenção pede confirmação (com Cancelar) e grava o nome de quem fez no log. |
+| 11/10/2026 | M6 (revisão, para depois): **limpeza automática** das fotos órfãs (enviadas e nunca ligadas a avaria, ex.: devolução abandonada) depois de 24 h entra junto com os jobs agendados do M9. Relatórios e avisos (M9) precisam ignorar avarias de devoluções estornadas. O campo da foto aceita a galeria do celular (`accept=image/*`): foto errada pode ser refeita antes de concluir. |
+| 11/10/2026 | M6 (revisão, achado no e2e): **QR do capacete sempre em um segmento só de bytes**. O modo automático mistura segmento numérico e de bytes quando o token começa com dígitos, e o leitor do app (zxing) não lê. ZPL vai em modo manual `MM,B0036…`, TSPL em `M` com `B0036…`, e a prévia e o teste usam o mesmo. **Conferir com a impressora real** (principalmente o modo manual no TSPL), junto com o critério de 10 s do M3. |
+| 11/10/2026 | M6 (comparação, decidido pelo dono): **carimbo gravado na foto** da avaria ("Pá · 11/10/2026 14:32 · Ana (almoxarife)", faixa escura no pé da imagem), para valer como prova fora do app (ex.: medição da empreiteira). |
+| 11/10/2026 | M6 (comparação): contadores grandes com " de N", painéis Devolvendo/Avariadas, ícone maior, câmera no botão, "· foto HH:MM" e ícone por linha no sucesso, como no protótipo. Aceito sem mudança: "Fica com ele" lista **tudo** o que fica com a pessoa (sem QR também mostra o que saiu com QR, mais fiel); visor da câmera é o do próprio celular (sem cantoneiras no app). |

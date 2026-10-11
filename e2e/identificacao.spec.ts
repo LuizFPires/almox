@@ -74,7 +74,7 @@ test.describe('identificação pelo QR do capacete', () => {
       await pagina.waitForURL((u) => u.pathname === `/pessoa/${joaquim.id}`)
       await expect(pagina.getByText('QR do capacete · pessoa conferida')).toBeVisible()
       await expect(pagina.getByRole('link', { name: 'Retirada' })).toBeVisible()
-      await expect(pagina.getByRole('button', { name: 'Devolução' })).toBeVisible()
+      await expect(pagina.getByRole('link', { name: 'Devolução' })).toBeVisible()
       // A mesma pessoa aberta pela lista manual não herda a conferência do QR.
       await pagina.goto(`/pessoa/${joaquim.id}?via=manual`)
       await expect(pagina.getByText('Escolhido na lista · sem QR')).toBeVisible()

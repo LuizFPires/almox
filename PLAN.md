@@ -21,7 +21,7 @@ Fonte da verdade do produto: `PRD.md`. Regras para quem codifica: `CLAUDE.md`.
 | M4 | Identificação por QR e ficha da pessoa | ✅ Concluído (câmera conferida no Chromium; falta testar no Android e no iPhone reais) | 11/10/2026 |
 | M5 | Retirada | ✅ Concluído | 11/10/2026 |
 | M6 | Devolução e avaria | ✅ Concluído | 11/10/2026 |
-| M7 | Lista, estoque e busca | ⬜ A fazer | |
+| M7 | Lista, estoque e busca | 🟨 Em andamento | |
 | M8 | Painel da TV | ⬜ A fazer | |
 | M9 | Fechamento do dia e avisos às empreiteiras | ⬜ A fazer | |
 | M10 | Offline, auditoria e endurecimento | ⬜ A fazer | |
@@ -399,3 +399,5 @@ Legenda: ⬜ A fazer · 🟨 Em andamento · ✅ Concluído · ⛔ Bloqueado
 | 11/10/2026 | M6 (revisão, achado no e2e): **QR do capacete sempre em um segmento só de bytes**. O modo automático mistura segmento numérico e de bytes quando o token começa com dígitos, e o leitor do app (zxing) não lê. ZPL vai em modo manual `MM,B0036…`, TSPL em `M` com `B0036…`, e a prévia e o teste usam o mesmo. **Conferir com a impressora real** (principalmente o modo manual no TSPL), junto com o critério de 10 s do M3. |
 | 11/10/2026 | M6 (comparação, decidido pelo dono): **carimbo gravado na foto** da avaria ("Pá · 11/10/2026 14:32 · Ana (almoxarife)", faixa escura no pé da imagem), para valer como prova fora do app (ex.: medição da empreiteira). |
 | 11/10/2026 | M6 (comparação): contadores grandes com " de N", painéis Devolvendo/Avariadas, ícone maior, câmera no botão, "· foto HH:MM" e ícone por linha no sucesso, como no protótipo. Aceito sem mudança: "Fica com ele" lista **tudo** o que fica com a pessoa (sem QR também mostra o que saiu com QR, mais fiel); visor da câmera é o do próprio celular (sem cantoneiras no app). |
+| 11/10/2026 | M7: a lista mostra só quem está com ferramenta, por empresa, mais "+ N pessoas sem ferramenta". A busca ignora acentos e acha nome, **apelido do capacete** e **código da peça**. Tocar na pessoa abre a ficha como "Aberto pela lista" (sem QR). |
+| 11/10/2026 | M7: no Estoque, a consulta de empreiteira vê os totais da obra (PRD §5) e os nomes só da própria empresa; o resto aparece como "N com outras empresas". Unidades com baixa não contam. O detalhe mostra o código de cada peça com quem está ("MT-01 · Raimundo · desde ontem"). |

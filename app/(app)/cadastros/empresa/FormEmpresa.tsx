@@ -1,6 +1,6 @@
 'use client'
 
-import { useActionState, useState } from 'react'
+import { useActionState, useId, useState } from 'react'
 import { Botao } from '@/components/Botao'
 import { CLASSE_CAMPO, Campo, ErroFormulario, Secao } from '@/components/Formulario'
 import { RodapeAcao } from '@/components/RodapeAcao'
@@ -26,6 +26,7 @@ type Props = {
 
 export function FormEmpresa({ empresa, pessoas, corSugerida }: Props) {
   const [estado, acao, salvando] = useActionState(salvarEmpresa, {})
+  const idEncarregado = useId()
   const [tipo, setTipo] = useState(empresa?.tipo ?? 'empreiteira')
   const [cor, setCor] = useState(empresa?.cor ?? corSugerida)
   const erros = estado.campos ?? {}
@@ -121,11 +122,11 @@ export function FormEmpresa({ empresa, pessoas, corSugerida }: Props) {
             </Secao>
             <Secao titulo="ENCARREGADO NA OBRA">
               <div className="flex flex-col gap-1.5">
-                <label htmlFor="campo-encarregado" className="text-sm font-semibold">
+                <label htmlFor={idEncarregado} className="text-sm font-semibold">
                   Pessoa
                 </label>
                 <select
-                  id="campo-encarregado"
+                  id={idEncarregado}
                   name="encarregado_pessoa_id"
                   defaultValue={v('encarregado_pessoa_id', empresa?.encarregado_pessoa_id)}
                   disabled={pessoas.length === 0}

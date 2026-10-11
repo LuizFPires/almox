@@ -3,7 +3,6 @@ import Link from 'next/link'
 import { Cartao } from '@/components/Cartao'
 import { BotaoNovo } from '@/components/Formulario'
 import { IconeImpressora } from '@/components/IconeImpressora'
-import { IconeInterface } from '@/components/IconeInterface'
 import { listarPessoas, type PessoaCadastro } from '@/lib/dados/pessoas'
 import { obterSessao } from '@/lib/sessao'
 
@@ -22,7 +21,7 @@ function LinhaPessoa({ p }: { p: PessoaCadastro }) {
     <div className="flex min-h-16 items-center rounded-cartao bg-cartao">
       <Link
         href={`/cadastros/pessoa/${p.id}`}
-        className="flex min-w-0 flex-1 items-center gap-3 self-stretch py-3 pl-3.5"
+        className={`flex min-w-0 flex-1 items-center gap-3 self-stretch py-3 pl-3.5 ${p.ativa ? '' : 'pr-3.5'}`}
       >
         <span
           aria-hidden="true"
@@ -48,7 +47,6 @@ function LinhaPessoa({ p }: { p: PessoaCadastro }) {
         ) : (
           <span className="shrink-0 text-[13px] font-semibold text-texto-2">inativa</span>
         )}
-        <IconeInterface nome="chevron-right" tamanho={18} className="shrink-0 text-texto-2" />
       </Link>
       {p.ativa && (
         // Atalho do protótipo: reimprimir o adesivo direto da lista (abre a tela Imprimir).

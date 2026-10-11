@@ -22,7 +22,6 @@ const ALTURA = 640 // 80 mm
 const MARGEM = 24
 
 /** Caracteres de controle (ESC etc.): a impressora executa alguns na hora, até dentro de texto. */
-// eslint-disable-next-line no-control-regex
 const CONTROLE = /[\u0000-\u001f\u007f-\u009f]/g
 
 /** ZPL: ^ e ~ são comandos; não podem aparecer dentro do texto. */

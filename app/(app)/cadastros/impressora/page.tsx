@@ -1,4 +1,5 @@
 import type { Metadata } from 'next'
+import Link from 'next/link'
 import { AtualizarSozinho } from '@/components/AtualizarSozinho'
 import { Botao } from '@/components/Botao'
 import { Cabecalho } from '@/components/Cabecalho'
@@ -48,6 +49,11 @@ export default async function PaginaImpressora({
       <AtualizarSozinho segundos={5} />
       <Cabecalho titulo="Impressora" subtitulo="Na rede Wi-Fi da obra" voltarPara={volta} />
       <main className="flex flex-1 flex-col gap-6 px-5 pt-2 pb-8">
+        <p className="rounded-cartao bg-engenheiro-claro px-4 py-3 text-[15px] text-engenheiro">
+          A impressora fica ligada no Wi-Fi da obra. O app manda a etiqueta pelo servidor e o mini
+          PC da TV entrega para ela, então dá para imprimir do celular ou do computador do
+          escritório, sem parear nada.
+        </p>
         <section aria-labelledby="t-impressora" className="flex flex-col gap-3">
           <Titulo id="t-impressora">IMPRESSORA DE ETIQUETAS</Titulo>
           <Cartao className="flex flex-col gap-4">
@@ -125,6 +131,12 @@ export default async function PaginaImpressora({
             ))}
           </Cartao>
         </section>
+        <Link
+          href={volta}
+          className="flex min-h-14 items-center justify-center rounded-cartao bg-escuro px-5 text-lg font-bold text-white"
+        >
+          Pronto
+        </Link>
       </main>
     </>
   )

@@ -9,7 +9,9 @@ import { valoresDoForm, type Valores } from '@/lib/formulario'
 export type EstadoEmpresa = {
   valores?: Valores
   erro?: string
-  campos?: Partial<Record<'nome' | 'dono_email' | 'encarregado_email' | 'proxima_medicao', string>>
+  campos?: Partial<
+    Record<'nome' | 'dono_nome' | 'dono_email' | 'encarregado_email' | 'proxima_medicao', string>
+  >
 }
 
 const texto = (form: FormData, chave: string) => String(form.get(chave) ?? '').trim()
@@ -34,7 +36,10 @@ export async function salvarEmpresa(_: EstadoEmpresa, form: FormData): Promise<E
 
   const campos: EstadoEmpresa['campos'] = {}
   if (dados.nome.length < 2) campos.nome = 'Informe o nome da empresa.'
-  const erroDono = validarEmail(dados.dono_email ?? '')
+  // Empreiteira precisa de quem receba o aviso de desconto (RN-13): dono com e-mail.
+  // Encarregado fica opcional (empresa nova ainda não tem pessoas).
+  if (tipo === 'empreiteira' && !dados.dono_nome) campos.dono_nome = 'Informe o nome do dono.'
+  const erroDono = validarEmail(dados.dono_email ?? '', tipo === 'empreiteira')
   if (erroDono) campos.dono_email = erroDono
   const erroEnc = validarEmail(dados.encarregado_email ?? '')
   if (erroEnc) campos.encarregado_email = erroEnc

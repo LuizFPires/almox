@@ -108,6 +108,9 @@ export function FormEmpresa({ empresa, pessoas, corSugerida }: Props) {
                 rotulo="Nome"
                 name="dono_nome"
                 defaultValue={v('dono_nome', empresa?.dono_nome)}
+                placeholder="Nome do dono"
+                required
+                erro={erros.dono_nome}
               />
               <Campo
                 rotulo="E-mail"
@@ -116,7 +119,7 @@ export function FormEmpresa({ empresa, pessoas, corSugerida }: Props) {
                 inputMode="email"
                 defaultValue={v('dono_email', empresa?.dono_email)}
                 placeholder="nome@empresa.com.br"
-                ajuda="Recebe o aviso de ferramenta não devolvida."
+                required
                 erro={erros.dono_email}
               />
             </Secao>
@@ -148,9 +151,14 @@ export function FormEmpresa({ empresa, pessoas, corSugerida }: Props) {
                 type="email"
                 inputMode="email"
                 defaultValue={v('encarregado_email', empresa?.encarregado_email)}
+                placeholder="nome@empresa.com.br"
                 erro={erros.encarregado_email}
               />
             </Secao>
+            <p className="rounded-cartao bg-sutil px-3.5 py-3 text-sm">
+              Dono e encarregado recebem o aviso de ferramenta não devolvida no app (perfil de
+              consulta) e por e-mail.
+            </p>
             <Campo
               rotulo="Próxima medição"
               name="proxima_medicao"

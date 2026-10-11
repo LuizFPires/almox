@@ -18,7 +18,7 @@ Fonte da verdade do produto: `PRD.md`. Regras para quem codifica: `CLAUDE.md`.
 | M1 | Banco, autenticação e perfis | ✅ Concluído | 11/10/2026 |
 | M2 | Cadastros do engenheiro | ✅ Concluído | 11/10/2026 |
 | M3 | Adesivo do capacete e impressão | ✅ Concluído (critério de 10 s conferido no simulador; falta a impressora real) | 11/10/2026 |
-| M4 | Identificação por QR e ficha da pessoa | ⬜ A fazer | |
+| M4 | Identificação por QR e ficha da pessoa | 🟨 Em andamento | |
 | M5 | Retirada | ⬜ A fazer | |
 | M6 | Devolução e avaria | ⬜ A fazer | |
 | M7 | Lista, estoque e busca | ⬜ A fazer | |
@@ -374,3 +374,8 @@ Legenda: ⬜ A fazer · 🟨 Em andamento · ✅ Concluído · ⛔ Bloqueado
 | 11/10/2026 | M3 (revisão): funções de gatilho voltam a ficar fora do alcance do cliente (o grant geral do M3 tinha devolvido); log do agente sem nome nem matrícula (só o id do trabalho); telas param de se atualizar sozinhas depois de 10 min; "offline desde" mostra a data quando não é hoje; instalador Linux não roda o serviço como root. |
 | 11/10/2026 | M3 (revisão, aceito sem mudança): aviso de dev do Next "uncached data outside `<Suspense>`" (navegação instantânea) vale para todas as rotas desde o M1; fica para um milestone de polimento com `loading.tsx`/`<Suspense>` por segmento. Instalador do Windows conferido por análise; execução real no mini PC na instalação. |
 | 11/10/2026 | M3 (comparação com o protótipo): rodapé do adesivo com **"ALMOX · obra" à esquerda e matrícula à direita** (obra comprida cortada com reticências); **nome no capacete comprido encolhe** para caber numa linha (até 16 letras). Prévia na tela desenhada com as mesmas posições e tamanhos do impresso (`layoutAdesivo`); QR com ampliação 9 e margem silenciosa de 4 módulos. |
+| 11/10/2026 | M4: "Não é ele" grava a **ocorrência** e ela aparece no app (em vermelho nos últimos lançamentos, para quem lança e para a consulta da empresa). Notificação e e-mail ao encarregado entram no M9, junto com o envio dos avisos. |
+| 11/10/2026 | M4: a conferência ("Sim, é o …") **vale 10 minutos** para lançar com QR. O servidor guarda a identificação com validade; retirada e devolução com `via = qr` (M5/M6) exigem uma identificação válida da mesma pessoa. |
+| 11/10/2026 | M4: consulta restrita de empreiteira que lê o capacete de outra empresa vê **"Pessoa de outra empresa"**, sem nome nem ferramentas. |
+| 11/10/2026 | M4: **pendência** = ferramenta com alguém desde antes de hoje (dia da obra, fuso de São Paulo), em vermelho com "desde ontem" ou "desde dd/MM", já no Início e na ficha. O fechamento do dia (M9) só passa a gerar os avisos. |
+| 11/10/2026 | M4: botões Retirada/Devolução aparecem na ficha desde já, desligados com aviso até o M5/M6. Abrir a pessoa pela lista geral conta como "sem QR" (como no protótipo). |

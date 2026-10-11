@@ -919,7 +919,7 @@ export type Database = {
           p_descricao: string
           p_obra: string
           p_payload: string
-          p_pessoa: string
+          p_pessoa?: string
           p_tipo: string
         }
         Returns: string

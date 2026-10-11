@@ -108,12 +108,12 @@ Legenda: ⬜ A fazer · 🟨 Em andamento · ✅ Concluído · ⛔ Bloqueado
 **Objetivo:** ao cadastrar uma pessoa, o adesivo sai na impressora da obra.
 
 **Entregas**
-- [ ] QR Code com **apenas o token** (RN-17)
-- [ ] Layout do adesivo 60 × 80 mm: QR, nome no capacete grande, nome completo, função · empresa, rodapé "ALMOX · obra · matrícula" (igual ao protótipo)
-- [ ] Geração do adesivo em **ZPL** e **TSPL** (escolha pela impressora cadastrada) + prévia na tela
-- [ ] Tabela `trabalho_impressao` como fila (pendente → enviado / erro)
+- [x] QR Code com **apenas o token** (RN-17)
+- [x] Layout do adesivo 60 × 80 mm: QR, nome no capacete grande, nome completo, função · empresa, rodapé "ALMOX · obra · matrícula" (igual ao protótipo)
+- [x] Geração do adesivo em **ZPL** e **TSPL** (escolha pela impressora cadastrada) + prévia na tela
+- [x] Tabela `trabalho_impressao` como fila (pendente → enviado / erro)
 - [ ] **Agente de impressão local** (Node, pasta `agente-impressao/`): roda no mini PC da TV, autentica por token de dispositivo, consulta a fila a cada 2 s, envia para `ip:9100` da impressora, atualiza status; instalável como serviço (Windows e Linux)
-- [ ] Tela "Impressora": escolher impressora da obra, rolo, imprimir teste, ver status do agente (online/offline)
+- [x] Tela "Impressora": escolher impressora da obra, rolo, imprimir teste, ver status do agente (online/offline)
 - [ ] "Salvar e imprimir adesivo" no cadastro de pessoa; "Reimprimir" com 1–5 cópias
 - [ ] Mensagens de erro claras: agente offline, impressora sem resposta
 

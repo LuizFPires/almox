@@ -28,8 +28,8 @@ select ok(
 );
 
 insert into t_ctx values ('trabalho', public.enfileirar_impressao(
-  'a0000000-0000-4000-8000-000000000001', 'adesivo',
-  (select id from public.pessoa where nome = 'Joaquim Silva'), 'Adesivo de JOAQUIM', '^XA^XZ', 1)::text);
+  'a0000000-0000-4000-8000-000000000001', 'adesivo', 'Adesivo de JOAQUIM', '^XA^XZ', 1,
+  (select id from public.pessoa where nome = 'Joaquim Silva'))::text);
 select is(
   (select status::text from public.trabalho_impressao where id = (select valor::uuid from t_ctx where chave = 'trabalho')),
   'pendente', 'trabalho entra na fila como pendente'
@@ -48,7 +48,7 @@ select throws_ok(
   '42501', null, 'almoxarife não lê o token do QR'
 );
 select throws_ok(
-  $$select public.enfileirar_impressao('a0000000-0000-4000-8000-000000000001', 'teste', null, '', 'x', 1)$$,
+  $$select public.enfileirar_impressao('a0000000-0000-4000-8000-000000000001', 'teste', '', 'x', 1)$$,
   '42501', null, 'almoxarife não imprime'
 );
 select throws_ok(

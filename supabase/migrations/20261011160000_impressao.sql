@@ -98,10 +98,10 @@ $$;
 create function public.enfileirar_impressao(
   p_obra uuid,
   p_tipo text,
-  p_pessoa uuid,
   p_descricao text,
   p_payload text,
-  p_copias integer
+  p_copias integer,
+  p_pessoa uuid default null
 ) returns uuid
 language plpgsql
 security definer
@@ -203,11 +203,11 @@ $$;
 
 -- Permissões -------------------------------------------------------------------------------
 revoke all on function public.criar_dispositivo(uuid, text), public.revogar_dispositivo(uuid),
-  public.dados_adesivo(uuid), public.enfileirar_impressao(uuid, text, uuid, text, text, integer),
+  public.dados_adesivo(uuid), public.enfileirar_impressao(uuid, text, text, text, integer, uuid),
   public.agente_ping(text), public.agente_proximos(text), public.agente_concluir(text, uuid, boolean, text)
   from public, anon, authenticated;
 grant execute on function public.criar_dispositivo(uuid, text), public.revogar_dispositivo(uuid),
-  public.dados_adesivo(uuid), public.enfileirar_impressao(uuid, text, uuid, text, text, integer)
+  public.dados_adesivo(uuid), public.enfileirar_impressao(uuid, text, text, text, integer, uuid)
   to authenticated;
 -- O agente entra só com a chave pública: estas três são as únicas abertas ao anônimo.
 grant execute on function public.agente_ping(text), public.agente_proximos(text),

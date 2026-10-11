@@ -29,6 +29,8 @@ export function FormEmpresa({ empresa, pessoas, corSugerida }: Props) {
   const [tipo, setTipo] = useState(empresa?.tipo ?? 'empreiteira')
   const [cor, setCor] = useState(empresa?.cor ?? corSugerida)
   const erros = estado.campos ?? {}
+  // Depois de erro, o React limpa o form: volta o que foi digitado.
+  const v = (campo: string, padrao?: string | null) => estado.valores?.[campo] ?? padrao ?? ''
 
   return (
     <form action={acao} className="flex flex-1 flex-col">
@@ -37,7 +39,7 @@ export function FormEmpresa({ empresa, pessoas, corSugerida }: Props) {
         <Campo
           rotulo="Nome da empresa"
           name="nome"
-          defaultValue={empresa?.nome}
+          defaultValue={v('nome', empresa?.nome)}
           placeholder="Ex.: Pinturas Silva"
           required
           erro={erros.nome}
@@ -101,13 +103,17 @@ export function FormEmpresa({ empresa, pessoas, corSugerida }: Props) {
         {tipo === 'empreiteira' ? (
           <>
             <Secao titulo="DONO DA EMPREITEIRA">
-              <Campo rotulo="Nome" name="dono_nome" defaultValue={empresa?.dono_nome ?? ''} />
+              <Campo
+                rotulo="Nome"
+                name="dono_nome"
+                defaultValue={v('dono_nome', empresa?.dono_nome)}
+              />
               <Campo
                 rotulo="E-mail"
                 name="dono_email"
                 type="email"
                 inputMode="email"
-                defaultValue={empresa?.dono_email ?? ''}
+                defaultValue={v('dono_email', empresa?.dono_email)}
                 placeholder="nome@empresa.com.br"
                 ajuda="Recebe o aviso de ferramenta não devolvida."
                 erro={erros.dono_email}
@@ -121,7 +127,7 @@ export function FormEmpresa({ empresa, pessoas, corSugerida }: Props) {
                 <select
                   id="campo-encarregado"
                   name="encarregado_pessoa_id"
-                  defaultValue={empresa?.encarregado_pessoa_id ?? ''}
+                  defaultValue={v('encarregado_pessoa_id', empresa?.encarregado_pessoa_id)}
                   disabled={pessoas.length === 0}
                   className={CLASSE_CAMPO}
                 >
@@ -140,7 +146,7 @@ export function FormEmpresa({ empresa, pessoas, corSugerida }: Props) {
                 name="encarregado_email"
                 type="email"
                 inputMode="email"
-                defaultValue={empresa?.encarregado_email ?? ''}
+                defaultValue={v('encarregado_email', empresa?.encarregado_email)}
                 erro={erros.encarregado_email}
               />
             </Secao>
@@ -148,7 +154,7 @@ export function FormEmpresa({ empresa, pessoas, corSugerida }: Props) {
               rotulo="Próxima medição"
               name="proxima_medicao"
               type="date"
-              defaultValue={empresa?.proxima_medicao ?? ''}
+              defaultValue={v('proxima_medicao', empresa?.proxima_medicao)}
               ajuda="O desconto é cancelado se a ferramenta voltar antes desta data."
               erro={erros.proxima_medicao}
             />

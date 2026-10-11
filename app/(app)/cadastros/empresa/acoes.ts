@@ -4,8 +4,10 @@ import { revalidatePath } from 'next/cache'
 import { redirect } from 'next/navigation'
 import { exigirEngenheiro } from '@/lib/acesso'
 import { validarEmail } from '@/lib/dominio/cadastros'
+import { valoresDoForm, type Valores } from '@/lib/formulario'
 
 export type EstadoEmpresa = {
+  valores?: Valores
   erro?: string
   campos?: Partial<Record<'nome' | 'dono_email' | 'encarregado_email' | 'proxima_medicao', string>>
 }
@@ -39,17 +41,19 @@ export async function salvarEmpresa(_: EstadoEmpresa, form: FormData): Promise<E
   if (dados.proxima_medicao && !/^\d{4}-\d{2}-\d{2}$/.test(dados.proxima_medicao)) {
     campos.proxima_medicao = 'Data inválida.'
   }
-  if (Object.keys(campos).length > 0) return { campos }
+  const valores = valoresDoForm(form)
+  if (Object.keys(campos).length > 0) return { campos, valores }
 
   const { error } = id
     ? await supabase.from('empresa').update(dados).eq('id', id).eq('obra_id', obraId)
     : await supabase.from('empresa').insert({ ...dados, obra_id: obraId })
 
   if (error) {
-    if (error.code === '23505') return { campos: { nome: 'Já existe uma empresa com esse nome.' } }
+    if (error.code === '23505')
+      return { campos: { nome: 'Já existe uma empresa com esse nome.' }, valores }
     if (error.code === '23503')
-      return { erro: 'O encarregado precisa ser uma pessoa desta empresa.' }
-    return { erro: 'Não foi possível salvar. Tente de novo.' }
+      return { erro: 'O encarregado precisa ser uma pessoa desta empresa.', valores }
+    return { erro: 'Não foi possível salvar. Tente de novo.', valores }
   }
 
   revalidatePath('/cadastros/empresas')

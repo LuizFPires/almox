@@ -12,13 +12,14 @@ export type Empresa = {
   encarregado_email: string | null
   proxima_medicao: string | null
   encarregado: { nome: string } | null
-  pessoas: { count: number }[]
+  /** Só os ids: count() em pessoa exige SELECT na tabela inteira (qr_token é fechado). */
+  pessoas: { id: string }[]
 }
 
 const CAMPOS =
   'id, nome, tipo, cor, dono_nome, dono_email, encarregado_pessoa_id, encarregado_email, proxima_medicao, ' +
   'encarregado:pessoa!empresa_encarregado_mesma_empresa_fk (nome), ' +
-  'pessoas:pessoa!pessoa_empresa_id_obra_id_fkey (count)'
+  'pessoas:pessoa!pessoa_empresa_id_obra_id_fkey (id)'
 
 /** Empresas da obra (RLS: só da obra do usuário), própria primeiro. */
 export async function listarEmpresas(obraId: string): Promise<Empresa[]> {
@@ -27,7 +28,7 @@ export async function listarEmpresas(obraId: string): Promise<Empresa[]> {
     .from('empresa')
     .select(CAMPOS)
     .eq('obra_id', obraId)
-    .order('tipo', { ascending: false })
+    .order('tipo') // enum: propria antes de empreiteira
     .order('nome')
     .overrideTypes<Empresa[], { merge: false }>()
   if (error) throw new Error('Não foi possível carregar as empresas.')

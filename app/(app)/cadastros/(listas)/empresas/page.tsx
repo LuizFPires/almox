@@ -23,7 +23,7 @@ export default async function PaginaEmpresas() {
         </Cartao>
       )}
       {empresas.map((e) => {
-        const pessoas = e.pessoas[0]?.count ?? 0
+        const pessoas = e.pessoas.length
         const alerta = faltaEmail(e)
         return (
           <Cartao key={e.id} alerta={alerta} className="flex flex-col gap-2.5">

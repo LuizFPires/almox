@@ -125,3 +125,27 @@ $$;
 revoke all on function public.adicionar_unidades(uuid, integer) from public, anon;
 grant execute on function public.adicionar_unidades(uuid, integer) to authenticated;
 revoke all on function privado.registrar_alteracoes() from public, anon, authenticated;
+
+-- Matrícula: default '' para o insert não precisar informá-la; o gatilho gera P-0001…
+alter table public.pessoa alter column matricula set default '';
+
+create or replace function public.definir_matricula() returns trigger
+language plpgsql
+set search_path = ''
+as $$
+declare
+  proximo integer;
+begin
+  if coalesce(new.matricula, '') <> '' then
+    return new;
+  end if;
+  perform pg_advisory_xact_lock(hashtext('matricula:' || new.obra_id::text));
+  select coalesce(max(substring(matricula from '^P-(\d+)$')::integer), 0) + 1
+    into proximo
+    from public.pessoa
+   where obra_id = new.obra_id;
+  new.matricula := 'P-' || lpad(proximo::text, 4, '0');
+  return new;
+end;
+$$;
+revoke all on function public.definir_matricula() from public, anon, authenticated;

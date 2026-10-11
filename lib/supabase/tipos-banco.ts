@@ -560,7 +560,7 @@ export type Database = {
           empresa_id: string
           funcao: string
           id?: string
-          matricula: string
+          matricula?: string
           nome: string
           nome_capacete: string
           obra_id: string

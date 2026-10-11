@@ -37,15 +37,15 @@ Legenda: ⬜ A fazer · 🟨 Em andamento · ✅ Concluído · ⛔ Bloqueado
 **Objetivo:** repositório pronto, app vazio publicado e instalável no celular, com a identidade visual do protótipo.
 
 **Entregas**
-- [ ] Repositório com Next.js (App Router) + TypeScript estrito + Tailwind
-- [ ] Projeto Supabase (dev e prod) criado e variáveis de ambiente documentadas em `.env.example`
-- [ ] Deploy contínuo (Vercel) a partir da branch `main`; preview por PR
-- [ ] PWA: manifest, ícones, service worker básico, instalável em Android e iPhone
-- [ ] Design tokens do protótipo no tema do Tailwind (`@theme` em `globals.css`, Tailwind v4) (cores, fontes Barlow / Barlow Condensed / JetBrains Mono, raios, espaçamentos)
-- [ ] Componentes base: `Botao`, `Cartao`, `Contador`, `IconeFerramenta` (biblioteca de ícones SVG do protótipo), `Cabecalho`, `BarraInferior`, `Rodape de ação`
-- [ ] Utilitários: `formatarBRL` (centavos → `R$ 1.234,56`), datas no fuso `America/Sao_Paulo`, normalização de texto para busca (sem acento)
-- [ ] Lint, formatação, testes unitários (Vitest) e e2e (Playwright) rodando no CI
-- [ ] `CHANGELOG.md` criado
+- [x] Repositório com Next.js (App Router) + TypeScript estrito + Tailwind
+- [ ] Projeto Supabase (dev e prod) criado e variáveis de ambiente documentadas em `.env.example` — `.env.example` e Supabase local prontos; **falta o dono criar os projetos dev e prod na nuvem**
+- [ ] Deploy contínuo (Vercel) a partir da branch `main`; preview por PR — app pronto para build na Vercel; **falta o dono importar o repositório no painel**
+- [x] PWA: manifest, ícones, service worker básico, instalável em Android e iPhone
+- [x] Design tokens do protótipo no tema do Tailwind (`@theme` em `globals.css`, Tailwind v4) (cores, fontes Barlow / Barlow Condensed / JetBrains Mono, raios, espaçamentos)
+- [x] Componentes base: `Botao`, `Cartao`, `Contador`, `IconeFerramenta` (biblioteca de ícones SVG do protótipo), `Cabecalho`, `BarraInferior`, `Rodape de ação`
+- [x] Utilitários: `formatarBRL` (centavos → `R$ 1.234,56`), datas no fuso `America/Sao_Paulo`, normalização de texto para busca (sem acento)
+- [x] Lint, formatação, testes unitários (Vitest) e e2e (Playwright) rodando no CI
+- [x] `CHANGELOG.md` criado
 
 **Critérios de aceite**
 - App abre no celular, pode ser instalado na tela inicial e mostra a tela inicial vazia com o visual do protótipo.
@@ -332,3 +332,4 @@ Legenda: ⬜ A fazer · 🟨 Em andamento · ✅ Concluído · ⛔ Bloqueado
 | 11/10/2026 | M0: Supabase local pela CLI no repo; projetos dev e prod na nuvem criados pelo dono no painel (região São Paulo), chaves só em `.env.local` e nas variáveis da Vercel. |
 | 11/10/2026 | M0: deploy pela integração Git da Vercel (importação do repo no painel); produção = `main`, preview por PR. |
 | 11/10/2026 | Referência visual: canvas "Almox — Protótipo" (https://claude.ai/artifact/QeWf3im87JvGZXpuHZCDCf). |
+| 11/10/2026 | M0: componente extra `Indicador` (número grande + rótulo do resumo); abas sem tela ainda mostram "Em breve" em vez de 404. |

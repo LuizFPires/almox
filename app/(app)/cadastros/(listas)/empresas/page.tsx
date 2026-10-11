@@ -23,7 +23,8 @@ export default async function PaginaEmpresas() {
         </Cartao>
       )}
       {empresas.map((e) => {
-        const pessoas = e.pessoas.length
+        const pessoas = e.pessoas.filter((p) => p.ativa).length
+        const fora = e.pessoas.reduce((soma, p) => soma + p.posses.length, 0)
         const alerta = faltaEmail(e)
         return (
           <Cartao key={e.id} alerta={alerta} className="flex flex-col gap-2.5">
@@ -36,19 +37,20 @@ export default async function PaginaEmpresas() {
               <span className="flex-1 text-base font-bold">{e.nome}</span>
               <span className="text-[13px] text-texto-2">
                 {e.tipo === 'propria' ? 'própria' : 'empreiteira'} · {pessoas}{' '}
-                {pessoas === 1 ? 'pessoa' : 'pessoas'}
+                {pessoas === 1 ? 'pessoa' : 'pessoas'} ·{' '}
+                {fora === 0 ? 'nada fora' : `${fora} ${fora === 1 ? 'item fora' : 'itens fora'}`}
               </span>
             </div>
             {e.tipo === 'empreiteira' ? (
               <div className="flex flex-col gap-0.5 text-sm">
                 <span>
-                  <b>Dono:</b> {e.dono_nome ?? '—'} ·{' '}
+                  <b>Dono:</b> {e.dono_nome ?? 'não definido'} ·{' '}
                   <span className={e.dono_email ? 'text-texto-2' : 'font-semibold text-erro'}>
                     {e.dono_email ?? 'sem e-mail'}
                   </span>
                 </span>
                 <span>
-                  <b>Encarregado:</b> {e.encarregado?.nome ?? '—'} ·{' '}
+                  <b>Encarregado:</b> {e.encarregado?.nome ?? 'não definido'} ·{' '}
                   <span
                     className={e.encarregado_email ? 'text-texto-2' : 'font-semibold text-erro'}
                   >

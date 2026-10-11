@@ -12,14 +12,14 @@ export type Empresa = {
   encarregado_email: string | null
   proxima_medicao: string | null
   encarregado: { nome: string } | null
-  /** Só os ids: count() em pessoa exige SELECT na tabela inteira (qr_token é fechado). */
-  pessoas: { id: string }[]
+  /** Sem count(): count() em pessoa exige SELECT na tabela inteira (qr_token é fechado). */
+  pessoas: { id: string; ativa: boolean; posses: { unidade_id: string }[] }[]
 }
 
 const CAMPOS =
   'id, nome, tipo, cor, dono_nome, dono_email, encarregado_pessoa_id, encarregado_email, proxima_medicao, ' +
   'encarregado:pessoa!empresa_encarregado_mesma_empresa_fk (nome), ' +
-  'pessoas:pessoa!pessoa_empresa_id_obra_id_fkey (id)'
+  'pessoas:pessoa!pessoa_empresa_id_obra_id_fkey (id, ativa, posses:posse!posse_pessoa_id_obra_id_fkey (unidade_id))'
 
 /** Empresas da obra (RLS: só da obra do usuário), própria primeiro. */
 export async function listarEmpresas(obraId: string): Promise<Empresa[]> {

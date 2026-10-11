@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest'
 import {
   capaceteRepetido,
+  digitarNomeCapacete,
   compararCodigos,
   dataValida,
   faltaEmail,
@@ -37,6 +38,13 @@ describe('pessoas', () => {
     expect(capaceteRepetido('Zé Carlos', ['ZE CARLOS'])).toBe(true)
     expect(capaceteRepetido('ZÉ', ['ZE CARLOS'])).toBe(false)
     expect(capaceteRepetido('', ['X'])).toBe(false)
+  })
+
+  it('deixa digitar espaço no nome do capacete', () => {
+    let campo = ''
+    for (const letra of 'zé carlos') campo = digitarNomeCapacete(campo + letra)
+    expect(campo).toBe('ZÉ CARLOS')
+    expect(digitarNomeCapacete('  ZÉ   ')).toBe('ZÉ ')
   })
 
   it('normaliza o nome do capacete', () => {

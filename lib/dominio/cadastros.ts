@@ -55,6 +55,18 @@ export function normalizarNomeCapacete(texto: string): string {
 }
 
 /**
+ * Enquanto digita: maiúsculas sem tirar o espaço do fim (senão "ZÉ CARLOS" vira
+ * "ZÉCARLOS" letra a letra). O trim final fica para normalizarNomeCapacete, ao salvar.
+ */
+export function digitarNomeCapacete(texto: string): string {
+  return texto
+    .replace(/^\s+/, '')
+    .replace(/\s{2,}/g, ' ')
+    .toLocaleUpperCase('pt-BR')
+    .slice(0, 16)
+}
+
+/**
  * Sugere o nome no capacete a partir do nome completo: o primeiro nome. Se já houver
  * esse nome na obra, sugere com a inicial do último sobrenome ("JOÃO S.").
  */

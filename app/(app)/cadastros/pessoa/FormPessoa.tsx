@@ -7,7 +7,7 @@ import { RodapeAcao } from '@/components/RodapeAcao'
 import {
   capaceteRepetido,
   FUNCOES_SUGERIDAS,
-  normalizarNomeCapacete,
+  digitarNomeCapacete,
   sugerirNomeCapacete,
 } from '@/lib/dominio/cadastros'
 import { salvarPessoa } from './acoes'
@@ -58,9 +58,10 @@ export function FormPessoa({ pessoa, empresas, capacetesUsados }: Props) {
           value={capacete}
           onChange={(e) => {
             setCapaceteEditado(true)
-            setCapacete(normalizarNomeCapacete(e.target.value))
+            setCapacete(digitarNomeCapacete(e.target.value))
           }}
           placeholder="Como ele é chamado na obra"
+          className="min-h-14! text-2xl! font-bold tracking-wide"
           autoComplete="off"
           erro={erros.nome_capacete}
           ajuda={

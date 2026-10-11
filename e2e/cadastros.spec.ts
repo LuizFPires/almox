@@ -38,12 +38,14 @@ test.describe('cadastros do engenheiro', () => {
     await campo(page, 'Nome completo').fill(`Pedro ${sufixo} Costa`)
     await page.getByText('Pintor', { exact: true }).click()
     await page.locator('label').filter({ hasText: empresa }).click()
-    await page.getByRole('button', { name: 'Salvar sem imprimir' }).click()
-    await page.waitForURL((u) => u.pathname === '/cadastros/pessoas')
+    await page.getByRole('button', { name: 'Salvar e imprimir adesivo' }).click()
+    // Abre a tela Imprimir (nada sai antes de confirmar); volta para a lista.
+    await page.waitForURL((u) => u.pathname.endsWith('/imprimir'))
+    await page.goto('/cadastros/pessoas')
     // Capacete sugerido na tela ou preenchido pelo servidor (se digitou antes de a página
     // carregar): 'PEDRO', ou 'PEDRO C.' se outro teste já criou um PEDRO na obra.
     await expect(
-      page.getByRole('link', { name: new RegExp(`Pedro ${sufixo} Costa`) }),
+      page.getByRole('link', { name: new RegExp(`^Pedro ${sufixo} Costa`) }),
     ).toContainText(/PEDRO( C\.)? · Pintor/)
 
     const ferramenta = `Rompedor ${sufixo}`

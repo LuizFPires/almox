@@ -76,22 +76,34 @@ test.describe('impressão do adesivo', () => {
     await campo(page, 'Nome completo').fill(nome)
     await page.getByText('Pedreiro', { exact: true }).click()
     await page.locator('label').filter({ hasText: 'Construtora' }).first().click()
-    const inicio = Date.now()
     await page.getByRole('button', { name: 'Salvar e imprimir adesivo' }).click()
-    await expect(page.getByText('Pessoa salva. Adesivo mandado para a impressora.')).toBeVisible()
-    await expect(page.getByText(/Impresso no almoxarifado/)).toBeVisible({ timeout: 15_000 })
-    expect(Date.now() - inicio).toBeLessThan(10_000 + 3_000) // critério: até 10 s (+ atualização da tela)
+
+    // Tela Imprimir: nada sai antes de confirmar; escolhe 2 cópias (uma reserva).
+    await page.waitForURL((u) => u.pathname.endsWith('/imprimir'))
+    await expect(page.getByRole('figure', { name: /Prévia do adesivo/ })).toBeVisible()
+    expect(recebidas.some((r) => r.includes(nome))).toBe(false)
+    await page.getByRole('button', { name: 'Mais cópias' }).click()
+    const inicio = Date.now()
+    await page.getByRole('button', { name: 'Imprimir 2 etiquetas' }).click()
+    await expect(
+      page.getByText('Impresso no almoxarifado. Cole na frente do capacete.'),
+    ).toBeVisible({ timeout: 15_000 })
+    expect(Date.now() - inicio).toBeLessThan(10_000 + 2_000) // critério: até 10 s (+ atualização da tela)
 
     // O que chegou na impressora: QR só com o token, nome só no texto.
     const adesivo = recebidas.find((r) => r.includes(nome))
     expect(adesivo).toBeDefined()
     const qr = /\^BQN,2,\d+\^FDMA,([^^]*)\^FS/.exec(adesivo ?? '')?.[1]
     expect(qr).toMatch(/^[0-9a-f]{16,64}$/)
+    expect(adesivo).toContain('^PQ2')
+    await page.getByRole('link', { name: 'Concluir' }).click()
+    await page.waitForURL((u) => u.pathname === '/cadastros/pessoas')
 
     // Impressora desligada: o trabalho vira erro com mensagem clara.
     await new Promise((r) => simulador?.close(r))
     simulador = undefined
-    await page.getByRole('button', { name: 'Reimprimir' }).click()
+    await page.getByRole('link', { name: `Reimprimir adesivo de ${nome}` }).click()
+    await page.getByRole('button', { name: 'Imprimir 1 etiqueta' }).click()
     await expect(page.getByText(/Impressora sem resposta: recusou a conexão/)).toBeVisible({
       timeout: 15_000,
     })

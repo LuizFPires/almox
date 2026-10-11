@@ -60,6 +60,9 @@ export default async function PaginaFicha({ params, searchParams }: PageProps<'/
     pessoa.nome,
   )
   const nomeEmpresa = pessoa.empresa?.nome ?? ''
+  // A conferência (QR) ou a via (manual / lista) segue para retirada e devolução.
+  const parametroLancamento =
+    conferida && ident ? `ident=${ident}` : `via=${como === 'manual' ? 'manual' : 'lista'}`
 
   return (
     <>
@@ -132,30 +135,30 @@ export default async function PaginaFicha({ params, searchParams }: PageProps<'/
           <section aria-label="Lançar" className="flex flex-col gap-2.5">
             <div className="grid grid-cols-2 gap-2.5">
               <Link
-                href={`/pessoa/${pessoa.id}/retirada?${
-                  conferida && ident
-                    ? `ident=${ident}`
-                    : `via=${como === 'manual' ? 'manual' : 'lista'}`
-                }`}
+                href={`/pessoa/${pessoa.id}/retirada?${parametroLancamento}`}
                 className="flex min-h-24 flex-col items-start justify-between gap-2 rounded-cartao bg-amarelo p-4 text-left text-lg font-bold text-texto"
               >
                 <IconeInterface nome="checkout" tamanho={26} />
                 Retirada
               </Link>
-              <button
-                type="button"
-                disabled
-                className={`flex min-h-24 flex-col items-start justify-between gap-2 rounded-cartao p-4 text-left text-lg font-bold disabled:opacity-50 ${
-                  devolucao.permitida ? 'bg-escuro text-white' : 'bg-borda text-texto-2'
-                }`}
-              >
-                <IconeInterface nome="return" tamanho={26} />
-                Devolução
-              </button>
+              {devolucao.permitida ? (
+                <Link
+                  href={`/pessoa/${pessoa.id}/devolucao?${parametroLancamento}`}
+                  className="flex min-h-24 flex-col items-start justify-between gap-2 rounded-cartao bg-escuro p-4 text-left text-lg font-bold text-white"
+                >
+                  <IconeInterface nome="return" tamanho={26} />
+                  Devolução
+                </Link>
+              ) : (
+                <span
+                  aria-disabled="true"
+                  className="flex min-h-24 flex-col items-start justify-between gap-2 rounded-cartao bg-borda p-4 text-left text-lg font-bold text-texto-2"
+                >
+                  <IconeInterface nome="return" tamanho={26} />
+                  Devolução
+                </span>
+              )}
             </div>
-            <p className="text-center text-[13px] text-texto-2">
-              A devolução entra na próxima versão do app.
-            </p>
             {devolucao.aviso && (
               <div className="flex flex-col gap-2.5 rounded-cartao bg-aviso-claro px-4 py-3.5">
                 <p className="text-[15px]">{devolucao.aviso}</p>

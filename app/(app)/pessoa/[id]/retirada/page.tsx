@@ -1,7 +1,7 @@
 import type { Metadata } from 'next'
-import Link from 'next/link'
 import { notFound, redirect } from 'next/navigation'
-import { Cabecalho } from '@/components/Cabecalho'
+import { iniciais } from '@/components/CartaoPessoaLancamento'
+import { ConferenciaVencida } from '@/components/ConferenciaVencida'
 import { buscarFicha, identificacaoValida } from '@/lib/dados/ficha'
 import { tiposParaRetirar } from '@/lib/dados/retirada'
 import { ehPendencia, textoDesde, textoIdentificacao } from '@/lib/dominio/ficha'
@@ -11,13 +11,6 @@ import { obterSessao } from '@/lib/sessao'
 import { FluxoRetirada } from './FluxoRetirada'
 
 export const metadata: Metadata = { title: 'Retirada · Almox' }
-
-function iniciais(nome: string) {
-  const partes = nome.split(' ').filter(Boolean)
-  return (
-    (partes[0]?.[0] ?? '') + (partes.length > 1 ? (partes.at(-1)?.[0] ?? '') : '')
-  ).toUpperCase()
-}
 
 /** Retirada (F-05). `ident` = conferência do capacete (QR); sem ela, manual (RN-05). */
 export default async function PaginaRetirada({
@@ -39,31 +32,7 @@ export default async function PaginaRetirada({
   // Veio do capacete, mas a conferência venceu: não vira manual sem o almoxarife escolher.
   if (ident && !conferida) {
     return (
-      <>
-        <Cabecalho
-          titulo="Retirada"
-          subtitulo="Conferência não vale mais"
-          voltarPara={`/pessoa/${id}`}
-        />
-        <main className="flex flex-1 flex-col gap-4 px-5 pt-4 pb-6">
-          <p role="alert" className="rounded-cartao bg-aviso-claro px-4 py-3.5 text-[17px]">
-            A conferência do capacete não vale mais (dura 10 minutos e é de quem leu). Leia o
-            capacete do {primeiroNome(pessoa.nome)} de novo.
-          </p>
-          <Link
-            href="/leitura"
-            className="flex min-h-14 items-center justify-center rounded-cartao bg-escuro px-5 text-lg font-bold text-white"
-          >
-            Ler o capacete
-          </Link>
-          <Link
-            href={`/pessoa/${id}?via=manual`}
-            className="flex min-h-14 items-center justify-center rounded-cartao border border-borda bg-cartao px-5 text-lg font-bold"
-          >
-            Escolher na lista (manual)
-          </Link>
-        </main>
-      </>
+      <ConferenciaVencida titulo="Retirada" pessoaId={id} primeiro={primeiroNome(pessoa.nome)} />
     )
   }
   const agora = new Date()

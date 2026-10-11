@@ -174,11 +174,11 @@ Legenda: ⬜ A fazer · 🟨 Em andamento · ✅ Concluído · ⛔ Bloqueado
 **Objetivo:** devolver por quantidade, registrar avarias com foto, cumprir "quem pegou, devolve".
 
 **Entregas**
-- [ ] Devolução agrupada por tipo; contador "Devolvendo" (toque no ícone +1, −, "Devolveu tudo"); contador "Avariadas" ≤ devolvendo
-- [ ] Avaria: **foto obrigatória** (câmera, compressão no celular, upload para Storage) + motivo; sem foto não conclui (RN-09)
+- [x] Devolução agrupada por tipo; contador "Devolvendo" (toque no ícone +1, −, "Devolveu tudo"); contador "Avariadas" ≤ devolvendo
+- [x] Avaria: **foto obrigatória** (câmera, compressão no celular, upload para Storage) + motivo; sem foto não conclui (RN-09)
 - [x] Unidades devolvidas escolhidas pelas mais antigas (RN-08); avariadas vão para `manutencao`
 - [x] **RN-02/RN-06** aplicadas no servidor: devolução de item com `via = qr` exige identificação por QR na sessão; sem QR, só itens `via = manual`
-- [ ] Ficha: botão Devolução desabilitado com explicação quando não permitido + atalho "Ler capacete do {nome}"
+- [x] Ficha: botão Devolução desabilitado com explicação quando não permitido + atalho "Ler capacete do {nome}"
 - [x] RPC `registrar_devolucao` transacional
 - [ ] Estorno: engenheiro pode estornar um movimento com motivo (novo movimento `estorno`), nunca editar
 - [ ] Manutenção: lista das peças em manutenção (com foto e motivo); "Voltou do conserto" (volta a livre, engenheiro ou almoxarife) e "Dar baixa" (sai do estoque, só engenheiro)

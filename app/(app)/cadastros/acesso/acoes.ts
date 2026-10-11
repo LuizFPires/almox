@@ -16,7 +16,7 @@ export type EstadoAcesso = {
   erro?: string
   campos?: Partial<Record<'nome' | 'email' | 'perfil' | 'empresa_id', string>>
   /** Mostrada uma única vez, só quando o login foi criado agora. */
-  criado?: { email: string; senha: string | null; jaExistia: boolean }
+  criado?: { email: string; senha: string | null; jaExistia: boolean; senhaPendente: boolean }
 }
 
 const texto = (form: FormData, chave: string) =>
@@ -59,16 +59,9 @@ export async function darAcesso(_: EstadoAcesso, form: FormData): Promise<Estado
   let usuarioId = existente?.id ?? null
   let senha: string | null = null
   const jaExistia = Boolean(usuarioId)
-  if (usuarioId) {
-    // Login de outra obra que nunca trocou a provisória: gera outra, senão a pessoa fica sem senha.
-    const { data } = await admin.auth.admin.getUserById(usuarioId)
-    if (data.user?.app_metadata?.trocar_senha) {
-      senha = gerarSenhaProvisoria()
-      const { error } = await admin.auth.admin.updateUserById(usuarioId, { password: senha })
-      if (error)
-        return { erro: 'Não foi possível gerar a senha provisória. Tente de novo.', valores }
-    }
-  } else {
+  // Login que já existe (de outra obra): só ganha o vínculo. NUNCA troque nem mostre a
+  // senha dele aqui — o engenheiro desta obra entraria na conta de quem é de outra obra.
+  if (!usuarioId) {
     senha = gerarSenhaProvisoria()
     const { data, error } = await admin.auth.admin.createUser({
       email,
@@ -98,7 +91,11 @@ export async function darAcesso(_: EstadoAcesso, form: FormData): Promise<Estado
   }
 
   revalidatePath('/cadastros/usuarios')
-  return { criado: { email, senha, jaExistia } }
+  // Só para escolher a mensagem: a pessoa ainda não criou a própria senha?
+  const senhaPendente =
+    jaExistia &&
+    Boolean((await admin.auth.admin.getUserById(usuarioId)).data.user?.app_metadata?.trocar_senha)
+  return { criado: { email, senha, jaExistia, senhaPendente } }
 }
 
 export async function alterarAcesso(form: FormData) {

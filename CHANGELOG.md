@@ -2,6 +2,23 @@
 
 Registro do que foi entregue em cada milestone (ver `PLAN.md`).
 
+## M4 — Identificação por QR e ficha da pessoa (em revisão)
+
+### Adicionado
+- **Ler capacete** pela câmera do celular. A leitura é automática (`@zxing/browser`), há lanterna quando o aparelho permite e mensagens para "Capacete não cadastrado", pessoa inativa, pessoa de outra empresa e câmera bloqueada.
+- **Conferência** (RN-03): "É o {nome} que está na sua frente?". "Sim, é o …" grava no servidor uma identificação que vale **10 minutos**. Retirada e devolução com QR (M5/M6) vão exigir essa identificação.
+- **"Não é ele"** (RN-04): "Nada foi registrado". A ocorrência fica anotada e aparece em vermelho nos últimos lançamentos. O aviso ao encarregado chega no M9.
+- **Ficha da pessoa** (F-04):
+  - mostra como a pessoa foi identificada;
+  - "Com ele agora", com horário, pendência "desde ontem", "sem QR" e ALTO VALOR;
+  - regra de devolução RN-02/RN-06, com "Ler capacete do …";
+  - equipe da empresa.
+  - A consulta vê a ficha sem botões.
+- **Lista manual "Sem QR"** (F-08): busca por nome ou apelido sem acento. Quem é aberto por ela entra na ficha como "Escolhido na lista · sem QR".
+- **Início** (F-01) com dados reais: no canteiro, no almox, manutenção e pendências; cartão do fechamento do dia; pendências; últimos lançamentos.
+- 24 testes pgTAP novos (138 no total) e testes unitários das regras.
+- e2e com QR de verdade: um vídeo com o QR alimenta a câmera falsa do Chromium.
+
 ## M3 — Adesivo do capacete e impressão (concluído em 11/10/2026)
 
 ### Adicionado

@@ -12,7 +12,7 @@ Registro do que foi entregue em cada milestone (ver `PLAN.md`).
 - Tela inicial vazia (`/inicio`) com a estrutura do protótipo navegável e do PRD F-01 ("Ler QR do capacete"); abas da barra inferior com "Em breve"; esqueleto do painel `/tv`.
 - PWA: manifest, ícones (incluindo maskable e apple-touch-icon), service worker com tela offline e meta tags para iPhone.
 - Supabase local (`supabase/`), clientes de navegador e servidor em `lib/supabase` e `.env.example` com todas as variáveis previstas.
-- Testes: Vitest (unidade e componentes) e Playwright (Android, iPhone e TV); CI no GitHub Actions.
+- Testes: Vitest (unidade e componentes) e Playwright (Android, iPhone e TV); CI no GitHub Actions (verde).
 
 ### Pendente para fechar o M0
 - Projetos Supabase dev e prod na nuvem (criados pelo dono no painel).

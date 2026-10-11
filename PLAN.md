@@ -44,7 +44,7 @@ Legenda: ⬜ A fazer · 🟨 Em andamento · ✅ Concluído · ⛔ Bloqueado
 - [x] Design tokens do protótipo no tema do Tailwind (`@theme` em `globals.css`, Tailwind v4) (cores, fontes Barlow / Barlow Condensed / JetBrains Mono, raios, espaçamentos)
 - [x] Componentes base: `Botao`, `Cartao`, `Contador`, `IconeFerramenta` (biblioteca de ícones SVG do protótipo), `Cabecalho`, `BarraInferior`, `Rodape de ação`
 - [x] Utilitários: `formatarBRL` (centavos → `R$ 1.234,56`), datas no fuso `America/Sao_Paulo`, normalização de texto para busca (sem acento)
-- [ ] Lint, formatação, testes unitários (Vitest) e e2e (Playwright) rodando no CI — workflow pronto e tudo verde localmente; **o GitHub Actions não iniciou o job por cobrança da conta**
+- [x] Lint, formatação, testes unitários (Vitest) e e2e (Playwright) rodando no CI
 - [x] `CHANGELOG.md` criado
 
 **Critérios de aceite**
@@ -327,7 +327,7 @@ Legenda: ⬜ A fazer · 🟨 Em andamento · ✅ Concluído · ⛔ Bloqueado
 | 11/10/2026 | Aviso de não devolução no encerramento do dia; desconto cancelado se devolvido antes do fechamento da medição. |
 | 11/10/2026 | Painel da TV: opção A (cartões por pessoa, 12/página) alternando com colunas por empresa rolando; números de estoque só no app. |
 | 11/10/2026 | Stack: Next.js + TypeScript + Supabase (Postgres, Auth, Realtime, Storage) + PWA; e-mail transacional; Web Push. |
-| 11/10/2026 | M0: branch principal renomeada de `master` para `main`; repositório privado `LuizFPires/almox` no GitHub. |
+| 11/10/2026 | M0: branch principal renomeada de `master` para `main`; repositório `LuizFPires/almox` no GitHub, **público** (Actions bloqueado por cobrança no privado). Nada de segredo no repo: só `.env.example`. |
 | 11/10/2026 | M0: Tailwind v4, tokens do protótipo em `@theme` no `globals.css` (em vez de `tailwind.config`). |
 | 11/10/2026 | M0: Supabase local pela CLI no repo; projetos dev e prod na nuvem criados pelo dono no painel (região São Paulo), chaves só em `.env.local` e nas variáveis da Vercel. |
 | 11/10/2026 | M0: deploy pela integração Git da Vercel (importação do repo no painel); produção = `main`, preview por PR. |

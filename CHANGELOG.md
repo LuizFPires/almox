@@ -2,7 +2,7 @@
 
 Registro do que foi entregue em cada milestone (ver `PLAN.md`).
 
-## M0 — Fundação do projeto (em andamento)
+## M0 — Fundação do projeto (concluído em 11/10/2026)
 
 ### Adicionado
 - App Next.js 16 (App Router) com TypeScript estrito, ESLint, Prettier e Tailwind v4.
@@ -14,6 +14,9 @@ Registro do que foi entregue em cada milestone (ver `PLAN.md`).
 - Supabase local (`supabase/`), clientes de navegador e servidor em `lib/supabase` e `.env.example` com todas as variáveis previstas.
 - Testes: Vitest (unidade e componentes) e Playwright (Android, iPhone e TV); CI no GitHub Actions (verde).
 
-### Pendente para fechar o M0
-- Projetos Supabase dev e prod na nuvem (criados pelo dono no painel).
-- Importar o repositório na Vercel (produção = `main`, preview por PR) e testar a instalação num celular real.
+### Infraestrutura
+- Repositório público `LuizFPires/almox`; CI no GitHub Actions.
+- Supabase na nuvem: `almox-dev` e `almox-prod` (São Paulo).
+- Vercel: produção em https://almox-chi.vercel.app a partir da `main` (variáveis do `almox-prod`); prévia por PR com o `almox-dev`.
+- App instalado e testado em celular (Android e iPhone) a partir da produção.
+- Playwright aceita `E2E_BASE_URL` para testar um deploy (suíte verde contra a produção).

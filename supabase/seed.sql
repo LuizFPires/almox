@@ -1,0 +1,1 @@
+-- Dados de desenvolvimento do protótipo (30 pessoas, 6 empresas, 13 tipos). Preenchido no M1.

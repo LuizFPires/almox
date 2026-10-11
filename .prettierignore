@@ -1,0 +1,9 @@
+.next
+node_modules
+package-lock.json
+supabase/.temp
+playwright-report
+test-results
+*.md
+lib/supabase/tipos-banco.ts
+design-system

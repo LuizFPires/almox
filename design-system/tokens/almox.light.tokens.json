@@ -1,0 +1,101 @@
+{
+  "$description": "Almox light; DTCG-style leaf tokens with $type and $value.",
+  "color": {
+    "canvas": {
+      "$type": "color",
+      "$value": "#F6F7F9"
+    },
+    "surface": {
+      "$type": "color",
+      "$value": "#FFFFFF"
+    },
+    "subtle": {
+      "$type": "color",
+      "$value": "#F0F2F5"
+    },
+    "text": {
+      "$type": "color",
+      "$value": "#1F2937"
+    },
+    "muted": {
+      "$type": "color",
+      "$value": "#586474"
+    },
+    "border": {
+      "$type": "color",
+      "$value": "#E5E7EB"
+    },
+    "control": {
+      "$type": "color",
+      "$value": "#6B7280"
+    },
+    "primary": {
+      "$type": "color",
+      "$value": "#F4B400"
+    },
+    "on-primary": {
+      "$type": "color",
+      "$value": "#1F2937"
+    },
+    "primary-hover": {
+      "$type": "color",
+      "$value": "#D99F00"
+    },
+    "primary-active": {
+      "$type": "color",
+      "$value": "#C08D00"
+    },
+    "focus": {
+      "$type": "color",
+      "$value": "#1D4ED8"
+    },
+    "success-bg": {
+      "$type": "color",
+      "$value": "#DCFCE7"
+    },
+    "success-fg": {
+      "$type": "color",
+      "$value": "#166534"
+    },
+    "info-bg": {
+      "$type": "color",
+      "$value": "#DBEAFE"
+    },
+    "info-fg": {
+      "$type": "color",
+      "$value": "#1E40AF"
+    },
+    "warning-bg": {
+      "$type": "color",
+      "$value": "#FEF3C7"
+    },
+    "warning-fg": {
+      "$type": "color",
+      "$value": "#854D0E"
+    },
+    "danger-bg": {
+      "$type": "color",
+      "$value": "#FEE2E2"
+    },
+    "danger-fg": {
+      "$type": "color",
+      "$value": "#991B1B"
+    },
+    "neutral-bg": {
+      "$type": "color",
+      "$value": "#E5E7EB"
+    },
+    "neutral-fg": {
+      "$type": "color",
+      "$value": "#374151"
+    },
+    "violet-bg": {
+      "$type": "color",
+      "$value": "#EDE9FE"
+    },
+    "violet-fg": {
+      "$type": "color",
+      "$value": "#5B21B6"
+    }
+  }
+}

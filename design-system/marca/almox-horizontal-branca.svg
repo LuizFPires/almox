@@ -1,0 +1,13 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 890 290" width="890" height="290" role="img" aria-labelledby="title"><title id="title">almox</title><g transform="translate(10 14)"><g id="caixa-fechada">
+<path id="faixa-superior-1" d="M12 68 122 14 161 33 51 87Z" fill="#FFFFFF"/>
+<path id="faixa-superior-2" d="M72 98 179 45 226 68 119 121Z" fill="#FFFFFF"/>
+<path id="face-esquerda" d="M8 82 111 133 111 244 8 193Z" fill="#FFFFFF"/>
+<path id="face-direita-fechada" d="M131 132 234 81 234 192 131 243Z" fill="#FFFFFF"/>
+</g></g><g transform="translate(278 43)"><g id="wordmark-almox" fill="#FFFFFF">
+<path id="letra-a" fill-rule="evenodd" d="M57 48C25 48 5 70 5 102S25 156 56 156C69 156 81 151 89 143V152H123V51H89V60C81 52 70 48 57 48ZM64 78C80 78 89 88 89 102S80 127 64 127 39 117 39 102 49 78 64 78Z"/>
+<path id="letra-l" d="M135 15Q135 12 139 12H165Q169 12 169 16V152H135Z"/>
+<path id="letra-m" d="M180 152V51H214V63C225 46 254 42 273 64C289 42 323 44 340 62Q354 75 354 98V152H320V103Q320 78 303 78T286 103V152H252V103Q252 78 235 78T214 103V152Z"/>
+<path id="letra-o" fill-rule="evenodd" d="M419 48C386 48 363 70 363 102S386 156 419 156 475 134 475 102 452 48 419 48ZM419 78C434 78 443 88 443 102S434 127 419 127 395 117 395 102 404 78 419 78Z"/>
+<path id="letra-x" d="M475 51H514L590 152H551L532 126 513 152H473L512 100Z"/>
+<path id="acento-x" d="M535 71 551 51H590L553 95Z" fill="#FFFFFF"/>
+</g></g></svg>

@@ -1,0 +1,227 @@
+{
+  "meta": {
+    "name": "Almox",
+    "version": "1.0.0",
+    "date": "2026-10-11",
+    "format": "Almox tokens v1; values in px unless named otherwise",
+    "locale": "pt-BR"
+  },
+  "primitive": {
+    "color": {
+      "graphite": "#1F2937",
+      "yellow": "#F4B400",
+      "light-gray": "#E5E7EB"
+    },
+    "space": {
+      "0": 0,
+      "1": 4,
+      "2": 8,
+      "3": 12,
+      "4": 16,
+      "5": 20,
+      "6": 24,
+      "8": 32,
+      "10": 40,
+      "12": 48,
+      "16": 64,
+      "20": 80
+    },
+    "radius": {
+      "sm": 6,
+      "md": 10,
+      "lg": 16,
+      "pill": 999
+    },
+    "type": {
+      "family": "Inter, system-ui, -apple-system, Segoe UI, sans-serif",
+      "size": {
+        "caption": 12,
+        "small": 14,
+        "body": 16,
+        "title": 20,
+        "heading": 28,
+        "display": 40
+      },
+      "weight": {
+        "regular": 400,
+        "medium": 500,
+        "semibold": 600,
+        "bold": 700
+      },
+      "lineHeight": {
+        "compact": 1.2,
+        "body": 1.5
+      }
+    },
+    "breakpoint": {
+      "mobile": 0,
+      "tablet": 768,
+      "desktop": 1200
+    },
+    "motion": {
+      "fast": 120,
+      "normal": 180,
+      "reduced": 0
+    },
+    "zIndex": {
+      "base": 0,
+      "header": 20,
+      "navigation": 30,
+      "dialog": 100
+    }
+  },
+  "semantic": {
+    "light": {
+      "canvas": "#F6F7F9",
+      "surface": "#FFFFFF",
+      "subtle": "#F0F2F5",
+      "text": "#1F2937",
+      "muted": "#586474",
+      "border": "#E5E7EB",
+      "control": "#6B7280",
+      "primary": "#F4B400",
+      "on-primary": "#1F2937",
+      "primary-hover": "#D99F00",
+      "primary-active": "#C08D00",
+      "focus": "#1D4ED8",
+      "success-bg": "#DCFCE7",
+      "success-fg": "#166534",
+      "info-bg": "#DBEAFE",
+      "info-fg": "#1E40AF",
+      "warning-bg": "#FEF3C7",
+      "warning-fg": "#854D0E",
+      "danger-bg": "#FEE2E2",
+      "danger-fg": "#991B1B",
+      "neutral-bg": "#E5E7EB",
+      "neutral-fg": "#374151",
+      "violet-bg": "#EDE9FE",
+      "violet-fg": "#5B21B6"
+    },
+    "dark": {
+      "canvas": "#101720",
+      "surface": "#1F2937",
+      "subtle": "#293545",
+      "text": "#F9FAFB",
+      "muted": "#B8C2D0",
+      "border": "#405065",
+      "control": "#94A3B8",
+      "primary": "#F4B400",
+      "on-primary": "#1F2937",
+      "primary-hover": "#FFC72E",
+      "primary-active": "#D99F00",
+      "focus": "#93C5FD",
+      "success-bg": "#123D2B",
+      "success-fg": "#86EFAC",
+      "info-bg": "#172F56",
+      "info-fg": "#93C5FD",
+      "warning-bg": "#49370F",
+      "warning-fg": "#FDE68A",
+      "danger-bg": "#4B2027",
+      "danger-fg": "#FCA5A5",
+      "neutral-bg": "#344155",
+      "neutral-fg": "#E5E7EB",
+      "violet-bg": "#382454",
+      "violet-fg": "#C4B5FD"
+    },
+    "status": {
+      "available": {
+        "label": "Disponível",
+        "tone": "success",
+        "icon": "check"
+      },
+      "checked-out": {
+        "label": "Em uso",
+        "tone": "info",
+        "icon": "checkout"
+      },
+      "reserved": {
+        "label": "Reservado",
+        "tone": "violet",
+        "icon": "lock"
+      },
+      "in-transit": {
+        "label": "Em transferência",
+        "tone": "info",
+        "icon": "transfer"
+      },
+      "awaiting-return": {
+        "label": "Aguardando conferência",
+        "tone": "warning",
+        "icon": "return"
+      },
+      "overdue": {
+        "label": "Em atraso",
+        "tone": "danger",
+        "icon": "clock"
+      },
+      "maintenance": {
+        "label": "Em manutenção",
+        "tone": "warning",
+        "icon": "maintenance"
+      },
+      "lost": {
+        "label": "Extraviado",
+        "tone": "danger",
+        "icon": "warning"
+      },
+      "retired": {
+        "label": "Baixado",
+        "tone": "neutral",
+        "icon": "box"
+      }
+    }
+  },
+  "component": {
+    "button": {
+      "height": 44,
+      "paddingInline": 16,
+      "radius": 10,
+      "gap": 8,
+      "fontSize": 14,
+      "fontWeight": 600
+    },
+    "input": {
+      "height": 44,
+      "paddingInline": 12,
+      "radius": 10,
+      "borderWidth": 1,
+      "fontSize": 16
+    },
+    "badge": {
+      "height": 28,
+      "paddingInline": 10,
+      "radius": 999,
+      "fontSize": 12
+    },
+    "card": {
+      "padding": 24,
+      "radius": 16,
+      "borderWidth": 1
+    },
+    "table": {
+      "rowHeight": 64,
+      "headerHeight": 44,
+      "fontSize": 14
+    },
+    "sidebar": {
+      "width": 232
+    },
+    "header": {
+      "height": 76
+    },
+    "focus": {
+      "width": 3,
+      "offset": 3
+    },
+    "layout": {
+      "maxWidth": 1440,
+      "gutterMobile": 16,
+      "gutterTablet": 24,
+      "gutterDesktop": 32
+    },
+    "dialog": {
+      "maxWidth": 560,
+      "padding": 24
+    }
+  }
+}

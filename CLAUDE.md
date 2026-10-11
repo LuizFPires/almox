@@ -111,24 +111,31 @@ Estas regras são validadas **no servidor** (RPC/RLS), não só na tela. Detalhe
 - **Acessibilidade e campo:** alvos de toque ≥ 44 px; `<button>` de verdade; `aria-label` em botões só com ícone; contraste alto (uso sob sol).
 - **Textos curtos**, linguagem de obra ("Retirada", "Devolveu tudo", "Não é ele").
 
-## Identidade visual (do protótipo)
+## Identidade visual (Almox Design System v1.0)
 
-| Token | Valor |
+Fonte da verdade visual: `design-system/` (marca, 32 ícones de interface, tokens). Tokens no `@theme` de `app/globals.css`, com nomes em português.
+**Fluxos, telas e regras continuam vindo do PRD e do protótipo navegável**; as telas de referência do DS (transferências, reserva, prazo de devolução, "responsável") **não** se aplicam ao Almox.
+
+| Token (DS) | Valor |
 |---|---|
-| Fundo app (claro) | `#F4F2EE` |
-| Cartão | `#FFFFFF` |
-| Texto | `#1C1B19` |
-| Texto secundário | `#6B6760` |
-| Borda | `#E3DFD7` |
-| Amarelo segurança (primária, saída) | `#F5B800` |
-| Escuro (entrada, ações) | `#1C1B19` |
-| Engenheiro / cadastros | `#24406E` |
-| Sucesso | `#1E7A4B` |
-| Erro / pendência | `#C4302B` |
-| TV — fundo / cartão | `#111317` / `#1C1F25` |
-| Fontes | Barlow (texto), Barlow Condensed (títulos, números, nomes no capacete), JetBrains Mono (códigos) |
+| Fundo app — canvas | `#F6F7F9` |
+| Cartão — surface / sutil | `#FFFFFF` / `#F0F2F5` |
+| Texto / secundário | `#1F2937` / `#586474` |
+| Borda | `#E5E7EB` |
+| Amarelo (primária) / hover | `#F4B400` / `#D99F00` |
+| Grafite (ações, entrada) | `#1F2937` |
+| Engenheiro / cadastros (info) | `#1E40AF` sobre `#DBEAFE` |
+| Sucesso | `#166534` sobre `#DCFCE7` |
+| Aviso | `#854D0E` sobre `#FEF3C7` |
+| Erro / pendência | `#991B1B` sobre `#FEE2E2` |
+| Foco | contorno 3 px `#1D4ED8`, afastado 3 px |
+| TV (tema escuro do DS) — fundo / cartão / texto | `#101720` / `#1F2937` / `#F9FAFB` |
+| Raios | botão 10 px, cartão 16 px |
+| Fontes | Inter Variable (local, `app/fontes/`), JetBrains Mono só para códigos de unidade |
 
-Ícones de ferramenta: SVGs de traço do protótipo (pá, enxada, carrinho, colher, régua, linha, furadeira, martelete, esmerilhadeira, serra circular, martelo, escada, extensão), sempre com o **nome escrito embaixo**.
+- Marca: componente `Marca` (nunca escreva "almox" como texto no lugar do wordmark). `tom="reversa"` em fundo escuro.
+- Ícones de interface: `IconeInterface` (gerado por `scripts/gerar-icones-interface.mjs`).
+- Ícones de ferramenta: SVGs de traço do protótipo (pá, enxada, carrinho, colher, régua, linha, furadeira, martelete, esmerilhadeira, serra circular, martelo, escada, extensão), sempre com o **nome escrito embaixo**.
 
 ## Painel da TV
 

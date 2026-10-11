@@ -9,7 +9,7 @@ export function Indicador({ valor, rotulo, tom = 'normal' }: Props) {
   return (
     <div className="flex flex-col">
       <span
-        className={`font-condensada text-[32px] leading-none font-bold ${tom === 'erro' ? 'text-erro' : ''}`}
+        className={`text-[28px] leading-none font-bold tracking-tight tabular-nums ${tom === 'erro' ? 'text-erro' : ''}`}
       >
         {valor}
       </span>

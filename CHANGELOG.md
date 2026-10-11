@@ -6,10 +6,10 @@ Registro do que foi entregue em cada milestone (ver `PLAN.md`).
 
 ### Adicionado
 - App Next.js 16 (App Router) com TypeScript estrito, ESLint, Prettier e Tailwind v4.
-- Tokens visuais do protótipo em `app/globals.css` (`@theme`) e fontes Barlow, Barlow Condensed e JetBrains Mono.
+- Identidade do Almox Design System v1.0 (`design-system/`): marca (`Marca`), Inter Variable local, tokens claro/escuro em `app/globals.css`, 32 ícones de interface (`IconeInterface`) e ícones do app gerados da marca.
 - Utilitários em `lib/formatos`: `formatarBRL`/`lerBRL` (sempre em centavos), datas no fuso `America/Sao_Paulo` e `normalizarTexto` para busca sem acento.
 - Componentes base: `IconeFerramenta` (13 ícones do protótipo, sempre com o nome embaixo), `Botao`, `Cartao`, `Contador`, `Indicador`, `Cabecalho`, `BarraInferior`, `RodapeAcao`.
-- Tela inicial vazia (`/inicio`) no visual do protótipo; abas da barra inferior com "Em breve"; esqueleto do painel `/tv`.
+- Tela inicial vazia (`/inicio`) com a estrutura do protótipo navegável e do PRD F-01 ("Ler QR do capacete"); abas da barra inferior com "Em breve"; esqueleto do painel `/tv`.
 - PWA: manifest, ícones (incluindo maskable e apple-touch-icon), service worker com tela offline e meta tags para iPhone.
 - Supabase local (`supabase/`), clientes de navegador e servidor em `lib/supabase` e `.env.example` com todas as variáveis previstas.
 - Testes: Vitest (unidade e componentes) e Playwright (Android, iPhone e TV); CI no GitHub Actions.

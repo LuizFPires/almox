@@ -1,7 +1,7 @@
 // Service worker básico do Almox (M0): torna o app instalável e mostra uma
 // tela offline quando a navegação falha. A fila offline de lançamentos vem no M10.
 // Troque a versão sempre que offline.html mudar, para o SW reinstalar.
-const VERSAO = 'almox-v2'
+const VERSAO = 'almox-v3'
 const OFFLINE = '/offline.html'
 
 self.addEventListener('install', (evento) => {

@@ -1,19 +1,15 @@
-import { Barlow, Barlow_Condensed, JetBrains_Mono } from 'next/font/google'
+import { JetBrains_Mono } from 'next/font/google'
+import localFont from 'next/font/local'
 
-export const barlow = Barlow({
-  subsets: ['latin'],
-  weight: ['400', '500', '600', '700'],
-  variable: '--font-barlow',
+/** Inter Variable do Almox Design System (licença SIL OFL em app/fontes/OFL-Inter.txt). */
+export const inter = localFont({
+  src: './fontes/InterVariable.woff2',
+  weight: '100 900',
+  variable: '--font-inter',
   display: 'swap',
 })
 
-export const barlowCondensada = Barlow_Condensed({
-  subsets: ['latin'],
-  weight: ['600', '700'],
-  variable: '--font-barlow-condensed',
-  display: 'swap',
-})
-
+/** Códigos internos das unidades (PA-05, MT-02). */
 export const jetbrainsMono = JetBrains_Mono({
   subsets: ['latin'],
   weight: ['500'],
@@ -21,4 +17,4 @@ export const jetbrainsMono = JetBrains_Mono({
   display: 'swap',
 })
 
-export const variaveisDeFonte = `${barlow.variable} ${barlowCondensada.variable} ${jetbrainsMono.variable}`
+export const variaveisDeFonte = `${inter.variable} ${jetbrainsMono.variable}`

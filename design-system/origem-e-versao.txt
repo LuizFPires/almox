@@ -1,0 +1,21 @@
+ALMOX / ORIGEM E VERSÃO
+v1.0.0 - 11/10/2026
+
+Referência: conversa almox, id 6aca327b-e9cc-83e9-978c-0c6065a82f58.
+Imagens recuperadas: AF64BC3D-E7B2-47AC-AE91-B32474F8E05A.jpeg (caixa)
+e 8FB0430C-D8EB-4130-BCE5-1FAF4B7CAEF7.jpeg (wordmark e paleta).
+
+A reconstrução respeita as características aprovadas: almox em minúsculas,
+geometria pesada, acento amarelo no x, caixa fechada com duas faixas no topo,
+face esquerda grafite e face direita amarela maciça. Não é o arquivo vetorial
+original nem uma alegação de equivalência exata de cada curva da imagem.
+Os caminhos foram redesenhados para edição e exportação consistentes.
+
+Marca: preservar os direitos e a titularidade da identidade Almox.
+Ícones: geometrias criadas para este pacote, sem biblioteca de terceiros.
+Inter Variable: Rasmus Andersson, SIL Open Font License 1.1, texto incluído.
+Outros ativos externos: nenhum. Não há fotos de banco ou imagens geradas.
+
+Histórico 1.0.0: identidade reconstruída; 32 ícones; tokens nos dois temas;
+componentes com estados; 9 telas responsivas; manual; instruções de integração;
+relatório de contraste e verificações de renderização.

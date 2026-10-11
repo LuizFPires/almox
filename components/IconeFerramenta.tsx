@@ -19,14 +19,14 @@ export function IconeFerramenta({ icone, nome, tamanho = 'm' }: Props) {
   const t = TAMANHOS[tamanho]
   return (
     <span className="inline-flex flex-col items-center gap-1.5">
-      <span className={`${t.circulo} flex items-center justify-center rounded-full bg-icone`}>
+      <span className={`${t.circulo} flex items-center justify-center rounded-full bg-sutil`}>
         <svg
           width={t.svg}
           height={t.svg}
           viewBox="0 0 24 24"
           fill="none"
           stroke="currentColor"
-          strokeWidth={1.8}
+          strokeWidth={1.75}
           strokeLinecap="round"
           strokeLinejoin="round"
           aria-hidden="true"

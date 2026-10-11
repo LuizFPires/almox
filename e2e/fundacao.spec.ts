@@ -6,7 +6,7 @@ test.describe('app no celular', () => {
   test('a raiz abre a tela inicial vazia com o visual do protótipo', async ({ page }) => {
     await page.goto('/')
     await expect(page).toHaveURL(/\/inicio$/)
-    await expect(page.getByText('ALMOX', { exact: true })).toBeVisible()
+    await expect(page.getByRole('img', { name: 'almox' })).toBeVisible()
     const lerQr = page.getByRole('button', { name: /Ler QR do capacete/ })
     await expect(lerQr).toBeVisible()
     await expect(page.getByRole('link', { name: 'Ver quem está com o quê' }).last()).toBeVisible()
@@ -16,9 +16,9 @@ test.describe('app no celular', () => {
     }
     await expect(page.getByText('Nenhum lançamento ainda.')).toBeVisible()
 
-    // Botão escuro com ícone amarelo segurança e fundo claro do app.
-    await expect(lerQr).toHaveCSS('background-color', 'rgb(28, 27, 25)')
-    await expect(page.locator('body')).toHaveCSS('background-color', 'rgb(244, 242, 238)')
+    // Cores do Almox Design System: grafite no botão principal, canvas claro no fundo.
+    await expect(lerQr).toHaveCSS('background-color', 'rgb(31, 41, 55)')
+    await expect(page.locator('body')).toHaveCSS('background-color', 'rgb(246, 247, 249)')
   })
 
   test('não tem rolagem horizontal e os alvos de toque têm 44 px', async ({ page }) => {
@@ -113,6 +113,6 @@ test.describe('painel da TV', () => {
     await page.goto('/tv')
     await expect(page.getByText('QUEM ESTÁ COM O QUÊ')).toBeVisible()
     await expect(page.getByText(/^\d{2}:\d{2}$/)).toBeVisible()
-    await expect(page.getByTestId('painel-tv')).toHaveCSS('background-color', 'rgb(17, 19, 23)')
+    await expect(page.getByTestId('painel-tv')).toHaveCSS('background-color', 'rgb(16, 23, 32)')
   })
 })

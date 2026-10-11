@@ -25,7 +25,7 @@ export function Contador({ valor, onChange, rotulo, minimo = 0, maximo }: Props)
         −
       </button>
       <span
-        className="min-w-8 text-center font-condensada text-[28px] leading-none font-bold"
+        className="min-w-8 text-center text-[28px] leading-none font-bold tabular-nums"
         aria-live="polite"
       >
         {valor}

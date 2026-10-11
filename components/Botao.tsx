@@ -1,7 +1,7 @@
 import type { ButtonHTMLAttributes } from 'react'
 
 const VARIANTES = {
-  primaria: 'bg-amarelo text-texto',
+  primaria: 'bg-amarelo text-texto hover:bg-amarelo-hover',
   escura: 'bg-escuro text-white',
   engenheiro: 'bg-engenheiro text-white',
   sucesso: 'bg-sucesso text-white',

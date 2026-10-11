@@ -1,0 +1,21 @@
+ALMOX DESIGN SYSTEM 1.0.0
+Entrega: 11/10/2026 | Idioma: pt-BR
+
+1. Extraia o ZIP por completo.
+2. Abra index.html no navegador.
+3. Explore as telas e alterne o tema pelo botão no topo.
+4. Consulte 06-documentacao/almox-manual-v1.0.pdf.
+5. Para implementar, leia 06-documentacao/implementacao.html.
+
+Nenhuma instalação ou conexão à internet é necessária para a consulta local.
+O pacote contém marca, ícones, fontes, tokens, componentes e referências.
+Não contém backend, autenticação ou dados reais. As ações demonstram o fluxo.
+
+NOMES DE ARQUIVOS
+Marca: almox-{horizontal|vertical|simbolo|wordmark}-{principal|reversa|grafite|branca|preta}.
+PNG: versões @1x e @2x, fundo transparente. Variantes brancas exigem fundo escuro.
+Ícones: nome.svg e nome-{24|48}.png.
+Telas: {rota}-{desktop-light|desktop-dark|mobile-light}.png.
+As 9 telas também respondem ao tema escuro em celular no HTML.
+
+Para rastreabilidade dos arquivos, veja 08-qualidade/manifesto-sha256.json.

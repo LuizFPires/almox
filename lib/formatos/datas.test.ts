@@ -5,6 +5,7 @@ import {
   formatarData,
   formatarDataHora,
   formatarDiaCurto,
+  inicioDoDiaDaObra,
   formatarHora,
 } from './datas'
 
@@ -39,5 +40,11 @@ describe('datas no fuso da obra', () => {
 
   it('recusa data inválida', () => {
     expect(() => formatarData('ontem')).toThrow()
+  })
+
+  it('início do dia da obra é meia-noite em São Paulo (03:00 UTC)', () => {
+    expect(inicioDoDiaDaObra('2026-10-11T12:00:00Z').toISOString()).toBe('2026-10-11T03:00:00.000Z')
+    // 01:30 UTC de 11/10 ainda é dia 10 na obra
+    expect(inicioDoDiaDaObra('2026-10-11T01:30:00Z').toISOString()).toBe('2026-10-10T03:00:00.000Z')
   })
 })

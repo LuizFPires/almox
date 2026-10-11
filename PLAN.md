@@ -138,7 +138,7 @@ Legenda: ⬜ A fazer · 🟨 Em andamento · ✅ Concluído · ⛔ Bloqueado
 - [x] **Ficha da pessoa** (F-04): o que está com ela (com hora e marca "sem QR"), equipe da empresa, identificação usada
 - [x] Perfil consulta: QR abre direto a ficha, sem botões de lançamento
 - [x] Lista manual (F-08) com busca por nome/apelido sem acento
-- [ ] Tela inicial (F-01) com resumo e últimos lançamentos (dados reais)
+- [x] Tela inicial (F-01) com resumo e últimos lançamentos (dados reais)
 
 **Critérios de aceite**
 - Almoxarife lê QR → conferência → ficha com botões Retirada/Devolução.

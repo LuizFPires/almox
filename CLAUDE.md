@@ -103,6 +103,12 @@ Estas regras são validadas **no servidor** (RPC/RLS), não só na tela. Detalhe
 
 - **Idioma:** domínio e UI em português (nomes de tabelas, colunas, funções de domínio e textos). Termos técnicos genéricos (`useEffect`, `fetch`) seguem em inglês.
 - **Banco:** `snake_case`, singular (`pessoa`, `movimento_item`). Toda tabela tem RLS ativa. Escritas de negócio passam por **RPC transacional** (`registrar_retirada`, `registrar_devolucao`…), nunca por insert direto do cliente.
+  - Os privilégios padrão do Supabase estão **revogados**: toda tabela, função ou view nova precisa de `grant` explícito na migration (e `revoke … from anon`). Funções `security definer` com `set search_path = ''`; views com `security_invoker = true`.
+  - Helper de RLS que consulta tabela com RLS fica em `privado.*` como `security definer` (senão a própria RLS filtra a subconsulta).
+  - `pessoa.qr_token` e `dispositivo_tv.token_hash` não são legíveis pelo cliente: **nunca use `select *`** nessas tabelas; liste as colunas.
+  - Testes de banco em `supabase/tests` (pgTAP) para toda regra de RLS ou integridade nova.
+- **Usuários:** quem já lançou movimento não pode ser apagado do Auth (RN-18); para tirar o acesso, **bana** o login ou remova o vínculo em `usuario_obra`.
+- **Auth:** URLs de retorno só com endereço exato (sem curinga). Prévias da Vercel entram por senha.
 - **Dinheiro:** sempre inteiro em **centavos**. Exibição só via `formatarBRL` → `R$ 1.234,56`. Entrada aceita `2.890,00` e `2890,00`. Nunca use float para dinheiro.
 - **Datas:** `timestamptz` no banco; exibição no fuso `America/Sao_Paulo`, formato `dd/MM/yyyy` e `HH:mm`.
 - **Busca:** sempre normalizar (minúsculas, sem acento) dos dois lados.

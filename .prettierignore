@@ -5,5 +5,4 @@ supabase/.temp
 playwright-report
 test-results
 *.md
-lib/supabase/tipos-banco.ts
 design-system

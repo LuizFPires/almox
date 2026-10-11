@@ -208,7 +208,8 @@ Sequência: páginas de cartões por pessoa (1–12, 13–24, …) → colunas p
 | `obra` | id, nome, endereço, ativa |
 | `empresa` | id, obra_id, nome, tipo (`propria`/`empreiteira`), cor, dono_nome, dono_email, encarregado_pessoa_id, encarregado_email, proxima_medicao |
 | `pessoa` | id, obra_id, empresa_id, nome, nome_capacete, funcao, matricula, qr_token (único, opaco), ativa |
-| `usuario` | id (auth), nome, email, perfil (`engenheiro`/`almoxarife`/`consulta`), empresa_id (opcional), obras[] |
+| `usuario` | id (auth), nome, email |
+| `usuario_obra` | usuario_id, obra_id, perfil (`engenheiro`/`almoxarife`/`consulta`), empresa_id (opcional: consulta de empreiteira) — perfil vale por obra |
 | `tipo_ferramenta` | id, obra_id, nome, icone, valor_reposicao (centavos), alto_valor |
 | `unidade` | id, tipo_id, codigo (interno, ex. `PA-05`), status (`livre`/`em_uso`/`manutencao`/`baixada`) |
 | `posse` | unidade_id, pessoa_id, desde, via (`qr`/`manual`), movimento_retirada_id (registro vivo do que está com quem) |

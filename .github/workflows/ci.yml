@@ -11,9 +11,9 @@ concurrency:
 
 jobs:
   verificar:
-    name: Lint, testes, build e e2e
+    name: Lint, testes, banco, build e e2e
     runs-on: ubuntu-24.04
-    timeout-minutes: 20
+    timeout-minutes: 25
     env:
       CI: true
       NEXT_TELEMETRY_DISABLED: 1
@@ -35,6 +35,29 @@ jobs:
 
       - name: Testes unitários
         run: npm test
+
+      # Só os serviços que os testes usam: banco, Auth, API REST e o gateway.
+      - name: Supabase local
+        run: >-
+          npx supabase start
+          -x studio,imgproxy,vector,logflare,edge-runtime,supavisor,postgres-meta,realtime,storage-api,mailpit
+
+      - name: Testes de banco (RLS e imutabilidade)
+        run: npx supabase test db
+
+      - name: Tipos do banco em dia
+        run: |
+          npm run gen:types
+          git diff --exit-code lib/supabase/tipos-banco.ts
+
+      - name: Variáveis do Supabase local
+        run: |
+          npx supabase status -o env \
+            --override-name api.url=NEXT_PUBLIC_SUPABASE_URL \
+            --override-name auth.publishable_key=NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY \
+            | grep -E '^NEXT_PUBLIC_SUPABASE_(URL|PUBLISHABLE_KEY)=' > .env.local
+          echo "NEXT_PUBLIC_SITE_URL=http://localhost:3200" >> .env.local
+          cut -d= -f1 .env.local
 
       - name: Build
         run: npm run build

@@ -15,7 +15,7 @@ Fonte da verdade do produto: `PRD.md`. Regras para quem codifica: `CLAUDE.md`.
 | # | Milestone | Status | Concluído em |
 |---|---|---|---|
 | M0 | Fundação do projeto | ✅ Concluído | 11/10/2026 |
-| M1 | Banco, autenticação e perfis | ⬜ A fazer | |
+| M1 | Banco, autenticação e perfis | 🟨 Em andamento | |
 | M2 | Cadastros do engenheiro | ⬜ A fazer | |
 | M3 | Adesivo do capacete e impressão | ⬜ A fazer | |
 | M4 | Identificação por QR e ficha da pessoa | ⬜ A fazer | |
@@ -61,15 +61,15 @@ Legenda: ⬜ A fazer · 🟨 Em andamento · ✅ Concluído · ⛔ Bloqueado
 **Objetivo:** modelo de dados completo, login e permissões por perfil garantidas no banco.
 
 **Entregas**
-- [ ] Migrations SQL com todas as entidades do PRD §8 (`obra`, `empresa`, `pessoa`, `usuario`, `tipo_ferramenta`, `unidade`, `posse`, `movimento`, `movimento_item`, `avaria`, `ocorrencia`, `fechamento_dia`, `aviso`, `impressora`, `trabalho_impressao`, `dispositivo_tv`)
-- [ ] Valores monetários em centavos (`integer`); timestamps `timestamptz`
-- [ ] **RLS** em todas as tabelas: por obra e por perfil (engenheiro / almoxarife / consulta; consulta de empreiteira vê só a própria empresa)
-- [ ] `movimento` e `movimento_item` **somente inserção** (sem update/delete) — RN-18
-- [ ] Funções no banco (RPC) transacionais: `registrar_retirada`, `registrar_devolucao`, `registrar_ocorrencia` (esqueleto, implementadas em M5/M6)
-- [ ] Login por e-mail (senha + link mágico); tela de login no visual do app
-- [ ] Seletor de obra (quando o usuário tem mais de uma)
-- [ ] Seed de desenvolvimento com os dados do protótipo (30 pessoas, 6 empresas, 13 tipos, valores de exemplo)
-- [ ] Tipos TypeScript gerados a partir do schema
+- [x] Migrations SQL com todas as entidades do PRD §8 (`obra`, `empresa`, `pessoa`, `usuario`, `tipo_ferramenta`, `unidade`, `posse`, `movimento`, `movimento_item`, `avaria`, `ocorrencia`, `fechamento_dia`, `aviso`, `impressora`, `trabalho_impressao`, `dispositivo_tv`)
+- [x] Valores monetários em centavos (`integer`); timestamps `timestamptz`
+- [x] **RLS** em todas as tabelas: por obra e por perfil (engenheiro / almoxarife / consulta; consulta de empreiteira vê só a própria empresa)
+- [x] `movimento` e `movimento_item` **somente inserção** (sem update/delete) — RN-18
+- [x] Funções no banco (RPC) transacionais: `registrar_retirada`, `registrar_devolucao`, `registrar_ocorrencia` (esqueleto, implementadas em M5/M6)
+- [x] Login por e-mail (senha + link mágico); tela de login no visual do app
+- [x] Seletor de obra (quando o usuário tem mais de uma)
+- [x] Seed de desenvolvimento com os dados do protótipo (30 pessoas, 6 empresas, 13 tipos, valores de exemplo)
+- [x] Tipos TypeScript gerados a partir do schema
 
 **Critérios de aceite**
 - Testes de RLS: almoxarife não consegue inserir em `tipo_ferramenta`; consulta não consegue inserir em `movimento`; consulta de empreiteira não lê pessoas de outra empresa.
@@ -335,3 +335,14 @@ Legenda: ⬜ A fazer · 🟨 Em andamento · ✅ Concluído · ⛔ Bloqueado
 | 11/10/2026 | M0: componente extra `Indicador` (número grande + rótulo do resumo); abas sem tela ainda mostram "Em breve" em vez de 404. |
 | 11/10/2026 | M0 (revisão): tela inicial segue o protótipo navegável e o PRD F-01 (ação principal "Ler QR do capacete", resumo com manutenção, barra Início · Lista · Estoque · Fechamento · Cadastros). Moeda segue o literal `R$ 1.234,56` com espaço comum; fontes via `next/font/google` (baixadas no build). |
 | 11/10/2026 | Identidade visual passa a ser o **Almox Design System v1.0** (`design-system/`): marca, Inter, cores e ícones de interface. Fluxos e regras seguem o PRD e o protótipo; telas do DS de transferência, reserva, prazo de devolução e "movimentação só online" não se aplicam (contrariam RN-01, o QR no capacete e o M10). Ícones de ferramenta continuam os do protótipo. |
+| 11/10/2026 | M1: **perfil por obra** — tabela `usuario_obra` (usuario_id, obra_id, perfil, empresa_id) no lugar de `usuario.perfil` + `obras[]`. O mesmo login pode ter perfis diferentes em obras diferentes; a RLS filtra pela obra. |
+| 11/10/2026 | M1: logins **só por convite**; cadastro público desligado no Supabase Auth. No M1 os usuários de teste vêm do seed; a tela de convite do engenheiro entra no M2 (Cadastros). |
+| 11/10/2026 | M1: migrations aplicadas no `almox-dev` durante o milestone (com seed, para as prévias da Vercel); no `almox-prod` só após o merge e com OK do dono, **sem seed**. |
+| 11/10/2026 | M1: testes de banco (pgTAP, `supabase test db`) rodam no CI em todo PR, com Supabase local no GitHub Actions. |
+| 11/10/2026 | M1: `tipo_ferramenta.prefixo` (PA, MT, FUR…) para os códigos sequenciais das unidades; `dispositivo_tv` guarda só o **hash** do token (o token aparece uma vez, no M8). |
+| 11/10/2026 | M1: `qr_token` não é legível pelo cliente (privilégio por coluna); a busca por token será uma RPC no M4. Escritas de negócio (movimento, posse, avaria, ocorrência, fechamento, aviso) só por RPC. |
+| 11/10/2026 | M1: Supabase local nas portas 544xx para conviver com outros projetos da máquina. Configurações de Auth na nuvem aplicadas só no que foi decidido (cadastro desligado e URLs de retorno), com `config push` mínimo, sem copiar os padrões de desenvolvimento. |
+| 11/10/2026 | M1 (revisão): privilégios padrão revogados (objeto novo exige `grant` explícito); posse ⇔ unidade em uso (gatilho adiado); posse/avaria ligadas ao item do movimento; encarregado da própria empresa; estorno só na mesma obra; consulta restrita só de empreiteira; engenheiro não altera o próprio vínculo; nomes de usuários visíveis na obra (e-mail não); avisos só para engenheiro e a própria empreiteira. |
+| 11/10/2026 | M1 (revisão): URLs de retorno do Auth sem curinga (`*-luiz-fp-ires.vercel.app` permitiria roubo de sessão por link mágico); `emailRedirectTo` usa `NEXT_PUBLIC_SITE_URL`. Prévias da Vercel entram por senha. |
+| 11/10/2026 | M1 (revisão): senhas dos usuários de teste no `almox-dev` trocadas por senhas aleatórias fora do git (o repositório é público); o seed recusa banco que já tem obras. |
+| 11/10/2026 | M1 (revisão, aceito sem mudança): consulta de empreiteira vê o estoque total da obra (PRD §5 permite estoque); e-mails de dono/encarregado das empresas legíveis por quem é da obra (contato comercial, não dado de trabalhador); link mágico em outro aparelho falha (PKCE) — trocar o modelo de e-mail para `token_hash` fica para o M9 junto com o SMTP; mudança de empresa/tipo com ferramenta em posse entra no log de alterações do M2. |

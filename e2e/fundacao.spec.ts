@@ -1,7 +1,13 @@
 import { expect, test } from '@playwright/test'
+import { entrarComo, semSeed } from './apoio'
 
 test.describe('app no celular', () => {
   test.skip(({ isMobile }) => !isMobile, 'telas do celular')
+  test.skip(semSeed, 'precisa dos usuários do seed')
+
+  test.beforeEach(async ({ page }) => {
+    await entrarComo(page, 'engenheiro')
+  })
 
   test('a raiz abre a tela inicial vazia com o visual do protótipo', async ({ page }) => {
     await page.goto('/')
@@ -29,7 +35,9 @@ test.describe('app no celular', () => {
     }))
     expect(larguras.pagina).toBeLessThanOrEqual(larguras.tela)
 
-    for (const alvo of await page.locator('main a, main button, nav a, header a').all()) {
+    await expect(page.getByText('Nenhum lançamento ainda.')).toBeVisible()
+    const alvos = page.locator('main a, main button, nav a, header a').filter({ visible: true })
+    for (const alvo of await alvos.all()) {
       const caixa = await alvo.boundingBox()
       const nome = (await alvo.getAttribute('aria-label')) ?? (await alvo.innerText())
       expect.soft(caixa?.height ?? 0, nome).toBeGreaterThanOrEqual(44)
@@ -38,7 +46,6 @@ test.describe('app no celular', () => {
   })
 
   test('a barra inferior segue a ordem do PRD', async ({ page }) => {
-    await page.goto('/inicio')
     await expect(page.getByRole('navigation').getByRole('link')).toHaveText([
       'Início',
       'Lista',
@@ -49,7 +56,6 @@ test.describe('app no celular', () => {
   })
 
   test('a barra inferior navega entre as abas', async ({ page }) => {
-    await page.goto('/inicio')
     await page.getByRole('link', { name: 'Estoque' }).click()
     await expect(page).toHaveURL(/\/estoque$/)
     await expect(page.getByRole('heading', { name: 'Estoque' })).toBeVisible()
@@ -64,7 +70,7 @@ test.describe('PWA', () => {
   test.skip(({ isMobile }) => !isMobile, 'instalação é no celular')
 
   test('manifest instalável com ícones válidos', async ({ page, request }) => {
-    await page.goto('/inicio')
+    await page.goto('/login')
     const href = await page.locator('link[rel="manifest"]').getAttribute('href')
     expect(href).toBeTruthy()
 
@@ -87,7 +93,7 @@ test.describe('PWA', () => {
   })
 
   test('tem ícone e meta tags para iPhone', async ({ page }) => {
-    await page.goto('/inicio')
+    await page.goto('/login')
     await expect(page.locator('link[rel="apple-touch-icon"]')).toHaveCount(1)
     await expect(page.locator('meta[name="apple-mobile-web-app-title"]')).toHaveAttribute(
       'content',
@@ -97,7 +103,7 @@ test.describe('PWA', () => {
 
   test('registra o service worker', async ({ page, browserName }) => {
     test.skip(browserName === 'webkit', 'WebKit do Playwright não expõe service worker')
-    await page.goto('/inicio')
+    await page.goto('/login')
     const escopo = await page.evaluate(async () => {
       const registro = await navigator.serviceWorker.ready
       return registro.scope

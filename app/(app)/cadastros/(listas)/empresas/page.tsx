@@ -29,14 +29,16 @@ export default async function PaginaEmpresas() {
         const alerta = faltaEmail(e)
         return (
           <Cartao key={e.id} alerta={alerta} className="flex flex-col gap-2.5">
-            <div className="flex items-center gap-2.5">
-              <span
-                aria-hidden="true"
-                className="size-3.5 shrink-0 rounded-full"
-                style={{ background: e.cor }}
-              />
-              <span className="flex-1 text-base font-bold">{e.nome}</span>
-              <span className="text-[13px] text-texto-2">
+            <div className="flex flex-col gap-0.5">
+              <div className="flex items-center gap-2.5">
+                <span
+                  aria-hidden="true"
+                  className="size-3.5 shrink-0 rounded-full"
+                  style={{ background: e.cor }}
+                />
+                <span className="text-base font-bold">{e.nome}</span>
+              </div>
+              <span className="pl-6 text-[13px] text-texto-2">
                 {e.tipo === 'propria' ? 'própria' : 'empreiteira'} · {pessoas}{' '}
                 {pessoas === 1 ? 'pessoa' : 'pessoas'} ·{' '}
                 {fora === 0 ? 'nada fora' : `${fora} ${fora === 1 ? 'item fora' : 'itens fora'}`}

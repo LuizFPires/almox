@@ -12,6 +12,8 @@ export type PedidoRetirada = {
   identificacao: string | null
   itens: { tipo: string; quantidade: number }[]
   confirmado: boolean
+  /** Gerada ao entrar na revisão: repetir o pedido (resposta perdida) não duplica. */
+  chave: string
 }
 
 export type FalhaRetirada = { erro: string; motivo: 'conferencia' | 'acabou' | 'outro' }
@@ -24,8 +26,14 @@ export async function registrarRetirada(pedido: PedidoRetirada): Promise<FalhaRe
   if (!podeLancar(obraAtual.perfil)) {
     return { erro: 'Só o almoxarife e o engenheiro lançam retiradas.', motivo: 'outro' }
   }
-  const identificacao =
-    pedido.identificacao && UUID.test(pedido.identificacao) ? pedido.identificacao : null
+  // Conferência malformada não vira manual sem o almoxarife escolher.
+  if (pedido.identificacao !== null && !UUID.test(pedido.identificacao)) {
+    return {
+      erro: 'A conferência do capacete não vale mais. Leia o capacete de novo.',
+      motivo: 'conferencia',
+    }
+  }
+  const identificacao = pedido.identificacao
   const supabase = await criarClienteServidor()
   const { data: movimento, error } = await supabase.rpc('registrar_retirada', {
     p_obra: obraAtual.id,
@@ -34,6 +42,7 @@ export async function registrarRetirada(pedido: PedidoRetirada): Promise<FalhaRe
     p_identificacao: identificacao as string,
     p_itens: pedido.itens.map((i) => ({ tipo: i.tipo, quantidade: i.quantidade })),
     p_confirmado: pedido.confirmado,
+    p_chave: UUID.test(pedido.chave) ? pedido.chave : undefined,
   })
   if (error || !movimento) {
     if (error?.code === 'AL001') return { erro: error.message, motivo: 'conferencia' }

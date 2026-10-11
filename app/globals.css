@@ -66,3 +66,8 @@ body {
     animation-duration: 0ms !important;
   }
 }
+
+/* Rodapé de ação fixo no pé da tela: campo que recebe foco não fica escondido atrás dele. */
+html {
+  scroll-padding-bottom: 8rem;
+}

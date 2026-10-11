@@ -60,6 +60,7 @@ export function FluxoRetirada(props: Props) {
   const [etapa, setEtapa] = useState<'grade' | 'revisao'>('grade')
   const [qtd, setQtd] = useState<Record<string, number>>({})
   const [conferido, setConferido] = useState(false)
+  const [chave, setChave] = useState('')
   const [falha, setFalha] = useState<FalhaRetirada | null>(null)
   const [enviando, iniciar] = useTransition()
 
@@ -78,19 +79,22 @@ export function FluxoRetirada(props: Props) {
           identificacao: conferencia,
           itens: marcadas.map((e) => ({ tipo: e.tipo.id, quantidade: e.quantidade })),
           confirmado: conferido,
+          chave,
         })
         setFalha(r)
         // Alguém levou antes: atualiza as livres e volta para a grade.
         if (r.motivo === 'acabou') {
           setEtapa('grade')
           setQtd({})
+          setChave('')
           router.refresh()
         }
       } catch (e) {
         const digest = (e as { digest?: unknown } | null)?.digest
         if (typeof digest === 'string' && digest.startsWith('NEXT_')) throw e
+        // Pode ter gravado antes de a rede cair: repetir com a mesma chave não duplica.
         setFalha({
-          erro: 'Sem conexão com o Almox. Nada foi registrado; tente de novo.',
+          erro: 'Não deu para confirmar com o Almox. Toque em "Concluir retirada" de novo: se já tiver sido registrada, não repete.',
           motivo: 'outro',
         })
       }
@@ -218,7 +222,6 @@ export function FluxoRetirada(props: Props) {
               <div key={tipo.id} className="flex flex-col gap-1">
                 <button
                   type="button"
-                  aria-pressed={q > 0}
                   aria-label={`${tipo.nome}: ${q > 0 ? `${q} escolhida(s), ` : ''}${textoDisponivel(livres, q)}`}
                   onClick={() => setQtd((m) => ({ ...m, [tipo.id]: somarUm(q, livres) }))}
                   disabled={livres === 0}
@@ -234,7 +237,9 @@ export function FluxoRetirada(props: Props) {
                   {ehChaveIcone(tipo.icone) && (
                     <IconeFerramenta icone={tipo.icone} nome={tipo.nome} />
                   )}
-                  <span className="text-xs text-texto-2">{textoDisponivel(livres, q)}</span>
+                  <span className="text-xs text-texto-2">
+                    {q > 0 && q === livres ? 'todas escolhidas' : textoDisponivel(livres, q)}
+                  </span>
                 </button>
                 {q > 0 && (
                   <button
@@ -267,6 +272,7 @@ export function FluxoRetirada(props: Props) {
           onClick={() => {
             setConferido(false)
             setFalha(null)
+            setChave(crypto.randomUUID())
             setEtapa('revisao')
           }}
         >

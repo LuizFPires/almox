@@ -9,13 +9,15 @@ import { obterSessao } from '@/lib/sessao'
 
 export const metadata: Metadata = { title: 'Retirada registrada · Almox' }
 
+const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i
+
 /** Sucesso da retirada (protótipo › ok): o que saiu, com quem e como. */
 export default async function PaginaRetiradaFeita({
   searchParams,
 }: PageProps<'/pessoa/[id]/retirada/feita'>) {
   const { mov } = (await searchParams) as { mov?: string }
   const { obraAtual } = await obterSessao()
-  const retirada = mov ? await buscarRetirada(obraAtual.id, mov) : null
+  const retirada = mov && UUID.test(mov) ? await buscarRetirada(obraAtual.id, mov) : null
   if (!retirada) notFound()
 
   const porTipo = new Map<string, string[]>()

@@ -31,7 +31,10 @@ export function AoVivo({ obraId, tabelas }: Props) {
     void supabase.auth.getSession().then(async ({ data }) => {
       if (encerrado || !data.session) return
       await supabase.realtime.setAuth(data.session.access_token)
-      let c = supabase.channel(`obra-${obraId}-${chave}`)
+      if (encerrado) return
+      // Tópico único por montagem: o realtime-js reaproveita canal de mesmo nome, e um canal
+      // antigo ainda saindo deixaria a tela sem tempo real.
+      let c = supabase.channel(`obra-${obraId}-${chave}-${crypto.randomUUID()}`)
       for (const tabela of chave.split(',')) {
         c = c.on(
           'postgres_changes',

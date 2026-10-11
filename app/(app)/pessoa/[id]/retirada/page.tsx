@@ -40,11 +40,15 @@ export default async function PaginaRetirada({
   if (ident && !conferida) {
     return (
       <>
-        <Cabecalho titulo="Retirada" subtitulo="Conferência vencida" voltarPara={`/pessoa/${id}`} />
+        <Cabecalho
+          titulo="Retirada"
+          subtitulo="Conferência não vale mais"
+          voltarPara={`/pessoa/${id}`}
+        />
         <main className="flex flex-1 flex-col gap-4 px-5 pt-4 pb-6">
           <p role="alert" className="rounded-cartao bg-aviso-claro px-4 py-3.5 text-[17px]">
-            A conferência do capacete vale 10 minutos e já venceu. Leia o capacete do{' '}
-            {primeiroNome(pessoa.nome)} de novo.
+            A conferência do capacete não vale mais (dura 10 minutos e é de quem leu). Leia o
+            capacete do {primeiroNome(pessoa.nome)} de novo.
           </p>
           <Link
             href="/leitura"

@@ -1031,10 +1031,10 @@ export type Database = {
       registrar_retirada: {
         Args: {
           p_confirmado: boolean
+          p_identificacao: string
           p_itens: Json
           p_obra: string
           p_pessoa: string
-          p_via: Database['public']['Enums']['via_movimento']
         }
         Returns: string
       }

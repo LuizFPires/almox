@@ -156,7 +156,7 @@ Legenda: ⬜ A fazer · 🟨 Em andamento · ✅ Concluído · ⛔ Bloqueado
 **Entregas**
 - [ ] Grade de tipos com unidades livres; **toque no ícone soma 1**, botão −, selo com quantidade; limite = livres (RN-07)
 - [ ] Revisão: tipo × quantidade, unidades alocadas automaticamente (RN-08), selo ALTO VALOR (RN-10), confirmação obrigatória (RN-11), aviso de lançamento manual (RN-05)
-- [ ] RPC `registrar_retirada` transacional: cria `movimento` + `movimento_item`, cria `posse` com `via`, muda `unidade.status` para `em_uso`; falha se alguma unidade deixou de estar livre (concorrência)
+- [x] RPC `registrar_retirada` transacional: cria `movimento` + `movimento_item`, cria `posse` com `via`, muda `unidade.status` para `em_uso`; falha se alguma unidade deixou de estar livre (concorrência)
 - [ ] Tela de sucesso e retorno para "Ler outro capacete"
 - [ ] Aparece em tempo real em "últimos lançamentos"
 

@@ -2,6 +2,31 @@
 
 Registro do que foi entregue em cada milestone (ver `PLAN.md`).
 
+## M6 — Devolução e avaria (em revisão)
+
+### Adicionado
+- **Devolução** pela ficha, agrupada por tipo:
+  - toque no ícone soma 1, com "Devolvendo" (− / x de N / +), "Devolveu tudo" e "Avariadas" (no máximo o que está voltando);
+  - rodapé "Fica com ele";
+  - com QR devolve tudo; sem QR, só o que saiu sem QR (RN-02/RN-06, conferido no servidor).
+- **Avaria com foto por peça** (decisão do dono):
+  - a câmera do celular tira a foto, que é comprimida no aparelho e vai para um Storage privado;
+  - o motivo é um de: Quebrada, Cabo rompido, Não liga, Desgaste, Peça faltando;
+  - sem foto, a devolução não conclui (RN-09);
+  - as peças avariadas vão para manutenção.
+- **`registrar_devolucao`** transacional:
+  - voltam as mais antigas (RN-08);
+  - é idempotente: repetir o pedido depois de uma falha de rede não devolve duas vezes;
+  - guarda de qual retirada cada peça veio.
+- **Estorno** pelo lançamento, só pelo engenheiro e com motivo:
+  - na retirada, as peças voltam ao estoque; na devolução, a posse volta como estava;
+  - o original fica como está (RN-18);
+  - não estorna se as peças já tiveram outro movimento depois.
+- **Manutenção:** lista das peças avariadas com foto, com "Voltou do conserto" e "Dar baixa" (só o engenheiro). Isso fica no log de alterações.
+- Tela **"Devolução registrada"**. Os últimos lançamentos do Início abrem o detalhe do lançamento.
+- 41 testes pgTAP novos (216 no total).
+- e2e dos 3 critérios de aceite, com foto de verdade, mais estorno e conserto.
+
 ## M5 — Retirada (concluído em 11/10/2026)
 
 ### Adicionado

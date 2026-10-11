@@ -17,7 +17,7 @@ export default async function LayoutListas({ children }: LayoutProps<'/cadastros
       <div className="px-5 pt-1 pb-3">
         <AbasCadastros />
       </div>
-      <main className="flex flex-1 flex-col gap-2 px-5 pb-28">{children}</main>
+      <main className="flex flex-1 flex-col gap-2 px-5 pb-6">{children}</main>
       <BarraInferior ativa="cadastros" podeLancar />
     </>
   )

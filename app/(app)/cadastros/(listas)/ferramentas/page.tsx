@@ -17,6 +17,7 @@ export default async function PaginaFerramentas() {
 
   return (
     <>
+      <BotaoNovo href="/cadastros/ferramenta/nova">Nova ferramenta</BotaoNovo>
       <p className="text-[13px] text-texto-2">
         {tipos.length} {tipos.length === 1 ? 'tipo' : 'tipos'} · {totalUnidades} unidades
       </p>
@@ -59,7 +60,6 @@ export default async function PaginaFerramentas() {
           </Link>
         )
       })}
-      <BotaoNovo href="/cadastros/ferramenta/nova">Nova ferramenta</BotaoNovo>
     </>
   )
 }

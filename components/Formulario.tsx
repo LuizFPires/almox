@@ -87,12 +87,12 @@ export function ErroFormulario({ mensagem }: { mensagem?: string }) {
   )
 }
 
-/** Botão flutuante "Nova …" das listas. */
+/** Botão "Nova …" das listas: largura total, logo abaixo das abas (protótipo). */
 export function BotaoNovo({ href, children }: { href: string; children: ReactNode }) {
   return (
     <Link
       href={href}
-      className="fixed right-[max(1.25rem,calc(50vw-240px+1.25rem))] bottom-[calc(76px+env(safe-area-inset-bottom)+16px)] flex min-h-14 items-center gap-2 rounded-full bg-amarelo px-5 text-[17px] font-bold text-texto shadow-lg"
+      className="flex min-h-14 items-center justify-center gap-2 rounded-cartao border-2 border-dashed border-engenheiro bg-cartao text-[17px] font-bold text-engenheiro"
     >
       <IconeInterface nome="plus" tamanho={20} />
       {children}

@@ -58,6 +58,7 @@ export default async function PaginaPessoas() {
 
   return (
     <>
+      <BotaoNovo href="/cadastros/pessoa/nova">Nova pessoa</BotaoNovo>
       <p className="text-[13px] text-texto-2">
         {ativas.length} {ativas.length === 1 ? 'pessoa ativa' : 'pessoas ativas'} nesta obra
       </p>
@@ -81,7 +82,6 @@ export default async function PaginaPessoas() {
           </div>
         </details>
       )}
-      <BotaoNovo href="/cadastros/pessoa/nova">Nova pessoa</BotaoNovo>
     </>
   )
 }

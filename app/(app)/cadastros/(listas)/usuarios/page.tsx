@@ -14,6 +14,7 @@ export default async function PaginaAcessos() {
 
   return (
     <>
+      <BotaoNovo href="/cadastros/acesso/novo">Dar acesso</BotaoNovo>
       <p className="text-[13px] text-texto-2">Quem entra no Almox nesta obra</p>
       {acessos.map((a) => {
         const voce = a.usuario_id === usuario.id
@@ -51,7 +52,6 @@ export default async function PaginaAcessos() {
           </Link>
         )
       })}
-      <BotaoNovo href="/cadastros/acesso/novo">Dar acesso</BotaoNovo>
     </>
   )
 }

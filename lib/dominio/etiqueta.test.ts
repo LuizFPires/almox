@@ -66,6 +66,18 @@ describe('adesivo do capacete', () => {
     expect(zpl.match(/\^XZ/g)).toHaveLength(1)
   })
 
+  it('caracteres de controle (ESC, quebra de linha) não chegam à impressora', () => {
+    const maldoso = { ...dados, empresa: 'Fôrmas\x1b!R Ribeiro', funcao: 'Pedreiro\r\n^XZ^XA\x07' }
+    for (const etiqueta of [gerarAdesivoZpl(maldoso), gerarAdesivoTspl(maldoso)]) {
+      // eslint-disable-next-line no-control-regex
+      const semEstrutura = etiqueta.replace(/\r?\n/g, '')
+      // eslint-disable-next-line no-control-regex
+      expect(semEstrutura).not.toMatch(/[\u0000-\u001f\u007f-\u009f]/)
+      expect(etiqueta).toContain('Fôrmas !R Ribeiro')
+    }
+    expect(gerarAdesivoZpl(maldoso).match(/\^XZ/g)).toHaveLength(1)
+  })
+
   it('TSPL: tamanho 60 × 80 mm, UTF-8, cópias no PRINT e aspas escapadas', () => {
     const tspl = gerarAdesivoTspl({ ...dados, nomeCompleto: 'José "Zé" Silva' }, 2)
     expect(tspl).toContain('SIZE 60 mm,80 mm')

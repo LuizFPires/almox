@@ -1,4 +1,4 @@
-import { formatarHora } from '@/lib/formatos/datas'
+import { diaDaObra, formatarDataHora, formatarHora } from '@/lib/formatos/datas'
 
 /** O agente consulta a fila a cada 2 s; sem sinal há mais de 30 s = offline. */
 export const LIMITE_ONLINE_MS = 30_000
@@ -18,7 +18,9 @@ export function situacaoAgente(pings: (string | null)[], agora: Date): SituacaoA
     .at(-1)
   if (!ultimo) return { online: false, texto: 'Agente nunca conectou. Instale no mini PC.' }
   if (agenteOnline(ultimo, agora)) return { online: true, texto: 'Agente online' }
-  return { online: false, texto: `Agente offline desde ${formatarHora(ultimo)}` }
+  const quando =
+    diaDaObra(ultimo) === diaDaObra(agora) ? formatarHora(ultimo) : formatarDataHora(ultimo)
+  return { online: false, texto: `Agente offline desde ${quando}` }
 }
 
 type Status = 'pendente' | 'enviando' | 'enviado' | 'erro'
@@ -43,11 +45,25 @@ export function descreverTrabalho(
   }
 }
 
-/** IPv4 da rede local (a impressora nunca fica exposta à internet). */
+/**
+ * IPv4 da rede da obra: 10.x, 172.16–31.x, 192.168.x (ou 127.x, o próprio mini PC).
+ * O banco confere a mesma regra; o agente também (a impressora nunca vai para a internet).
+ */
 export function validarIp(ip: string): string | null {
   const partes = ip.trim().split('.')
   const ok = partes.length === 4 && partes.every((p) => /^\d{1,3}$/.test(p) && Number(p) <= 255)
-  return ok ? null : 'IP inválido. Ex.: 192.168.0.50'
+  if (!ok) return 'IP inválido. Ex.: 192.168.0.50'
+  const [a, b] = partes.map(Number) as [number, number]
+  const local =
+    a === 10 || a === 127 || (a === 172 && b >= 16 && b <= 31) || (a === 192 && b === 168)
+  return local ? null : 'Use o IP da impressora na rede da obra (ex.: 192.168.0.50).'
+}
+
+/** Porta RAW das impressoras de etiqueta (normalmente 9100). */
+export function validarPorta(porta: number): string | null {
+  return Number.isInteger(porta) && porta >= 9100 && porta <= 9199
+    ? null
+    : 'Porta inválida: use a porta de impressão (normalmente 9100).'
 }
 
 /** Cópias do adesivo pedidas na tela: inteiro de 1 a 5, senão null. */

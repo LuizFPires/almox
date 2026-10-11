@@ -36,6 +36,8 @@ const { intervaloMs, timeoutImpressoraMs } = config
 const enviar = (ip: string, porta: number, payload: string) =>
   enviarParaImpressora(ip, porta, payload, timeoutImpressoraMs)
 
+// Impressos que ainda não foram confirmados (não imprime de novo se voltarem da fila).
+const impressos = new Set<string>()
 let parar = false
 let relogio: NodeJS.Timeout | undefined
 let falhasSeguidas = 0
@@ -53,7 +55,7 @@ process.on('SIGTERM', encerrar)
 async function volta() {
   let naoAutorizado = false
   try {
-    await rodarCiclo(api, enviar, log)
+    await rodarCiclo(api, enviar, log, impressos)
     if (falhasSeguidas > 0) log('Conexão com o Almox restabelecida.')
     falhasSeguidas = 0
     ultimoProblema = ''

@@ -715,8 +715,10 @@ export type Database = {
           impressora_id: string
           obra_id: string
           payload: string
+          pego_por: string | null
           pessoa_id: string | null
           status: Database['public']['Enums']['status_impressao']
+          tentativas: number
           tipo: string
         }
         ComputedFields: never
@@ -731,8 +733,10 @@ export type Database = {
           impressora_id: string
           obra_id: string
           payload: string
+          pego_por?: string | null
           pessoa_id?: string | null
           status?: Database['public']['Enums']['status_impressao']
+          tentativas?: number
           tipo?: string
         }
         Update: {
@@ -746,8 +750,10 @@ export type Database = {
           impressora_id?: string
           obra_id?: string
           payload?: string
+          pego_por?: string | null
           pessoa_id?: string | null
           status?: Database['public']['Enums']['status_impressao']
+          tentativas?: number
           tipo?: string
         }
         Relationships: [
@@ -757,6 +763,13 @@ export type Database = {
             isOneToOne: false
             referencedRelation: 'impressora'
             referencedColumns: ['id', 'obra_id']
+          },
+          {
+            foreignKeyName: 'trabalho_impressao_pego_por_fkey'
+            columns: ['pego_por']
+            isOneToOne: false
+            referencedRelation: 'dispositivo_tv'
+            referencedColumns: ['id']
           },
           {
             foreignKeyName: 'trabalho_pessoa_fk'

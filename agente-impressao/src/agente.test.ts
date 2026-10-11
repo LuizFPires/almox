@@ -1,9 +1,9 @@
-import type { AddressInfo, Server } from 'node:net'
+import type { Server } from 'node:net'
 import { afterEach, describe, expect, it } from 'vitest'
 import { criarApi, ErroApi, type Api, type Trabalho } from './api.ts'
 import { proximaEspera, rodarCiclo } from './ciclo.ts'
 import { ErroConfig, lerConfig } from './config.ts'
-import { descreverErroRede, enviarParaImpressora } from './impressora.ts'
+import { descreverErroRede, destinoPermitido, enviarParaImpressora } from './impressora.ts'
 import { iniciarSimulador, type Recebida } from './simulador.ts'
 
 const TOKEN = 'a'.repeat(64)
@@ -80,8 +80,8 @@ describe('envio para a impressora (porta RAW)', () => {
 
   it('entrega o ZPL inteiro para a impressora simulada', async () => {
     const recebidas: Recebida[] = []
-    servidor = await iniciarSimulador(0, null, (r) => recebidas.push(r))
-    const { port } = servidor.address() as AddressInfo
+    const port = 9187
+    servidor = await iniciarSimulador(port, null, (r) => recebidas.push(r))
     const zpl = '^XA^CI28^FO95,24^BQN,2,10^FDMA,abc^FS^FDZÉ CARLOS^FS^XZ'
     await enviarParaImpressora('127.0.0.1', port, zpl, 2000)
     await expect.poll(() => recebidas.length).toBe(1)
@@ -89,12 +89,21 @@ describe('envio para a impressora (porta RAW)', () => {
   })
 
   it('porta fechada: "recusou a conexão"', async () => {
-    servidor = await iniciarSimulador(0, null)
-    const { port } = servidor.address() as AddressInfo
-    await new Promise((r) => servidor?.close(r))
-    servidor = undefined
+    const port = 9188 // nada escutando
     await expect(enviarParaImpressora('127.0.0.1', port, '^XA^XZ', 2000)).rejects.toThrow(
       `recusou a conexão em 127.0.0.1:${port}`,
+    )
+  })
+
+  it('só envia para a rede da obra, na porta RAW', async () => {
+    expect(destinoPermitido('192.168.0.50', 9100)).toBe(true)
+    expect(destinoPermitido('127.0.0.1', 9101)).toBe(true)
+    expect(destinoPermitido('8.8.8.8', 9100)).toBe(false)
+    expect(destinoPermitido('172.32.0.1', 9100)).toBe(false)
+    expect(destinoPermitido('192.168.0.50', 25)).toBe(false)
+    expect(destinoPermitido('::1', 9100)).toBe(false)
+    await expect(enviarParaImpressora('8.8.8.8', 9100, '^XA^XZ', 2000)).rejects.toThrow(
+      'envio bloqueado',
     )
   })
 
@@ -163,7 +172,32 @@ describe('ciclo da fila', () => {
     expect(concluidos[1]?.ok).toBe(true)
   })
 
-  it('o log não leva payload (onde está o token do QR)', async () => {
+  it('confirmação perdida: tenta de novo e, se o trabalho voltar, não imprime outra vez', async () => {
+    const { api, concluidos } = apiFalsa([trabalho('1')])
+    let falhas = 3
+    const concluirDeVerdade = api.concluir
+    api.concluir = async (...args) => {
+      if (falhas-- > 0) throw new ErroApi('Sem conexão com o servidor do Almox.', 0, false)
+      return concluirDeVerdade(...args)
+    }
+    const enviados: string[] = []
+    const enviar = async (_ip: string, _porta: number, p: string) => void enviados.push(p)
+    const esperas: number[] = []
+    const esperar = async (ms: number) => void esperas.push(ms)
+    const impressos = new Set<string>()
+
+    // 1ª volta: imprime, 3 confirmações falham, o erro sobe (trabalho volta para a fila).
+    await expect(rodarCiclo(api, enviar, () => {}, impressos, esperar)).rejects.toThrow(ErroApi)
+    expect(esperas).toEqual([1000, 3000])
+    // 2ª volta: o mesmo trabalho volta; só confirma.
+    const r = await rodarCiclo(api, enviar, () => {}, impressos, esperar)
+    expect(enviados).toHaveLength(1)
+    expect(r).toEqual({ enviados: 1, erros: 0 })
+    expect(concluidos).toEqual([{ id: '1', ok: true, erro: undefined }])
+    expect(impressos.size).toBe(0)
+  })
+
+  it('o log não leva payload nem dados da pessoa', async () => {
     const { api } = apiFalsa([trabalho('1')])
     const linhas: string[] = []
     await rodarCiclo(
@@ -172,6 +206,7 @@ describe('ciclo da fila', () => {
       (l) => linhas.push(l),
     )
     expect(linhas.join('\n')).not.toContain('^XA')
+    expect(linhas.join('\n')).not.toContain('Adesivo')
   })
 
   it('espera 2 s normalmente, cresce até 30 s com falhas e 60 s com token recusado', () => {

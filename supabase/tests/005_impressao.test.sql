@@ -1,6 +1,6 @@
 -- M3 · Fila de impressão, dispositivo e agente (usa o seed: Obra Demonstração).
 begin;
-select plan(27);
+select plan(41);
 
 -- Parte do zero mesmo num banco local já usado (tudo volta no rollback).
 delete from public.trabalho_impressao;
@@ -11,7 +11,7 @@ delete from public.dispositivo_tv;
 set local role authenticated;
 select set_config('request.jwt.claims', '{"sub":"b0000000-0000-4000-8000-000000000001","role":"authenticated"}', true);
 select throws_ok(
-  $$select public.enfileirar_impressao('a0000000-0000-4000-8000-000000000001', 'teste', '', 'x', 1)$$,
+  $$select public.enfileirar_impressao('a0000000-0000-4000-8000-000000000001', 'teste', '', '^XA^XZ', 1)$$,
   'P0002', null, 'sem impressora escolhida: erro claro'
 );
 reset role;
@@ -55,11 +55,11 @@ select throws_ok(
   '42501', null, 'ninguém insere trabalho direto (só pela função)'
 );
 select throws_ok(
-  $$select public.enfileirar_impressao('a0000000-0000-4000-8000-000000000001', 'teste', '', 'x', 6)$$,
+  $$select public.enfileirar_impressao('a0000000-0000-4000-8000-000000000001', 'teste', '', '^XA^XZ', 6)$$,
   '23514', null, 'no máximo 5 cópias'
 );
 select throws_ok(
-  $$select public.enfileirar_impressao('a0000000-0000-4000-8000-000000000002', 'teste', '', 'x', 1)$$,
+  $$select public.enfileirar_impressao('a0000000-0000-4000-8000-000000000002', 'teste', '', '^XA^XZ', 1)$$,
   '42501', null, 'não imprime em obra onde só consulta'
 );
 
@@ -70,7 +70,7 @@ select throws_ok(
   '42501', null, 'almoxarife não lê o token do QR'
 );
 select throws_ok(
-  $$select public.enfileirar_impressao('a0000000-0000-4000-8000-000000000001', 'teste', '', 'x', 1)$$,
+  $$select public.enfileirar_impressao('a0000000-0000-4000-8000-000000000001', 'teste', '', '^XA^XZ', 1)$$,
   '42501', null, 'almoxarife não imprime'
 );
 select throws_ok(
@@ -102,6 +102,10 @@ reset role;
 select is(
   (select status::text from public.trabalho_impressao where id = (select valor::uuid from t_ctx where chave = 'trabalho')),
   'enviado', 'trabalho fica como enviado'
+);
+select is(
+  (select payload from public.trabalho_impressao where id = (select valor::uuid from t_ctx where chave = 'trabalho')),
+  '', 'conteúdo (com o token do QR) apagado depois de impresso'
 );
 
 -- Só uma impressora ativa por obra.
@@ -140,8 +144,8 @@ select is(
   'enviando', 'agente de outra obra não conclui o trabalho'
 );
 
--- Agente caiu no meio: "enviando" há mais de 1 minuto volta para a fila.
-update public.trabalho_impressao set atualizado_em = now() - interval '2 minutes'
+-- Agente caiu no meio: "enviando" há mais de 3 minutos volta para a fila (2ª tentativa).
+update public.trabalho_impressao set atualizado_em = now() - interval '4 minutes'
  where id = (select valor::uuid from t_ctx where chave = 'trabalho2');
 set local role anon;
 select results_eq(
@@ -151,8 +155,103 @@ select results_eq(
 );
 reset role;
 
--- Revogar desliga o dispositivo.
-update public.dispositivo_tv set revogado_em = now() where nome = 'Mini PC do almoxarifado';
+-- Outro mini PC da mesma obra não conclui o que o primeiro pegou.
+insert into public.dispositivo_tv (obra_id, nome, token_hash)
+values ('a0000000-0000-4000-8000-000000000001', 'Mini PC 2', privado.hash_token(repeat('c', 64)));
+set local role anon;
+select lives_ok(
+  $$select public.agente_concluir(repeat('c', 64), (select valor::uuid from t_ctx where chave = 'trabalho2'), true, null)$$,
+  'outro mini PC tenta concluir'
+);
+reset role;
+select is(
+  (select status::text from public.trabalho_impressao where id = (select valor::uuid from t_ctx where chave = 'trabalho2')),
+  'enviando', 'só quem pegou o trabalho conclui'
+);
+
+-- Sem confirmação depois de 3 tentativas: vira erro (não imprime o mesmo adesivo sem parar).
+update public.trabalho_impressao set atualizado_em = now() - interval '4 minutes'
+ where id = (select valor::uuid from t_ctx where chave = 'trabalho2');
+set local role anon;
+select is(
+  (select count(*)::int from public.agente_proximos((select valor from t_ctx where chave = 'token'))),
+  1, 'terceira tentativa'
+);
+reset role;
+update public.trabalho_impressao set atualizado_em = now() - interval '4 minutes'
+ where id = (select valor::uuid from t_ctx where chave = 'trabalho2');
+set local role anon;
+select is_empty(
+  $$select * from public.agente_proximos((select valor from t_ctx where chave = 'token'))$$,
+  'depois de 3 tentativas o trabalho não volta mais'
+);
+reset role;
+select is(
+  (select status::text from public.trabalho_impressao where id = (select valor::uuid from t_ctx where chave = 'trabalho2')),
+  'erro', 'vira erro pedindo para conferir o adesivo'
+);
+
+-- Impressora só na rede da obra e na porta RAW.
+select throws_ok(
+  $$insert into public.impressora (obra_id, nome, ip, porta, linguagem, ativa)
+    values ('a0000000-0000-4000-8000-000000000001', 'Na internet', '8.8.8.8', 9100, 'ZPL', false)$$,
+  '23514', null, 'impressora com IP da internet é recusada'
+);
+select throws_ok(
+  $$insert into public.impressora (obra_id, nome, ip, porta, linguagem, ativa)
+    values ('a0000000-0000-4000-8000-000000000001', 'Porta 25', '192.168.0.60', 25, 'ZPL', false)$$,
+  '23514', null, 'impressora fora da porta RAW é recusada'
+);
+
+-- Pessoa da obra B (a engenheira só consulta lá).
+insert into public.empresa (id, obra_id, nome, tipo)
+values ('e0000000-0000-4000-8000-0000000000b1', 'a0000000-0000-4000-8000-000000000002', 'Construtora B', 'propria');
+insert into public.pessoa (obra_id, empresa_id, nome, nome_capacete, funcao)
+values ('a0000000-0000-4000-8000-000000000002', 'e0000000-0000-4000-8000-0000000000b1', 'Beto Lima', 'BETO', 'Pedreiro');
+insert into t_ctx
+  select 'pessoa_b', id::text from public.pessoa where nome = 'Beto Lima'
+  union all select 'disp_b', id::text from public.dispositivo_tv where nome = 'Mini PC B'
+  union all select 'disp_2', id::text from public.dispositivo_tv where nome = 'Mini PC 2'
+  union all select 'disp_1', id::text from public.dispositivo_tv where nome = 'Mini PC do almoxarifado';
+
+-- Engenheira ---------------------------------------------------------------------------------
+set local role authenticated;
+select set_config('request.jwt.claims', '{"sub":"b0000000-0000-4000-8000-000000000001","role":"authenticated"}', true);
+select throws_ok(
+  $$select * from public.dados_adesivo((select valor::uuid from t_ctx where chave = 'pessoa_b'))$$,
+  '42501', null, 'não lê o token do QR de pessoa de outra obra'
+);
+select throws_ok(
+  $$select public.enfileirar_impressao('a0000000-0000-4000-8000-000000000001', 'teste', '', 'oi', 1)$$,
+  '22023', null, 'só aceita etiqueta ZPL ou TSPL'
+);
+select throws_ok(
+  $$select public.revogar_dispositivo((select valor::uuid from t_ctx where chave = 'disp_b'))$$,
+  '42501', null, 'não revoga mini PC de outra obra'
+);
+select ok(
+  not has_function_privilege('authenticated', 'privado.conferir_posse_status()', 'execute')
+  and not has_function_privilege('authenticated', 'privado.conferir_empresa_consulta()', 'execute')
+  and not has_function_privilege('authenticated', 'privado.bloquear_alteracao()', 'execute')
+  and not has_function_privilege('authenticated', 'privado.registrar_alteracoes()', 'execute')
+  and not has_function_privilege('authenticated', 'privado.conferir_tipo_empresa()', 'execute'),
+  'funções de gatilho continuam fora do alcance do cliente'
+);
+
+-- Almoxarife não revoga.
+select set_config('request.jwt.claims', '{"sub":"b0000000-0000-4000-8000-000000000002","role":"authenticated"}', true);
+select throws_ok(
+  $$select public.revogar_dispositivo((select valor::uuid from t_ctx where chave = 'disp_2'))$$,
+  '42501', null, 'almoxarife não revoga mini PC'
+);
+
+-- Engenheira revoga pela função; o token deixa de valer.
+select set_config('request.jwt.claims', '{"sub":"b0000000-0000-4000-8000-000000000001","role":"authenticated"}', true);
+select lives_ok(
+  $$select public.revogar_dispositivo((select valor::uuid from t_ctx where chave = 'disp_1'))$$,
+  'engenheira revoga o mini PC'
+);
+reset role;
 set local role anon;
 select throws_ok(
   $$select public.agente_ping((select valor from t_ctx where chave = 'token'))$$,

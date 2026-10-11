@@ -1,5 +1,20 @@
 import { createConnection } from 'node:net'
 
+/**
+ * Só a rede da obra (10.x, 172.16-31.x, 192.168.x, ou 127.x = o próprio mini PC) e a porta
+ * RAW 9100-9199. O banco já exige isso; o agente confere de novo antes de conectar.
+ */
+export function destinoPermitido(ip: string, porta: number): boolean {
+  const partes = ip.split('.')
+  if (partes.length !== 4 || !partes.every((p) => /^\d{1,3}$/.test(p) && Number(p) <= 255)) {
+    return false
+  }
+  const [a, b] = partes.map(Number) as [number, number]
+  const local =
+    a === 10 || a === 127 || (a === 172 && b >= 16 && b <= 31) || (a === 192 && b === 168)
+  return local && Number.isInteger(porta) && porta >= 9100 && porta <= 9199
+}
+
 /** Mensagem curta para a tela (o almoxarife lê "Impressora sem resposta: …"). */
 export function descreverErroRede(erro: unknown, ip: string, porta: number): string {
   const codigo = (erro as { code?: string } | null)?.code
@@ -31,6 +46,9 @@ export function enviarParaImpressora(
   payload: string,
   timeoutMs: number,
 ): Promise<void> {
+  if (!destinoPermitido(ip, porta)) {
+    return Promise.reject(new Error(`fora da rede da obra (${ip}:${porta}); envio bloqueado`))
+  }
   return new Promise((resolver, rejeitar) => {
     let terminado = false
     const socket = createConnection({ host: ip, port: porta })

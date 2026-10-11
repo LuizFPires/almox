@@ -20,9 +20,14 @@ export type DadosAdesivo = {
 const LARGURA = 480 // 60 mm × 8 pontos/mm
 const MARGEM = 24
 
+/** Caracteres de controle (ESC etc.): a impressora executa alguns na hora, até dentro de texto. */
+// eslint-disable-next-line no-control-regex
+const CONTROLE = /[\u0000-\u001f\u007f-\u009f]/g
+
 /** ZPL: ^ e ~ são comandos; não podem aparecer dentro do texto. */
 function textoZpl(texto: string) {
   return texto
+    .replace(CONTROLE, ' ')
     .replace(/[\^~\\]/g, ' ')
     .replace(/\s+/g, ' ')
     .trim()
@@ -30,7 +35,7 @@ function textoZpl(texto: string) {
 
 /** TSPL: o texto vai entre aspas duplas; troca aspas e quebras de linha. */
 function textoTspl(texto: string) {
-  return texto.replace(/["\\]/g, "'").replace(/\s+/g, ' ').trim()
+  return texto.replace(CONTROLE, ' ').replace(/["\\]/g, "'").replace(/\s+/g, ' ').trim()
 }
 
 /** O token entra no QR exatamente como está, mas só se for opaco (hexadecimal). */

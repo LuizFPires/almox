@@ -24,6 +24,8 @@ NODE=$(command -v node || true)
 [ -f "$PASTA/.env" ] || { echo "Falta o .env. Copie .env.example e cole a configuração da tela Impressora." >&2; exit 1; }
 
 USUARIO=${SUDO_USER:-$(id -un)}
+# O agente não precisa de root: instale com sudo a partir de um usuário comum.
+[ "$USUARIO" != "root" ] || { echo "Rode com sudo a partir de um usuário comum (o serviço não roda como root)." >&2; exit 1; }
 chmod 600 "$PASTA/.env"
 chown "$USUARIO" "$PASTA/.env"
 

@@ -1,11 +1,14 @@
 import { spawn, type ChildProcess } from 'node:child_process'
-import { createServer, type AddressInfo, type Server } from 'node:net'
+import { createServer, type Server } from 'node:net'
 import { expect, test, type Page } from '@playwright/test'
 import { entrarComo, semSeed } from './apoio'
 
 /** Campo pelo rótulo, só na tela visível (o Next mantém telas anteriores escondidas). */
 const campo = (page: Page, rotulo: string) =>
   page.getByLabel(rotulo, { exact: true }).filter({ visible: true })
+
+/** Porta RAW permitida (9100–9199) e livre no CI. */
+const PORTA_IMPRESSORA = 9137
 
 /** Impressora de mentira na porta RAW: guarda o que chega (o simulador do agente faz o mesmo). */
 function impressoraFalsa(recebidas: string[]): Promise<Server> {
@@ -18,7 +21,7 @@ function impressoraFalsa(recebidas: string[]): Promise<Server> {
     })
     socket.on('error', () => socket.destroy())
   })
-  return new Promise((r) => servidor.listen(0, '127.0.0.1', () => r(servidor)))
+  return new Promise((r) => servidor.listen(PORTA_IMPRESSORA, '127.0.0.1', () => r(servidor)))
 }
 
 // Mexe na impressora e no mini PC da obra: um projeto só, em série.
@@ -42,7 +45,7 @@ test.describe('impressão do adesivo', () => {
   }) => {
     test.setTimeout(90_000)
     simulador = await impressoraFalsa(recebidas)
-    const { port } = simulador.address() as AddressInfo
+    const port = PORTA_IMPRESSORA
 
     await entrarComo(page, 'engenheiro', '/inicio')
     await page.goto('/cadastros/impressora')

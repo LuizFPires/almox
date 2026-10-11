@@ -3,6 +3,7 @@ import { AtualizarSozinho } from '@/components/AtualizarSozinho'
 import { Botao } from '@/components/Botao'
 import { Cabecalho } from '@/components/Cabecalho'
 import { Cartao } from '@/components/Cartao'
+import { ErroFormulario } from '@/components/Formulario'
 import { NovaVisita } from '@/components/NovaVisita'
 import { impressoraAtiva, listarDispositivos, ultimosTrabalhos } from '@/lib/dados/impressao'
 import { agenteOnline, descreverTrabalho, situacaoAgente } from '@/lib/dominio/impressao'
@@ -22,7 +23,10 @@ function Titulo({ id, children }: { id: string; children: string }) {
   )
 }
 
-export default async function PaginaImpressora() {
+export default async function PaginaImpressora({
+  searchParams,
+}: PageProps<'/cadastros/impressora'>) {
+  const { erro } = (await searchParams) as { erro?: string }
   const { obraAtual } = await obterSessao()
   const [impressora, dispositivos, trabalhos] = await Promise.all([
     impressoraAtiva(obraAtual.id),
@@ -62,6 +66,9 @@ export default async function PaginaImpressora() {
           >
             {agente.texto}
           </p>
+          {erro === 'revogar' && (
+            <ErroFormulario mensagem="Não foi possível revogar o mini PC. Tente de novo." />
+          )}
           {ativos.map((d) => (
             <Cartao key={d.id} className="flex items-center justify-between gap-3">
               <span className="flex flex-col">

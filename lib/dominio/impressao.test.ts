@@ -6,6 +6,7 @@ import {
   lerCopias,
   situacaoAgente,
   validarIp,
+  validarPorta,
 } from './impressao'
 
 const agora = new Date('2026-10-11T12:00:00Z') // 09:00 em São Paulo
@@ -25,6 +26,10 @@ describe('situação do agente', () => {
     expect(situacaoAgente(['2026-10-11T11:40:00Z'], agora)).toEqual({
       online: false,
       texto: 'Agente offline desde 08:40',
+    })
+    expect(situacaoAgente(['2026-10-09T20:15:00Z'], agora)).toEqual({
+      online: false,
+      texto: 'Agente offline desde 09/10/2026 17:15',
     })
     expect(situacaoAgente([], agora).online).toBe(false)
   })
@@ -47,6 +52,22 @@ describe('IP da impressora', () => {
     expect(validarIp('192.168.0.50')).toBeNull()
     expect(validarIp('192.168.0.256')).not.toBeNull()
     expect(validarIp('impressora.local')).not.toBeNull()
+  })
+
+  it('só aceita IP da rede local (nunca da internet)', () => {
+    for (const ip of ['10.0.0.5', '172.16.1.2', '172.31.255.1', '127.0.0.1']) {
+      expect(validarIp(ip)).toBeNull()
+    }
+    for (const ip of ['8.8.8.8', '172.32.0.1', '192.169.0.1', '200.10.1.1']) {
+      expect(validarIp(ip)).not.toBeNull()
+    }
+  })
+
+  it('porta RAW de 9100 a 9199', () => {
+    expect(validarPorta(9100)).toBeNull()
+    expect(validarPorta(9101)).toBeNull()
+    expect(validarPorta(25)).not.toBeNull()
+    expect(validarPorta(9200)).not.toBeNull()
   })
 })
 

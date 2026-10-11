@@ -1,9 +1,10 @@
 'use server'
 
 import { revalidatePath } from 'next/cache'
+import { redirect } from 'next/navigation'
 import { exigirEngenheiro } from '@/lib/acesso'
 import { gerarEtiquetaTeste } from '@/lib/dominio/etiqueta'
-import { validarIp } from '@/lib/dominio/impressao'
+import { validarIp, validarPorta } from '@/lib/dominio/impressao'
 import { valoresDoForm, type Valores } from '@/lib/formulario'
 
 const texto = (form: FormData, chave: string) => String(form.get(chave) ?? '').trim()
@@ -34,9 +35,8 @@ export async function salvarImpressora(
   if (dados.nome.length < 2) campos.nome = 'Informe um nome (ex.: Etiquetadora do almoxarifado).'
   const erroIp = validarIp(dados.ip)
   if (erroIp) campos.ip = erroIp
-  if (!Number.isInteger(dados.porta) || dados.porta < 1 || dados.porta > 65535) {
-    campos.porta = 'Porta inválida (normalmente 9100).'
-  }
+  const erroPorta = validarPorta(dados.porta)
+  if (erroPorta) campos.porta = erroPorta
   if (Object.keys(campos).length > 0) return { campos, valores }
 
   const { data, error } = id
@@ -98,6 +98,7 @@ export async function criarDispositivo(
 
 export async function revogarDispositivo(form: FormData) {
   const { supabase } = await exigirEngenheiro()
-  await supabase.rpc('revogar_dispositivo', { p_dispositivo: texto(form, 'id') })
+  const { error } = await supabase.rpc('revogar_dispositivo', { p_dispositivo: texto(form, 'id') })
   revalidatePath('/cadastros/impressora')
+  if (error) redirect('/cadastros/impressora?erro=revogar')
 }

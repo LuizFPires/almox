@@ -21,8 +21,8 @@ Almox se há adesivo para imprimir e manda para a impressora de etiquetas (porta
    - em *Agente de impressão*, toque em **Cadastrar mini PC**. Aparecem três linhas
      (`ALMOX_SUPABASE_URL`, `ALMOX_CHAVE_PUBLICA`, `ALMOX_TOKEN_DISPOSITIVO`).
      **O token aparece só dessa vez**: copie antes de sair da tela.
-2. **No mini PC**, copie a pasta `agente-impressao` (por exemplo para `C:\almox\agente-impressao`
-   ou `/opt/almox/agente-impressao`).
+2. **No mini PC**, copie a pasta `agente-impressao` para um lugar fixo
+   (`C:\Program Files\Almox\agente-impressao` ou `/opt/almox/agente-impressao`).
 3. Copie `.env.example` para `.env` e cole as três linhas do passo 1.
 4. Instale como serviço, para ligar sozinho com o PC e voltar se cair:
    - **Windows** (PowerShell como administrador, dentro da pasta):
@@ -31,9 +31,10 @@ Almox se há adesivo para imprimir e manda para a impressora de etiquetas (porta
 5. Volte à tela *Impressora* do app: deve aparecer **Agente online**. Toque em
    **Imprimir etiqueta de teste** e confira a etiqueta.
 
-Proteja o `.env`: quem tem o token consegue ver a fila de impressão da obra. No Windows,
-deixe a pasta acessível só a administradores; no Linux o instalador já deixa o arquivo
-com permissão 600.
+O `.env` guarda o token: quem tem o token consegue ver a fila de impressão da obra. Os
+instaladores já protegem a pasta. No Windows o agente roda como *Serviço Local* (sem
+privilégio de administrador), só administradores alteram a pasta e outros usuários não
+leem o `.env`. No Linux o `.env` fica com permissão 600.
 
 ## Dia a dia
 

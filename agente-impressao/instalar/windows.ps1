@@ -1,5 +1,6 @@
 # Instala o agente de impressao do Almox como tarefa do Windows que liga com o PC
-# e volta sozinha se cair. Rode no PowerShell como administrador, na pasta agente-impressao:
+# e volta sozinha se cair. Copie a pasta para um lugar fixo (ex.: C:\Program Files\Almox\agente-impressao)
+# e rode no PowerShell como administrador, dentro dela:
 #   powershell -ExecutionPolicy Bypass -File instalar\windows.ps1
 # Para remover:
 #   powershell -ExecutionPolicy Bypass -File instalar\windows.ps1 -Remover
@@ -24,13 +25,25 @@ if (-not (Test-Path (Join-Path $pasta '.env'))) {
   throw 'Falta o arquivo .env. Copie .env.example para .env e cole a configuracao da tela Impressora.'
 }
 
-New-Item -ItemType Directory -Force (Join-Path $pasta 'logs') | Out-Null
+# Roda como LOCAL SERVICE (sem privilegio de administrador). A pasta fica gravavel so
+# por Administradores/SYSTEM: ninguem troca o codigo do agente; o servico so le o
+# codigo e o .env e escreve em logs\. Outros usuarios nao leem o .env (token).
+# SIDs em vez de nomes: funciona no Windows em portugues.
+$servicoLocal = (New-Object System.Security.Principal.SecurityIdentifier 'S-1-5-19').Translate(
+  [System.Security.Principal.NTAccount]).Value
+$logs = Join-Path $pasta 'logs'
+New-Item -ItemType Directory -Force $logs | Out-Null
+& icacls $pasta /inheritance:r /grant:r '*S-1-5-32-544:(OI)(CI)F' '*S-1-5-18:(OI)(CI)F' '*S-1-5-19:(OI)(CI)RX' /T /Q | Out-Null
+if ($LASTEXITCODE -ne 0) { throw 'Nao foi possivel ajustar as permissoes da pasta.' }
+& icacls $logs /grant '*S-1-5-19:(OI)(CI)M' /Q | Out-Null
+if ($LASTEXITCODE -ne 0) { throw 'Nao foi possivel liberar a pasta de logs.' }
+
 $comando = "/c `"`"$node`" src\agente.ts >> logs\agente.log 2>&1`""
 $acao = New-ScheduledTaskAction -Execute 'cmd.exe' -Argument $comando -WorkingDirectory $pasta
 $gatilho = New-ScheduledTaskTrigger -AtStartup
 $ajustes = New-ScheduledTaskSettingsSet -RestartCount 999 -RestartInterval (New-TimeSpan -Minutes 1) `
   -ExecutionTimeLimit ([TimeSpan]::Zero) -StartWhenAvailable -AllowStartIfOnBatteries -DontStopIfGoingOnBatteries
-$conta = New-ScheduledTaskPrincipal -UserId 'SYSTEM' -LogonType ServiceAccount -RunLevel Highest
+$conta = New-ScheduledTaskPrincipal -UserId $servicoLocal -LogonType ServiceAccount -RunLevel Limited
 
 Register-ScheduledTask -TaskName $nomeTarefa -Action $acao -Trigger $gatilho -Settings $ajustes `
   -Principal $conta -Force | Out-Null

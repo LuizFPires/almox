@@ -20,7 +20,7 @@ Fonte da verdade do produto: `PRD.md`. Regras para quem codifica: `CLAUDE.md`.
 | M3 | Adesivo do capacete e impressão | ✅ Concluído (critério de 10 s conferido no simulador; falta a impressora real) | 11/10/2026 |
 | M4 | Identificação por QR e ficha da pessoa | ✅ Concluído (câmera conferida no Chromium; falta testar no Android e no iPhone reais) | 11/10/2026 |
 | M5 | Retirada | ✅ Concluído | 11/10/2026 |
-| M6 | Devolução e avaria | 🟨 Em andamento | |
+| M6 | Devolução e avaria | ✅ Concluído | 11/10/2026 |
 | M7 | Lista, estoque e busca | ⬜ A fazer | |
 | M8 | Painel da TV | ⬜ A fazer | |
 | M9 | Fechamento do dia e avisos às empreiteiras | ⬜ A fazer | |

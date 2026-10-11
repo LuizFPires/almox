@@ -32,6 +32,12 @@ type Props = {
   voltarParaFicha: string
 }
 
+const SELO_SAIDA = (
+  <span className="rounded-full bg-amarelo px-3 py-1 text-xs font-bold tracking-wide text-texto">
+    SAÍDA
+  </span>
+)
+
 const TONS = { sucesso: 'text-sucesso', erro: 'text-erro', neutro: 'text-texto-2' } as const
 
 function CartaoPessoa({ pessoa, identificacao }: Pick<Props, 'pessoa' | 'identificacao'>) {
@@ -121,6 +127,7 @@ export function FluxoRetirada(props: Props) {
         <Cabecalho
           titulo="Retirada"
           subtitulo="Revisar e concluir"
+          selo={SELO_SAIDA}
           aoVoltar={() => setEtapa('grade')}
         />
         <main className="flex flex-1 flex-col gap-3.5 px-5 pt-2 pb-4">
@@ -164,13 +171,13 @@ export function FluxoRetirada(props: Props) {
             aria-checked={conferido}
             onClick={() => setConferido((c) => !c)}
             className={`flex min-h-16 items-center gap-3 rounded-cartao border-2 px-4 py-3 text-left text-[15px] font-semibold ${
-              conferido ? 'border-sucesso bg-sucesso-claro' : 'border-escuro bg-cartao'
+              conferido ? 'border-escuro bg-cartao' : 'border-borda bg-cartao'
             }`}
           >
             <span
               aria-hidden="true"
               className={`flex size-8 shrink-0 items-center justify-center rounded-botao border-2 text-lg font-bold ${
-                conferido ? 'border-sucesso bg-sucesso text-white' : 'border-escuro'
+                conferido ? 'border-escuro bg-escuro text-amarelo' : 'border-borda'
               }`}
             >
               {conferido ? '✓' : ''}
@@ -207,7 +214,12 @@ export function FluxoRetirada(props: Props) {
 
   return (
     <>
-      <Cabecalho titulo="Retirada" subtitulo="O que vai levar" voltarPara={voltarParaFicha} />
+      <Cabecalho
+        titulo="Retirada"
+        subtitulo="O que vai levar"
+        selo={SELO_SAIDA}
+        voltarPara={voltarParaFicha}
+      />
       <main className="flex flex-1 flex-col gap-3.5 px-5 pt-2 pb-4">
         <CartaoPessoa pessoa={pessoa} identificacao={identificacao} />
         {avisoFalha}
@@ -235,21 +247,26 @@ export function FluxoRetirada(props: Props) {
                     </span>
                   )}
                   {ehChaveIcone(tipo.icone) && (
-                    <IconeFerramenta icone={tipo.icone} nome={tipo.nome} />
+                    <IconeFerramenta icone={tipo.icone} nome={tipo.nome} destaque={q > 0} />
                   )}
                   <span className="text-xs text-texto-2">
                     {q > 0 && q === livres ? 'todas escolhidas' : textoDisponivel(livres, q)}
                   </span>
                 </button>
                 {q > 0 && (
-                  <button
-                    type="button"
-                    aria-label={`Tirar uma ${tipo.nome}`}
-                    onClick={() => setQtd((m) => ({ ...m, [tipo.id]: q - 1 }))}
-                    className="min-h-toque rounded-botao border border-borda bg-cartao text-xl font-bold"
-                  >
-                    −
-                  </button>
+                  <div className="flex items-center gap-1.5">
+                    <button
+                      type="button"
+                      aria-label={`Tirar uma ${tipo.nome}`}
+                      onClick={() => setQtd((m) => ({ ...m, [tipo.id]: q - 1 }))}
+                      className="min-h-toque w-11 shrink-0 rounded-botao border border-borda bg-cartao text-xl font-bold"
+                    >
+                      −
+                    </button>
+                    <span className="text-[11px] leading-tight text-texto-2">
+                      toque no ícone: +1
+                    </span>
+                  </div>
                 )}
               </div>
             )

@@ -11,15 +11,19 @@ type Props = {
   /** Nome escrito embaixo; padrão = nome do ícone. O nome sempre aparece. */
   nome?: string
   tamanho?: keyof typeof TAMANHOS
+  /** Círculo branco (ex.: ferramenta escolhida na grade da retirada). */
+  destaque?: boolean
 }
 
 /** Ícone de ferramenta sempre acompanhado do nome escrito embaixo. */
-export function IconeFerramenta({ icone, nome, tamanho = 'm' }: Props) {
+export function IconeFerramenta({ icone, nome, tamanho = 'm', destaque = false }: Props) {
   const { d, nome: nomePadrao } = ICONES_FERRAMENTA[icone]
   const t = TAMANHOS[tamanho]
   return (
     <span className="inline-flex flex-col items-center gap-1.5">
-      <span className={`${t.circulo} flex items-center justify-center rounded-full bg-sutil`}>
+      <span
+        className={`${t.circulo} flex items-center justify-center rounded-full ${destaque ? 'bg-white' : 'bg-sutil'}`}
+      >
         <svg
           width={t.svg}
           height={t.svg}

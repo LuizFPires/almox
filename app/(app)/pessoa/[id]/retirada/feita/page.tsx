@@ -1,6 +1,7 @@
 import type { Metadata } from 'next'
 import Link from 'next/link'
 import { notFound } from 'next/navigation'
+import { IconeInterface } from '@/components/IconeInterface'
 import { buscarRetirada } from '@/lib/dados/retirada'
 import { compararCodigos } from '@/lib/dominio/cadastros'
 import { primeiroNome } from '@/lib/dominio/leitura'
@@ -34,9 +35,9 @@ export default async function PaginaRetiradaFeita({
       <div className="flex flex-col items-center gap-2 text-center">
         <span
           aria-hidden="true"
-          className="flex size-24 items-center justify-center rounded-full bg-aviso-claro text-5xl font-bold"
+          className="flex size-24 items-center justify-center rounded-full bg-aviso-claro"
         >
-          ✓
+          <IconeInterface nome="check" tamanho={48} />
         </span>
         <h1 className="text-[26px] font-bold">Retirada registrada</h1>
         <p className="text-[15px] text-texto-2">
@@ -58,16 +59,16 @@ export default async function PaginaRetiradaFeita({
           </li>
         ))}
       </ul>
-      <div className="mt-auto flex flex-col gap-2.5">
+      <div className="mt-auto grid grid-cols-2 gap-2.5">
         <Link
           href="/leitura"
-          className="flex min-h-14 items-center justify-center rounded-cartao bg-escuro px-5 text-lg font-bold text-white"
+          className="flex min-h-14 items-center justify-center rounded-cartao border border-borda bg-cartao px-3 text-center text-base leading-tight font-bold"
         >
           Ler outro capacete
         </Link>
         <Link
           href="/inicio"
-          className="flex min-h-14 items-center justify-center rounded-cartao bg-amarelo px-5 text-lg font-bold text-texto"
+          className="flex min-h-14 items-center justify-center rounded-cartao bg-amarelo px-3 text-base font-bold text-texto"
         >
           Início
         </Link>

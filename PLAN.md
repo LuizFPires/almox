@@ -38,8 +38,8 @@ Legenda: ⬜ A fazer · 🟨 Em andamento · ✅ Concluído · ⛔ Bloqueado
 
 **Entregas**
 - [x] Repositório com Next.js (App Router) + TypeScript estrito + Tailwind
-- [ ] Projeto Supabase (dev e prod) criado e variáveis de ambiente documentadas em `.env.example` — `.env.example` e Supabase local prontos; **falta o dono criar os projetos dev e prod na nuvem**
-- [ ] Deploy contínuo (Vercel) a partir da branch `main`; preview por PR — app pronto para build na Vercel; **falta o dono importar o repositório no painel**
+- [x] Projeto Supabase (dev e prod) criado e variáveis de ambiente documentadas em `.env.example` — `almox-dev` e `almox-prod` (São Paulo)
+- [x] Deploy contínuo (Vercel) a partir da branch `main`; preview por PR — produção em https://almox-chi.vercel.app (Production → almox-prod, Preview → almox-dev)
 - [x] PWA: manifest, ícones, service worker básico, instalável em Android e iPhone
 - [x] Design tokens do protótipo no tema do Tailwind (`@theme` em `globals.css`, Tailwind v4) (cores, fontes Barlow / Barlow Condensed / JetBrains Mono, raios, espaçamentos)
 - [x] Componentes base: `Botao`, `Cartao`, `Contador`, `IconeFerramenta` (biblioteca de ícones SVG do protótipo), `Cabecalho`, `BarraInferior`, `Rodape de ação`

@@ -60,7 +60,6 @@ export function FormPessoa({ pessoa, empresas, capacetesUsados }: Props) {
           }}
           placeholder="Como ele é chamado na obra"
           autoComplete="off"
-          required
           erro={erros.nome_capacete}
           ajuda={
             repetido ? (

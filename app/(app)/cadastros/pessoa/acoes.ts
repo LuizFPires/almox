@@ -3,7 +3,11 @@
 import { revalidatePath } from 'next/cache'
 import { redirect } from 'next/navigation'
 import { exigirEngenheiro } from '@/lib/acesso'
-import { normalizarNomeCapacete, validarNomeCompleto } from '@/lib/dominio/cadastros'
+import {
+  normalizarNomeCapacete,
+  sugerirNomeCapacete,
+  validarNomeCompleto,
+} from '@/lib/dominio/cadastros'
 import { valoresDoForm, type Valores } from '@/lib/formulario'
 
 export type EstadoPessoa = {
@@ -23,7 +27,10 @@ export async function salvarPessoa(_: EstadoPessoa, form: FormData): Promise<Est
   const funcaoEscolhida = texto(form, 'funcao')
   const dados = {
     nome: texto(form, 'nome'),
-    nome_capacete: normalizarNomeCapacete(texto(form, 'nome_capacete')),
+    // Vazio (ex.: digitou antes da página carregar a sugestão): usa o primeiro nome.
+    nome_capacete:
+      normalizarNomeCapacete(texto(form, 'nome_capacete')) ||
+      sugerirNomeCapacete(texto(form, 'nome')),
     funcao: funcaoEscolhida === 'Outra' ? texto(form, 'funcao_outra') : funcaoEscolhida,
     empresa_id: texto(form, 'empresa_id'),
   }

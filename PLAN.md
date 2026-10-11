@@ -114,7 +114,7 @@ Legenda: ⬜ A fazer · 🟨 Em andamento · ✅ Concluído · ⛔ Bloqueado
 - [x] Tabela `trabalho_impressao` como fila (pendente → enviado / erro)
 - [ ] **Agente de impressão local** (Node, pasta `agente-impressao/`): roda no mini PC da TV, autentica por token de dispositivo, consulta a fila a cada 2 s, envia para `ip:9100` da impressora, atualiza status; instalável como serviço (Windows e Linux)
 - [x] Tela "Impressora": escolher impressora da obra, rolo, imprimir teste, ver status do agente (online/offline)
-- [ ] "Salvar e imprimir adesivo" no cadastro de pessoa; "Reimprimir" com 1–5 cópias
+- [x] "Salvar e imprimir adesivo" no cadastro de pessoa; "Reimprimir" com 1–5 cópias
 - [ ] Mensagens de erro claras: agente offline, impressora sem resposta
 
 **Critérios de aceite**

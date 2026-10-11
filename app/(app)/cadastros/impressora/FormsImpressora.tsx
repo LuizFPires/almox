@@ -3,17 +3,15 @@
 import { useActionState, useState } from 'react'
 import { Botao } from '@/components/Botao'
 import { Campo, ErroFormulario } from '@/components/Formulario'
-import {
-  criarDispositivo,
-  imprimirTeste,
-  salvarImpressora,
-  type EstadoAcaoSimples,
-} from './acoes'
+import { criarDispositivo, imprimirTeste, salvarImpressora, type EstadoAcaoSimples } from './acoes'
 
 function Aviso({ texto }: { texto?: string }) {
   if (!texto) return null
   return (
-    <p role="status" className="rounded-botao bg-sucesso-claro px-3 py-2.5 text-[15px] text-sucesso">
+    <p
+      role="status"
+      className="rounded-botao bg-sucesso-claro px-3 py-2.5 text-[15px] text-sucesso"
+    >
       {texto}
     </p>
   )

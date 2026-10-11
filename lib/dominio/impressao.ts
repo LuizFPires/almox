@@ -49,3 +49,15 @@ export function validarIp(ip: string): string | null {
   const ok = partes.length === 4 && partes.every((p) => /^\d{1,3}$/.test(p) && Number(p) <= 255)
   return ok ? null : 'IP inválido. Ex.: 192.168.0.50'
 }
+
+/** Cópias do adesivo pedidas na tela: inteiro de 1 a 5, senão null. */
+export function lerCopias(valor: string): number | null {
+  if (!/^\d$/.test(valor.trim())) return null
+  const n = Number(valor)
+  return n >= 1 && n <= 5 ? n : null
+}
+
+/** Ainda esperando a impressora (a tela continua se atualizando). */
+export function emAndamento(status: Status): boolean {
+  return status === 'pendente' || status === 'enviando'
+}

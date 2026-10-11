@@ -1,5 +1,12 @@
 import { describe, expect, it } from 'vitest'
-import { agenteOnline, descreverTrabalho, situacaoAgente, validarIp } from './impressao'
+import {
+  agenteOnline,
+  descreverTrabalho,
+  emAndamento,
+  lerCopias,
+  situacaoAgente,
+  validarIp,
+} from './impressao'
 
 const agora = new Date('2026-10-11T12:00:00Z') // 09:00 em São Paulo
 
@@ -40,5 +47,23 @@ describe('IP da impressora', () => {
     expect(validarIp('192.168.0.50')).toBeNull()
     expect(validarIp('192.168.0.256')).not.toBeNull()
     expect(validarIp('impressora.local')).not.toBeNull()
+  })
+})
+
+describe('cópias do adesivo', () => {
+  it('aceita de 1 a 5', () => {
+    expect(lerCopias('1')).toBe(1)
+    expect(lerCopias(' 5 ')).toBe(5)
+  })
+
+  it('recusa zero, mais de 5, fração e texto', () => {
+    for (const v of ['0', '6', '10', '2.5', '', 'dois', '-1']) expect(lerCopias(v)).toBeNull()
+  })
+
+  it('pendente e enviando ainda estão em andamento', () => {
+    expect(emAndamento('pendente')).toBe(true)
+    expect(emAndamento('enviando')).toBe(true)
+    expect(emAndamento('enviado')).toBe(false)
+    expect(emAndamento('erro')).toBe(false)
   })
 })

@@ -21,7 +21,9 @@ export function CartaoImpressora({ impressora }: Props) {
           {impressora ? (impressora.rolo ?? 'Adesivo do capacete') : 'Os adesivos não vão imprimir'}
         </span>
       </span>
-      <span className="text-sm font-bold text-engenheiro">{impressora ? 'Trocar' : 'Escolher'}</span>
+      <span className="text-sm font-bold text-engenheiro">
+        {impressora ? 'Trocar' : 'Escolher'}
+      </span>
     </Link>
   )
 }

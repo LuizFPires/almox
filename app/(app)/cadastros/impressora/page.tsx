@@ -89,14 +89,17 @@ export default async function PaginaImpressora() {
           </Cartao>
           <p className="text-sm text-texto-2">
             O agente roda no mini PC, na rede da obra, e só faz conexões de saída: a impressora
-            nunca fica exposta à internet. Instalação: <code className="font-mono">agente-impressao/LEIA-ME.md</code>.
+            nunca fica exposta à internet. Instalação:{' '}
+            <code className="font-mono">agente-impressao/LEIA-ME.md</code>.
           </p>
         </section>
 
         <section aria-labelledby="t-fila" className="flex flex-col gap-2">
           <Titulo id="t-fila">ÚLTIMAS IMPRESSÕES</Titulo>
           <Cartao className="flex flex-col divide-y divide-borda py-1">
-            {trabalhos.length === 0 && <p className="py-2 text-sm text-texto-2">Nada impresso ainda.</p>}
+            {trabalhos.length === 0 && (
+              <p className="py-2 text-sm text-texto-2">Nada impresso ainda.</p>
+            )}
             {trabalhos.map((t) => (
               <div key={t.id} className="flex flex-col py-2">
                 <span className="text-[15px] font-semibold">
@@ -106,7 +109,8 @@ export default async function PaginaImpressora() {
                 <span
                   className={`text-[13px] ${t.status === 'erro' ? 'font-semibold text-erro' : 'text-texto-2'}`}
                 >
-                  {formatarDataHora(t.criado_em)} · {descreverTrabalho(t.status, t.erro, agente.online)}
+                  {formatarDataHora(t.criado_em)} ·{' '}
+                  {descreverTrabalho(t.status, t.erro, agente.online)}
                 </span>
               </div>
             ))}

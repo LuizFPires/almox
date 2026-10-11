@@ -21,4 +21,15 @@ describe('destinoSeguro', () => {
     expect(destinoSeguro('/\\golpe.exemplo')).toBe('/inicio')
     expect(destinoSeguro('javascript:alert(1)')).toBe('/inicio')
   })
+
+  it('recusa caracteres de controle que o navegador apagaria', () => {
+    expect(destinoSeguro('/\t/golpe.exemplo')).toBe('/inicio')
+    expect(destinoSeguro('/\n/golpe.exemplo')).toBe('/inicio')
+    expect(destinoSeguro('/\r\n/golpe.exemplo')).toBe('/inicio')
+  })
+
+  it('devolve o caminho normalizado', () => {
+    expect(destinoSeguro('/lista/../estoque')).toBe('/estoque')
+    expect(destinoSeguro('/./login')).toBe('/inicio')
+  })
 })

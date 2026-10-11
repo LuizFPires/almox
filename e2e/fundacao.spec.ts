@@ -9,18 +9,18 @@ test.describe('app no celular', () => {
     await entrarComo(page, 'engenheiro')
   })
 
-  test('a raiz abre a tela inicial vazia com o visual do protótipo', async ({ page }) => {
+  test('a raiz abre a tela inicial com o visual do protótipo', async ({ page }) => {
     await page.goto('/')
     await expect(page).toHaveURL(/\/inicio$/)
     await expect(page.getByRole('img', { name: 'almox' })).toBeVisible()
-    const lerQr = page.getByRole('button', { name: /Ler QR do capacete/ })
+    const lerQr = page.getByRole('link', { name: /Ler QR do capacete/ })
     await expect(lerQr).toBeVisible()
     await expect(page.getByRole('link', { name: 'Ver quem está com o quê' }).last()).toBeVisible()
     await expect(page.getByRole('link', { name: /Ferramentas na obra/ })).toBeVisible()
-    for (const rotulo of ['no canteiro', 'no almox', 'manutenção', 'pendências']) {
+    for (const rotulo of ['no canteiro', 'no almox', 'manutenção', /^pendências?$/]) {
       await expect(page.getByText(rotulo, { exact: true })).toBeVisible()
     }
-    await expect(page.getByText('Nenhum lançamento ainda.')).toBeVisible()
+    await expect(page.getByRole('heading', { name: 'ÚLTIMOS LANÇAMENTOS' })).toBeVisible()
 
     // Cores do Almox Design System: grafite no botão principal, canvas claro no fundo.
     await expect(lerQr).toHaveCSS('background-color', 'rgb(31, 41, 55)')
@@ -35,7 +35,7 @@ test.describe('app no celular', () => {
     }))
     expect(larguras.pagina).toBeLessThanOrEqual(larguras.tela)
 
-    await expect(page.getByText('Nenhum lançamento ainda.')).toBeVisible()
+    await expect(page.getByRole('heading', { name: 'ÚLTIMOS LANÇAMENTOS' })).toBeVisible()
     const alvos = page.locator('main a, main button, nav a, header a').filter({ visible: true })
     for (const alvo of await alvos.all()) {
       const caixa = await alvo.boundingBox()

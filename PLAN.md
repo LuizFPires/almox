@@ -18,7 +18,7 @@ Fonte da verdade do produto: `PRD.md`. Regras para quem codifica: `CLAUDE.md`.
 | M1 | Banco, autenticação e perfis | ✅ Concluído | 11/10/2026 |
 | M2 | Cadastros do engenheiro | ✅ Concluído | 11/10/2026 |
 | M3 | Adesivo do capacete e impressão | ✅ Concluído (critério de 10 s conferido no simulador; falta a impressora real) | 11/10/2026 |
-| M4 | Identificação por QR e ficha da pessoa | ⬜ A fazer | |
+| M4 | Identificação por QR e ficha da pessoa | ✅ Concluído (câmera conferida no Chromium; falta testar no Android e no iPhone reais) | 11/10/2026 |
 | M5 | Retirada | ⬜ A fazer | |
 | M6 | Devolução e avaria | ⬜ A fazer | |
 | M7 | Lista, estoque e busca | ⬜ A fazer | |
@@ -131,14 +131,14 @@ Legenda: ⬜ A fazer · 🟨 Em andamento · ✅ Concluído · ⛔ Bloqueado
 **Objetivo:** ler o capacete, conferir a pessoa e abrir a ficha, respeitando o perfil.
 
 **Entregas**
-- [ ] Leitor de QR pela câmera (PWA), leitura automática, lanterna, funciona em Android e iPhone
-- [ ] Token desconhecido → "Capacete não cadastrado"
-- [ ] **Conferência** (RN-03): nome do capacete grande, nome completo, função/empresa; "Sim, é o {nome}" / "Não é ele"
-- [ ] **Bloqueio** (RN-04): "Nada foi registrado", grava `ocorrencia`, notifica encarregado; opções "Ler o capacete certo" / "Escolher na lista (manual)"
-- [ ] **Ficha da pessoa** (F-04): o que está com ela (com hora e marca "sem QR"), equipe da empresa, identificação usada
-- [ ] Perfil consulta: QR abre direto a ficha, sem botões de lançamento
-- [ ] Lista manual (F-08) com busca por nome/apelido sem acento
-- [ ] Tela inicial (F-01) com resumo e últimos lançamentos (dados reais)
+- [x] Leitor de QR pela câmera (PWA), leitura automática, lanterna, funciona em Android e iPhone
+- [x] Token desconhecido → "Capacete não cadastrado"
+- [x] **Conferência** (RN-03): nome do capacete grande, nome completo, função/empresa; "Sim, é o {nome}" / "Não é ele"
+- [x] **Bloqueio** (RN-04): "Nada foi registrado", grava `ocorrencia` (aviso ao encarregado no M9, ver Decisões); opções "Ler o capacete certo" / "Escolher na lista (manual)"
+- [x] **Ficha da pessoa** (F-04): o que está com ela (com hora e marca "sem QR"), equipe da empresa, identificação usada
+- [x] Perfil consulta: QR abre direto a ficha, sem botões de lançamento
+- [x] Lista manual (F-08) com busca por nome/apelido sem acento
+- [x] Tela inicial (F-01) com resumo e últimos lançamentos (dados reais)
 
 **Critérios de aceite**
 - Almoxarife lê QR → conferência → ficha com botões Retirada/Devolução.
@@ -374,3 +374,12 @@ Legenda: ⬜ A fazer · 🟨 Em andamento · ✅ Concluído · ⛔ Bloqueado
 | 11/10/2026 | M3 (revisão): funções de gatilho voltam a ficar fora do alcance do cliente (o grant geral do M3 tinha devolvido); log do agente sem nome nem matrícula (só o id do trabalho); telas param de se atualizar sozinhas depois de 10 min; "offline desde" mostra a data quando não é hoje; instalador Linux não roda o serviço como root. |
 | 11/10/2026 | M3 (revisão, aceito sem mudança): aviso de dev do Next "uncached data outside `<Suspense>`" (navegação instantânea) vale para todas as rotas desde o M1; fica para um milestone de polimento com `loading.tsx`/`<Suspense>` por segmento. Instalador do Windows conferido por análise; execução real no mini PC na instalação. |
 | 11/10/2026 | M3 (comparação com o protótipo): rodapé do adesivo com **"ALMOX · obra" à esquerda e matrícula à direita** (obra comprida cortada com reticências); **nome no capacete comprido encolhe** para caber numa linha (até 16 letras). Prévia na tela desenhada com as mesmas posições e tamanhos do impresso (`layoutAdesivo`); QR com ampliação 9 e margem silenciosa de 4 módulos. |
+| 11/10/2026 | M4: "Não é ele" grava a **ocorrência** e ela aparece no app (em vermelho nos últimos lançamentos, para quem lança e para a consulta da empresa). Notificação e e-mail ao encarregado entram no M9, junto com o envio dos avisos. |
+| 11/10/2026 | M4: a conferência ("Sim, é o …") **vale 10 minutos** para lançar com QR. O servidor guarda a identificação com validade; retirada e devolução com `via = qr` (M5/M6) exigem uma identificação válida da mesma pessoa. |
+| 11/10/2026 | M4: consulta restrita de empreiteira que lê o capacete de outra empresa vê **"Pessoa de outra empresa"**, sem nome nem ferramentas. |
+| 11/10/2026 | M4: **pendência** = ferramenta com alguém desde antes de hoje (dia da obra, fuso de São Paulo), em vermelho com "desde ontem" ou "desde dd/MM", já no Início e na ficha. O fechamento do dia (M9) só passa a gerar os avisos. |
+| 11/10/2026 | M4: botões Retirada/Devolução aparecem na ficha desde já, desligados com aviso até o M5/M6. Abrir a pessoa pela lista geral conta como "sem QR" (como no protótipo). |
+| 11/10/2026 | M4 (revisão): a conferência fica **presa à leitura**. "Sim, é o …" devolve o id da identificação, a ficha o carrega (`?ident=`) e o servidor confere dono, pessoa, obra e validade. Abrir a mesma pessoa pela lista manual não conta como QR. M5/M6 recebem esse id. Falha de rede na leitura vira mensagem na tela (e há `error.tsx`). O bloqueio não promete aviso ao encarregado até o M9. |
+| 11/10/2026 | M4 (revisão, aceito sem mudança): para a consulta, `?via=qr` só muda o texto "QR do capacete lido" (cosmético: consulta não lança). "Não é ele" derruba as conferências vigentes da pessoa de todos os usuários (capacete com outra pessoa). A limpeza das identificações vencidas fica para o M10. |
+| 11/10/2026 | M4 (comparação, decidido pelo dono): no Início da **consulta de empreiteira** só aparecem números da própria empresa ("com a {empresa}" e pendências). "No almox" e "manutenção" (da obra toda) ficam para o Estoque. |
+| 11/10/2026 | M4 (comparação, aceito sem mudança): barra inferior também na ficha; selo ALTO VALOR e ponto da cor da empresa na ficha; várias pendências listadas, com plural; selo do perfil no cabeçalho do Início (a lista geral tem atalho próprio); nome da ferramenta embaixo do ícone (regra do CLAUDE.md); "Ler capacete do …" e "Receber" abrem a leitura sem alvo (a câmera lê o capacete que estiver na frente); link "Sem capacete?" também na tela de leitura; apelido na lista manual; botões no rodapé. |

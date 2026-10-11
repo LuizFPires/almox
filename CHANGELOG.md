@@ -2,6 +2,32 @@
 
 Registro do que foi entregue em cada milestone (ver `PLAN.md`).
 
+## M4 — Identificação por QR e ficha da pessoa (concluído em 11/10/2026)
+
+### Adicionado
+- **Ler capacete** pela câmera do celular. A leitura é automática (`@zxing/browser`), há lanterna quando o aparelho permite e mensagens para "Capacete não cadastrado", pessoa inativa, pessoa de outra empresa e câmera bloqueada.
+- **Conferência** (RN-03): "É o {nome} que está na sua frente?". "Sim, é o …" grava no servidor uma identificação que vale **10 minutos**. Retirada e devolução com QR (M5/M6) vão exigir essa identificação.
+- **"Não é ele"** (RN-04): "Nada foi registrado". A ocorrência fica anotada e aparece em vermelho nos últimos lançamentos. O aviso ao encarregado chega no M9.
+- **Ficha da pessoa** (F-04):
+  - mostra como a pessoa foi identificada;
+  - "Com ele agora", com horário, pendência "desde ontem", "sem QR" e ALTO VALOR;
+  - regra de devolução RN-02/RN-06, com "Ler capacete do …";
+  - equipe da empresa.
+  - A consulta vê a ficha sem botões.
+- **Lista manual "Sem QR"** (F-08): busca por nome ou apelido sem acento. Quem é aberto por ela entra na ficha como "Escolhido na lista · sem QR".
+- **Início** (F-01) com dados reais: no canteiro, no almox, manutenção e pendências; cartão do fechamento do dia; pendências; últimos lançamentos.
+- e2e com QR de verdade: um vídeo com o QR alimenta a câmera falsa do Chromium.
+
+### Revisão e comparação com o protótipo
+- A conferência fica presa à leitura: a ficha carrega o id da identificação, e o servidor confere dono, pessoa, obra e validade. Abrir a mesma pessoa pela lista manual não conta como QR.
+- Falha de rede na leitura vira mensagem na tela, e foi criada a tela de erro do app. O bloqueio não promete aviso ao encarregado antes do M9.
+- A consulta de empreiteira vê no Início só os números da própria empresa.
+- Detalhes de tela do protótipo: hora no cabeçalho, ícones, cartão da ficha centralizado, botões com ícone, voltar da conferência para a leitura e da equipe para a ficha anterior, lupa na busca.
+- 30 testes pgTAP do M4 (144 no total), 127 unitários e 45 e2e, incluindo leitura sem internet.
+
+### Pendente
+- Testar a câmera no Android e no iPhone reais (no CI a leitura é simulada no Chromium).
+
 ## M3 — Adesivo do capacete e impressão (concluído em 11/10/2026)
 
 ### Adicionado

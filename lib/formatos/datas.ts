@@ -61,3 +61,11 @@ export function diaDaObra(entrada: Entrada): string {
   const { dia, mes, ano } = partes(entrada)
   return `${ano}-${mes}-${dia}`
 }
+
+/**
+ * Início do dia da obra (00:00 em São Paulo) como instante. O Brasil não tem horário de
+ * verão desde 2019: o fuso é sempre UTC−3.
+ */
+export function inicioDoDiaDaObra(entrada: Entrada): Date {
+  return new Date(`${diaDaObra(entrada)}T00:00:00-03:00`)
+}

@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest'
 import {
   capaceteRepetido,
+  faltaEmail,
   lerValorReposicao,
   normalizarNomeCapacete,
   previaCodigos,
@@ -48,6 +49,14 @@ describe('empresas', () => {
     expect(validarEmail('', true)).toBe('Informe o e-mail.')
     expect(validarEmail('dono@empresa')).toBe('E-mail inválido.')
     expect(validarEmail(' dono@empresa.com.br ')).toBeNull()
+  })
+
+  it('alerta empreiteira sem e-mail de dono ou encarregado', () => {
+    const base = { dono_email: 'a@b.com', encarregado_email: 'c@d.com' }
+    expect(faltaEmail({ tipo: 'empreiteira', ...base })).toBe(false)
+    expect(faltaEmail({ tipo: 'empreiteira', ...base, encarregado_email: null })).toBe(true)
+    expect(faltaEmail({ tipo: 'empreiteira', ...base, dono_email: '' })).toBe(true)
+    expect(faltaEmail({ tipo: 'propria', dono_email: null, encarregado_email: null })).toBe(false)
   })
 
   it('escolhe a próxima cor livre', () => {

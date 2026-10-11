@@ -131,3 +131,12 @@ export function proximaCor(usadas: readonly string[]): string {
     CORES_EMPRESA[usadas.length % CORES_EMPRESA.length]!
   )
 }
+
+/** Empreiteira sem e-mail do dono ou do encarregado: o aviso não chega a todos (RN-13). */
+export function faltaEmail(empresa: {
+  tipo: 'propria' | 'empreiteira'
+  dono_email: string | null
+  encarregado_email: string | null
+}): boolean {
+  return empresa.tipo === 'empreiteira' && (!empresa.dono_email || !empresa.encarregado_email)
+}

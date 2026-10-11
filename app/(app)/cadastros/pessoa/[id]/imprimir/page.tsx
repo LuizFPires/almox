@@ -9,6 +9,7 @@ import { ErroFormulario } from '@/components/Formulario'
 import { RodapeAcao } from '@/components/RodapeAcao'
 import { dadosAdesivo } from '@/lib/dados/adesivo'
 import { situacaoImpressao, ultimosTrabalhos } from '@/lib/dados/impressao'
+import { buscarPessoa } from '@/lib/dados/pessoas'
 import { destinoSeguro } from '@/lib/dominio/destino'
 import { descreverTrabalho, emAndamento } from '@/lib/dominio/impressao'
 import { obterSessao } from '@/lib/sessao'
@@ -30,12 +31,14 @@ export default async function PaginaImprimir({
     volta?: string
   }
   const { obraAtual } = await obterSessao()
-  const [adesivo, { impressora, agente }, trabalhos] = await Promise.all([
+  const [pessoa, adesivo, { impressora, agente }, trabalhos] = await Promise.all([
+    buscarPessoa(obraAtual.id, id),
     dadosAdesivo(id),
     situacaoImpressao(obraAtual.id),
     ultimosTrabalhos(obraAtual.id, id),
   ])
-  if (!adesivo) notFound()
+  // Só pessoa da obra selecionada (engenheiro de duas obras não mistura as duas).
+  if (!pessoa || !adesivo) notFound()
 
   const volta = voltaPedida ? destinoSeguro(voltaPedida) : '/cadastros/pessoas'
   const aqui = `/cadastros/pessoa/${id}/imprimir?volta=${encodeURIComponent(volta)}`

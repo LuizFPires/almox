@@ -5,8 +5,11 @@ import { entrarComo, SENHA_SEED, semSeed, USUARIOS } from './apoio'
 /** URL e chave pública do Supabase local (o CI gera o .env.local antes do build). */
 function ambiente() {
   const linhas = readFileSync('.env.local', 'utf8').split('\n')
+  // `supabase status -o env` grava os valores entre aspas; o Next tira, aqui também.
   const valor = (chave: string) =>
-    linhas.find((l) => l.startsWith(`${chave}=`))?.slice(chave.length + 1) ?? ''
+    (linhas.find((l) => l.startsWith(`${chave}=`))?.slice(chave.length + 1) ?? '')
+      .trim()
+      .replace(/^"(.*)"$/, '$1')
   return {
     url: valor('NEXT_PUBLIC_SUPABASE_URL'),
     chave: valor('NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY'),
@@ -62,7 +65,12 @@ test.describe('cadastros do engenheiro', () => {
     await page.goto('/cadastros/ferramenta/nova')
     await page.locator('label').filter({ hasText: 'Martelete' }).first().click()
     await campo(page, 'Nome').fill(ferramenta)
-    await campo(page, 'Prefixo do código').fill(info.project.name === 'android' ? 'RPA' : 'RPI')
+    // Prefixo único por execução (o CI repete o teste em caso de falha e o prefixo é único na obra).
+    const prefixo = String(Date.now() % 1_000_000)
+      .padStart(6, '0')
+      .replace(/\d/g, (d) => 'ABCDEFGHJK'[Number(d)]!)
+      .slice(-4)
+    await campo(page, 'Prefixo do código').fill(prefixo)
     await campo(page, 'Valor de reposição (por unidade)').fill('2.890,00')
     for (let i = 0; i < 4; i++) await page.getByRole('button', { name: 'Aumentar unidade' }).click()
     await expect(page.getByText(/Unidades novas/)).toContainText('-01 a ')

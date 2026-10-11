@@ -37,9 +37,21 @@ export async function salvarPessoa(_: EstadoPessoa, form: FormData): Promise<Est
   const valores = valoresDoForm(form)
   if (Object.keys(campos).length > 0) return { campos, valores }
 
-  const { error } = id
-    ? await supabase.from('pessoa').update(dados).eq('id', id).eq('obra_id', obraId)
-    : await supabase.from('pessoa').insert({ ...dados, obra_id: obraId })
+  // select('id'): com id de outra obra o update não acha nada e isso precisa virar erro.
+  const { data: salva, error } = id
+    ? await supabase
+        .from('pessoa')
+        .update(dados)
+        .eq('id', id)
+        .eq('obra_id', obraId)
+        .select('id')
+        .maybeSingle()
+    : await supabase
+        .from('pessoa')
+        .insert({ ...dados, obra_id: obraId })
+        .select('id')
+        .maybeSingle()
+  if (!error && !salva) return { erro: 'Pessoa não encontrada nesta obra.', valores }
   if (error) {
     if (error.code === '23503')
       return { campos: { empresa_id: 'Empresa inválida para esta obra.' }, valores }
@@ -55,12 +67,14 @@ export async function alternarAtiva(form: FormData) {
   const { supabase, obraId } = await exigirEngenheiro()
   const id = String(form.get('id') ?? '')
   const ativa = form.get('ativa') === 'true'
-  const { error } = await supabase
+  const { data, error } = await supabase
     .from('pessoa')
     .update({ ativa })
     .eq('id', id)
     .eq('obra_id', obraId)
-  if (error) throw new Error('Não foi possível alterar a situação da pessoa.')
+    .select('id')
+    .maybeSingle()
+  if (error || !data) throw new Error('Não foi possível alterar a situação da pessoa.')
   revalidatePath('/cadastros/pessoas')
   redirect('/cadastros/pessoas')
 }

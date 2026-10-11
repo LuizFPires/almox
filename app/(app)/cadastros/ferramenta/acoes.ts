@@ -53,11 +53,15 @@ export async function salvarFerramenta(
   const dados = { nome, icone, valor_reposicao: valor.centavos, alto_valor: altoValor }
   let tipoId = id
   if (id) {
-    const { error } = await supabase
+    // Confere que o tipo é da obra ativa: com id de outra obra, o update não acharia nada.
+    const { data: atualizado, error } = await supabase
       .from('tipo_ferramenta')
       .update(dados)
       .eq('id', id)
       .eq('obra_id', obraId)
+      .select('id')
+      .maybeSingle()
+    if (!error && !atualizado) return { erro: 'Ferramenta não encontrada nesta obra.', valores }
     if (error) {
       if (error.code === '23505')
         return { campos: { nome: 'Já existe ferramenta com esse nome.' }, valores }

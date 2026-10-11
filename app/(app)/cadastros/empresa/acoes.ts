@@ -44,9 +44,21 @@ export async function salvarEmpresa(_: EstadoEmpresa, form: FormData): Promise<E
   const valores = valoresDoForm(form)
   if (Object.keys(campos).length > 0) return { campos, valores }
 
-  const { error } = id
-    ? await supabase.from('empresa').update(dados).eq('id', id).eq('obra_id', obraId)
-    : await supabase.from('empresa').insert({ ...dados, obra_id: obraId })
+  // select('id'): com id de outra obra o update não acha nada e isso precisa virar erro.
+  const { data: salvo, error } = id
+    ? await supabase
+        .from('empresa')
+        .update(dados)
+        .eq('id', id)
+        .eq('obra_id', obraId)
+        .select('id')
+        .maybeSingle()
+    : await supabase
+        .from('empresa')
+        .insert({ ...dados, obra_id: obraId })
+        .select('id')
+        .maybeSingle()
+  if (!error && !salvo) return { erro: 'Empresa não encontrada nesta obra.', valores }
 
   if (error) {
     if (error.code === '23505')

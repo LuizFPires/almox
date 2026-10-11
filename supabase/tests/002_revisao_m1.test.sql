@@ -71,9 +71,8 @@ select throws_ok(
   '42501', null, 'unidade nova não escolhe status (nasce livre)'
 );
 select lives_ok(
-  $$insert into public.unidade (obra_id, tipo_id, codigo)
-    select 'a0000000-0000-4000-8000-000000000001', id, 'PA-99' from public.tipo_ferramenta where prefixo = 'PA'$$,
-  'engenheira adiciona unidade livre'
+  $$select public.adicionar_unidades((select id from public.tipo_ferramenta where prefixo = 'PA'), 1)$$,
+  'engenheira adiciona unidade livre (pela RPC, desde o M2)'
 );
 select is_empty(
   $$update public.usuario_obra set perfil = 'consulta'

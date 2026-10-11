@@ -1,4 +1,5 @@
 import type { Metadata } from 'next'
+import Link from 'next/link'
 import { Botao } from '@/components/Botao'
 import { Cabecalho } from '@/components/Cabecalho'
 import { Cartao } from '@/components/Cartao'
@@ -49,6 +50,13 @@ export default async function PaginaConta() {
             )
           })}
         </section>
+
+        <Link
+          href="/trocar-senha"
+          className="flex min-h-toque items-center justify-center rounded-botao border border-borda bg-cartao font-semibold"
+        >
+          Trocar senha
+        </Link>
 
         <form action={sair} className="mt-auto">
           <Botao type="submit" variante="secundaria" tamanho="g" larguraTotal>

@@ -35,6 +35,9 @@ export const obterSessao = cache(async (): Promise<Sessao> => {
   const { data: dadosClaims } = await supabase.auth.getClaims()
   const id = dadosClaims?.claims?.sub
   if (!id) redirect('/login')
+  // Senha provisória: só entra no app depois de criar a própria (M2).
+  const appMetadata = dadosClaims.claims.app_metadata as Record<string, unknown> | undefined
+  if (appMetadata?.trocar_senha) redirect('/trocar-senha')
   const email = typeof dadosClaims?.claims?.email === 'string' ? dadosClaims.claims.email : ''
 
   const [resUsuario, resVinculos] = await Promise.all([

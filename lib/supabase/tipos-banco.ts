@@ -23,6 +23,61 @@ export type Database = {
   }
   public: {
     Tables: {
+      alteracao: {
+        Row: {
+          campo: string
+          criado_em: string
+          de: string | null
+          id: string
+          obra_id: string
+          para: string | null
+          registro_id: string
+          tabela: string
+          usuario_id: string | null
+          usuario_nome: string | null
+        }
+        ComputedFields: never
+        Insert: {
+          campo: string
+          criado_em?: string
+          de?: string | null
+          id?: string
+          obra_id: string
+          para?: string | null
+          registro_id: string
+          tabela: string
+          usuario_id?: string | null
+          usuario_nome?: string | null
+        }
+        Update: {
+          campo?: string
+          criado_em?: string
+          de?: string | null
+          id?: string
+          obra_id?: string
+          para?: string | null
+          registro_id?: string
+          tabela?: string
+          usuario_id?: string | null
+          usuario_nome?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: 'alteracao_obra_id_fkey'
+            columns: ['obra_id']
+            isOneToOne: false
+            referencedRelation: 'obra'
+            referencedColumns: ['id']
+          },
+          {
+            foreignKeyName: 'alteracao_usuario_id_fkey'
+            columns: ['usuario_id']
+            isOneToOne: false
+            referencedRelation: 'usuario'
+            referencedColumns: ['id']
+          },
+        ]
+      }
       avaria: {
         Row: {
           criado_em: string
@@ -508,7 +563,7 @@ export type Database = {
           empresa_id: string
           funcao: string
           id?: string
-          matricula: string
+          matricula?: string
           nome: string
           nome_capacete: string
           obra_id: string
@@ -804,6 +859,19 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      adicionar_unidades: { Args: { p_quantidade: number; p_tipo: string }; Returns: string[] }
+      listar_acessos: {
+        Args: { p_obra: string }
+        Returns: {
+          desde: string
+          email: string
+          empresa_id: string
+          empresa_nome: string
+          nome: string
+          perfil: Database['public']['Enums']['perfil']
+          usuario_id: string
+        }[]
+      }
       registrar_devolucao: {
         Args: {
           p_itens: Json

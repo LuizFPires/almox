@@ -16,7 +16,7 @@ Fonte da verdade do produto: `PRD.md`. Regras para quem codifica: `CLAUDE.md`.
 |---|---|---|---|
 | M0 | Fundação do projeto | ✅ Concluído | 11/10/2026 |
 | M1 | Banco, autenticação e perfis | ✅ Concluído | 11/10/2026 |
-| M2 | Cadastros do engenheiro | ⬜ A fazer | |
+| M2 | Cadastros do engenheiro | 🟨 Em andamento | |
 | M3 | Adesivo do capacete e impressão | ⬜ A fazer | |
 | M4 | Identificação por QR e ficha da pessoa | ⬜ A fazer | |
 | M5 | Retirada | ⬜ A fazer | |
@@ -85,12 +85,14 @@ Legenda: ⬜ A fazer · 🟨 Em andamento · ✅ Concluído · ⛔ Bloqueado
 **Objetivo:** o engenheiro cadastra tudo o que a obra precisa para operar.
 
 **Entregas**
-- [ ] Área "Cadastros" visível só para engenheiro; demais perfis veem a tela "Só o engenheiro cadastra"
-- [ ] **Empresas:** criar/editar; tipo própria/empreiteira; cor; dono (nome + e-mail); encarregado (escolhido entre pessoas da empresa) + e-mail; data da próxima medição; alerta "falta e-mail"
-- [ ] **Pessoas:** nome completo, nome no capacete (sugere primeiro nome, editável, maiúsculas), função, empresa; matrícula automática; `qr_token` aleatório e único gerado no servidor; inativar (não apaga)
-- [ ] **Ferramentas:** tipo com ícone, **valor de reposição R$/un** (entrada no formato brasileiro), alto valor; adicionar N unidades (códigos internos sequenciais); quantidade 0 = só atualiza valor
-- [ ] Validações de formulário (nome completo com sobrenome, e-mail válido, valor > 0)
-- [ ] Log de alterações de valor (quem, quando, de/para)
+- [x] Área "Cadastros" visível só para engenheiro; demais perfis veem a tela "Só o engenheiro cadastra"
+- [x] **Empresas:** criar/editar; tipo própria/empreiteira; cor; dono (nome + e-mail); encarregado (escolhido entre pessoas da empresa) + e-mail; data da próxima medição; alerta "falta e-mail"
+- [x] **Pessoas:** nome completo, nome no capacete (sugere primeiro nome, editável, maiúsculas), função, empresa; matrícula automática; `qr_token` aleatório e único gerado no servidor; inativar (não apaga)
+- [x] **Ferramentas:** tipo com ícone, **valor de reposição R$/un** (entrada no formato brasileiro), alto valor; adicionar N unidades (códigos internos sequenciais); quantidade 0 = só atualiza valor
+- [x] Validações de formulário (nome completo com sobrenome, e-mail válido, valor > 0)
+- [x] Log de alterações de valor (quem, quando, de/para)
+- [x] Usuários: engenheiro dá acesso (e-mail, nome, perfil, empresa da consulta restrita) com **senha provisória** mostrada uma vez; troca obrigatória no primeiro login; remover acesso
+- [x] Conta: trocar a própria senha
 
 **Critérios de aceite**
 - Cadastrar empresa → pessoa → ferramenta com 5 unidades a R$ 2.890,00 e ver tudo listado corretamente.
@@ -347,3 +349,15 @@ Legenda: ⬜ A fazer · 🟨 Em andamento · ✅ Concluído · ⛔ Bloqueado
 | 11/10/2026 | M1 (revisão): senhas dos usuários de teste no `almox-dev` trocadas por senhas aleatórias fora do git (o repositório é público); o seed recusa banco que já tem obras. |
 | 11/10/2026 | M1 (revisão, aceito sem mudança): consulta de empreiteira vê o estoque total da obra (PRD §5 permite estoque); e-mails de dono/encarregado das empresas legíveis por quem é da obra (contato comercial, não dado de trabalhador); link mágico em outro aparelho falha (PKCE) — trocar o modelo de e-mail para `token_hash` fica para o M9 junto com o SMTP; mudança de empresa/tipo com ferramenta em posse entra no log de alterações do M2. |
 | 11/10/2026 | M1: `almox-prod` com as migrations (sem seed) e Auth fechado (cadastro desligado, URL exata, `site_url` do domínio oficial). Primeira obra "SL Betim" e o login do engenheiro criados pelo administrador, já confirmado e com senha aleatória entregue fora do git — o e-mail padrão do Supabase só entrega para membros da organização até o SMTP próprio (M9). |
+| 11/10/2026 | M2: acesso novo com **senha provisória** mostrada uma vez ao engenheiro e troca obrigatória no primeiro login (o e-mail padrão do Supabase só entrega para membros da organização; convite por e-mail quando o SMTP entrar no M9). |
+| 11/10/2026 | M2: log de alterações cobre tudo que afeta cobrança e avisos: valor de reposição e alto valor; empresa e situação da pessoa; tipo, e-mails, encarregado e medição da empresa; acessos de usuários. |
+| 11/10/2026 | M2: função da pessoa com sugestões + texto livre; nome no capacete repetido na obra só gera aviso (com sugestão, ex.: "JOÃO S."). |
+| 11/10/2026 | M2: engenheiro cria tipos de ferramenta além dos 13 do protótipo, escolhendo um dos 13 ícones; prefixo do código sugerido e editável. |
+| 11/10/2026 | M2: unidade nova só pela RPC `adicionar_unidades` (códigos sequenciais com trava do tipo); prefixo do tipo fixo depois de criado; empresa não troca de obra. Lista de acessos por RPC `listar_acessos` (e-mail só para o engenheiro). |
+| 11/10/2026 | M2: formulários devolvem o que foi digitado quando há erro (o React limpa os campos após Server Action); `Campo` usa `useId` (o Next mantém telas anteriores escondidas no DOM). Nome no capacete vazio é preenchido no servidor com o primeiro nome. |
+| 11/10/2026 | M2 (revisão): código da 100ª unidade (lpad cortava para 2 dígitos) e ordenação numérica; vínculo de acesso só muda perfil/empresa; **senha provisória pendente bloqueia também no banco** (RLS lê `app_metadata.trocar_senha`); empreiteira com consulta restrita não vira própria; log guarda o nome de quem alterou; mínimo de 10 caracteres de senha também no Auth. |
+| 11/10/2026 | M2 (revisão): formulários de criação recomeçam a cada visita (`NovaVisita` com `useRouter().bfcacheId`), sem trazer a senha mostrada antes; encarregado inativo continua na lista da empresa; erros de acesso viram mensagem na tela. |
+| 11/10/2026 | M2 (revisão, aceito sem mudança): dar acesso a e-mail que já tem login em outra obra vincula sem pedir confirmação da pessoa (o engenheiro é responsável pelo acesso da obra); senha provisória não expira sozinha (some na primeira troca); `secure_password_change` fica desligado (pediria reautenticação para trocar a senha). Remover acesso já exige abrir a seção e confirmar. |
+| 11/10/2026 | M2 (segurança): dar acesso a e-mail que já tem login **nunca** troca nem mostra a senha dele (seria tomar a conta de quem é de outra obra). Senha provisória perdida antes do primeiro acesso: redefinir pelo e-mail quando o SMTP entrar (M9). |
+| 11/10/2026 | M2 (comparação com o protótipo): empreiteira **exige dono com e-mail** (sem ele o aviso da RN-13 não chega a ninguém); encarregado segue opcional com o alerta "Falta e-mail". Botão "Nova …" de largura total abaixo das abas. |
+| 11/10/2026 | M2 (comparação, diferenças aceitas): categoria de ferramenta (elétrica/manual/acesso) do protótipo **não entra** (fora do PRD §8; reavaliar no M7); botão de salvar sempre ativo com erros ao enviar (botão desligado sem explicação atrapalha leitor de tela); pessoas em ordem alfabética (achar alguém entre 100+); seed com 84 unidades em vez de 70 (cada pessoa do painel da TV tem a ferramenta); até 200 unidades por vez em vez de 20. |

@@ -1,6 +1,20 @@
 -- M3 · Fila de impressão, dispositivo e agente (usa o seed: Obra Demonstração).
 begin;
-select plan(18);
+select plan(27);
+
+-- Parte do zero mesmo num banco local já usado (tudo volta no rollback).
+delete from public.trabalho_impressao;
+delete from public.impressora;
+delete from public.dispositivo_tv;
+
+-- Sem impressora escolhida, nada entra na fila.
+set local role authenticated;
+select set_config('request.jwt.claims', '{"sub":"b0000000-0000-4000-8000-000000000001","role":"authenticated"}', true);
+select throws_ok(
+  $$select public.enfileirar_impressao('a0000000-0000-4000-8000-000000000001', 'teste', '', 'x', 1)$$,
+  'P0002', null, 'sem impressora escolhida: erro claro'
+);
+reset role;
 
 -- Preparação como administrador: impressora da obra.
 insert into public.impressora (id, obra_id, nome, ip, porta, linguagem)
@@ -39,6 +53,14 @@ select throws_ok(
   $$insert into public.trabalho_impressao (obra_id, impressora_id, payload)
     values ('a0000000-0000-4000-8000-000000000001', 'c0000000-0000-4000-8000-000000000001', 'x')$$,
   '42501', null, 'ninguém insere trabalho direto (só pela função)'
+);
+select throws_ok(
+  $$select public.enfileirar_impressao('a0000000-0000-4000-8000-000000000001', 'teste', '', 'x', 6)$$,
+  '23514', null, 'no máximo 5 cópias'
+);
+select throws_ok(
+  $$select public.enfileirar_impressao('a0000000-0000-4000-8000-000000000002', 'teste', '', 'x', 1)$$,
+  '42501', null, 'não imprime em obra onde só consulta'
 );
 
 -- Almoxarife ----------------------------------------------------------------------------------
@@ -81,6 +103,53 @@ select is(
   (select status::text from public.trabalho_impressao where id = (select valor::uuid from t_ctx where chave = 'trabalho')),
   'enviado', 'trabalho fica como enviado'
 );
+
+-- Só uma impressora ativa por obra.
+select throws_ok(
+  $$insert into public.impressora (obra_id, nome, ip, porta, linguagem)
+    values ('a0000000-0000-4000-8000-000000000001', 'Outra', '192.168.0.51', 9100, 'TSPL')$$,
+  '23505', null, 'uma impressora ativa por obra'
+);
+
+-- Dispositivo da obra B não vê nem conclui trabalho da obra A.
+insert into public.impressora (obra_id, nome, ip, porta, linguagem)
+values ('a0000000-0000-4000-8000-000000000002', 'Etiquetadora B', '192.168.1.50', 9100, 'ZPL');
+insert into public.dispositivo_tv (obra_id, nome, token_hash)
+values ('a0000000-0000-4000-8000-000000000002', 'Mini PC B', privado.hash_token(repeat('b', 64)));
+set local role authenticated;
+select set_config('request.jwt.claims', '{"sub":"b0000000-0000-4000-8000-000000000001","role":"authenticated"}', true);
+insert into t_ctx values ('trabalho2', public.enfileirar_impressao(
+  'a0000000-0000-4000-8000-000000000001', 'teste', 'Teste A', '^XA^XZ', 1)::text);
+reset role;
+set local role anon;
+select is_empty(
+  $$select * from public.agente_proximos(repeat('b', 64))$$,
+  'agente de outra obra não pega o trabalho'
+);
+select is(
+  (select count(*)::int from public.agente_proximos((select valor from t_ctx where chave = 'token'))),
+  1, 'agente da obra pega o próprio trabalho'
+);
+select lives_ok(
+  $$select public.agente_concluir(repeat('b', 64), (select valor::uuid from t_ctx where chave = 'trabalho2'), true, null)$$,
+  'concluir trabalho de outra obra não dá erro, mas não muda nada'
+);
+reset role;
+select is(
+  (select status::text from public.trabalho_impressao where id = (select valor::uuid from t_ctx where chave = 'trabalho2')),
+  'enviando', 'agente de outra obra não conclui o trabalho'
+);
+
+-- Agente caiu no meio: "enviando" há mais de 1 minuto volta para a fila.
+update public.trabalho_impressao set atualizado_em = now() - interval '2 minutes'
+ where id = (select valor::uuid from t_ctx where chave = 'trabalho2');
+set local role anon;
+select results_eq(
+  $$select descricao from public.agente_proximos((select valor from t_ctx where chave = 'token'))$$,
+  $$values ('Teste A'::text)$$,
+  'trabalho parado em "enviando" volta para a fila'
+);
+reset role;
 
 -- Revogar desliga o dispositivo.
 update public.dispositivo_tv set revogado_em = now() where nome = 'Mini PC do almoxarifado';

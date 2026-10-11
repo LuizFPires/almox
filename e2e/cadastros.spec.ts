@@ -1,20 +1,5 @@
-import { readFileSync } from 'node:fs'
 import { expect, test, type Page } from '@playwright/test'
-import { entrarComo, SENHA_SEED, semSeed, USUARIOS } from './apoio'
-
-/** URL e chave pública do Supabase local (o CI gera o .env.local antes do build). */
-function ambiente() {
-  const linhas = readFileSync('.env.local', 'utf8').split('\n')
-  // `supabase status -o env` grava os valores entre aspas; o Next tira, aqui também.
-  const valor = (chave: string) =>
-    (linhas.find((l) => l.startsWith(`${chave}=`))?.slice(chave.length + 1) ?? '')
-      .trim()
-      .replace(/^"(.*)"$/, '$1')
-  return {
-    url: valor('NEXT_PUBLIC_SUPABASE_URL'),
-    chave: valor('NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY'),
-  }
-}
+import { ambiente, entrarComo, SENHA_SEED, semSeed, USUARIOS } from './apoio'
 
 /** Token de um usuário do seed direto no Auth (para conferir o banco pela API). */
 async function tokenDe(page: Page, email: string) {

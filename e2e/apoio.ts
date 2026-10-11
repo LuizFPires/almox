@@ -1,3 +1,4 @@
+import { readFileSync } from 'node:fs'
 import { expect, type Page } from '@playwright/test'
 
 /** Usuários do supabase/seed.sql (só desenvolvimento e CI). */
@@ -20,4 +21,18 @@ export async function entrarComo(page: Page, usuario: keyof typeof USUARIOS, des
   await page.getByRole('button', { name: 'Entrar', exact: true }).click()
   await page.waitForURL((url) => url.pathname === destino)
   await expect(page.getByRole('link', { name: /conta e obra/ })).toBeVisible()
+}
+
+/** URL e chave pública do Supabase local (o CI gera o .env.local antes do build). */
+export function ambiente() {
+  const linhas = readFileSync('.env.local', 'utf8').split('\n')
+  // `supabase status -o env` grava os valores entre aspas; o Next tira, aqui também.
+  const valor = (chave: string) =>
+    (linhas.find((l) => l.startsWith(`${chave}=`))?.slice(chave.length + 1) ?? '')
+      .trim()
+      .replace(/^"(.*)"$/, '$1')
+  return {
+    url: valor('NEXT_PUBLIC_SUPABASE_URL'),
+    chave: valor('NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY'),
+  }
 }

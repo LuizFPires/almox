@@ -11,7 +11,7 @@ Registro do que foi entregue em cada milestone (ver `PLAN.md`).
 - Ferramentas: tipos com um dos 13 ícones, valor de reposição no formato brasileiro (centavos no banco), alto valor, unidades com código sequencial (`adicionar_unidades`), histórico de valor.
 - Log de alterações (`alteracao`) gravado por gatilho: valores, empresa da pessoa, dados de aviso da empresa e acessos.
 - Acessos: o engenheiro dá acesso com senha provisória (mostrada uma vez), troca obrigatória no primeiro login, muda perfil e remove; Conta › Trocar senha.
-- 21 testes pgTAP novos, regras puras com testes e e2e do critério de aceite.
+- 17 testes pgTAP novos (64 no total), regras puras com testes e e2e do critério de aceite.
 
 ## M1 — Banco, autenticação e perfis (concluído em 11/10/2026)
 

@@ -2,7 +2,7 @@
 
 Registro do que foi entregue em cada milestone (ver `PLAN.md`).
 
-## M5 — Retirada (em revisão)
+## M5 — Retirada (concluído em 11/10/2026)
 
 ### Adicionado
 - **Retirada** a partir da ficha: grade com todos os tipos da obra. Cada toque no ícone soma 1, há o botão "−" e "N livres", e o limite são as unidades livres (RN-07).
@@ -18,7 +18,20 @@ Registro do que foi entregue em cada milestone (ver `PLAN.md`).
   - dois celulares na mesma unidade: um leva e o outro vê "… acabou de sair".
 - Tela **"Retirada registrada"** com "Ler outro capacete" e "Início".
 - **Últimos lançamentos ao vivo** (Supabase Realtime, com RLS).
-- 22 testes pgTAP novos (166 no total) e e2e dos 3 critérios de aceite. A corrida entre dois celulares é testada de verdade.
+- e2e dos 3 critérios de aceite, incluindo dois celulares concluindo a retirada ao mesmo tempo.
+
+### Revisão e comparação com o protótipo
+- A retirada é **idempotente**: o celular gera uma chave ao entrar na revisão. Repetir "Concluir" depois de uma falha de rede devolve o mesmo movimento, sem duplicar.
+- Cada item da lista é validado no servidor.
+- O Início ao vivo usa um canal novo a cada abertura.
+- O rodapé fixo deixa espaço para o campo que está em foco.
+- Detalhes de tela do protótipo:
+  - selo SAÍDA;
+  - "−" com "toque no ícone: +1";
+  - confirmação marcada em grafite com check amarelo;
+  - botões desligados em cinza;
+  - sucesso com os botões lado a lado.
+- 31 testes pgTAP da retirada (175 no total), 133 testes unitários e 50 e2e.
 
 ## M4 — Identificação por QR e ficha da pessoa (concluído em 11/10/2026)
 

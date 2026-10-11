@@ -189,6 +189,7 @@ export type Database = {
           id: string
           nome: string
           obra_id: string
+          revogado_em: string | null
           token_hash: string
           ultimo_ping: string | null
         }
@@ -198,6 +199,7 @@ export type Database = {
           id?: string
           nome: string
           obra_id: string
+          revogado_em?: string | null
           token_hash: string
           ultimo_ping?: string | null
         }
@@ -206,6 +208,7 @@ export type Database = {
           id?: string
           nome?: string
           obra_id?: string
+          revogado_em?: string | null
           token_hash?: string
           ultimo_ping?: string | null
         }
@@ -329,6 +332,7 @@ export type Database = {
       }
       impressora: {
         Row: {
+          ativa: boolean
           criado_em: string
           id: string
           ip: unknown
@@ -340,6 +344,7 @@ export type Database = {
         }
         ComputedFields: never
         Insert: {
+          ativa?: boolean
           criado_em?: string
           id?: string
           ip: unknown
@@ -350,6 +355,7 @@ export type Database = {
           rolo?: string | null
         }
         Update: {
+          ativa?: boolean
           criado_em?: string
           id?: string
           ip?: unknown
@@ -702,35 +708,53 @@ export type Database = {
           atualizado_em: string
           copias: number
           criado_em: string
+          descricao: string
+          enviado_em: string | null
           erro: string | null
           id: string
           impressora_id: string
           obra_id: string
           payload: string
+          pego_por: string | null
+          pessoa_id: string | null
           status: Database['public']['Enums']['status_impressao']
+          tentativas: number
+          tipo: string
         }
         ComputedFields: never
         Insert: {
           atualizado_em?: string
           copias?: number
           criado_em?: string
+          descricao?: string
+          enviado_em?: string | null
           erro?: string | null
           id?: string
           impressora_id: string
           obra_id: string
           payload: string
+          pego_por?: string | null
+          pessoa_id?: string | null
           status?: Database['public']['Enums']['status_impressao']
+          tentativas?: number
+          tipo?: string
         }
         Update: {
           atualizado_em?: string
           copias?: number
           criado_em?: string
+          descricao?: string
+          enviado_em?: string | null
           erro?: string | null
           id?: string
           impressora_id?: string
           obra_id?: string
           payload?: string
+          pego_por?: string | null
+          pessoa_id?: string | null
           status?: Database['public']['Enums']['status_impressao']
+          tentativas?: number
+          tipo?: string
         }
         Relationships: [
           {
@@ -738,6 +762,20 @@ export type Database = {
             columns: ['impressora_id', 'obra_id']
             isOneToOne: false
             referencedRelation: 'impressora'
+            referencedColumns: ['id', 'obra_id']
+          },
+          {
+            foreignKeyName: 'trabalho_impressao_pego_por_fkey'
+            columns: ['pego_por']
+            isOneToOne: false
+            referencedRelation: 'dispositivo_tv'
+            referencedColumns: ['id']
+          },
+          {
+            foreignKeyName: 'trabalho_pessoa_fk'
+            columns: ['pessoa_id', 'obra_id']
+            isOneToOne: false
+            referencedRelation: 'pessoa'
             referencedColumns: ['id', 'obra_id']
           },
         ]
@@ -860,6 +898,45 @@ export type Database = {
     }
     Functions: {
       adicionar_unidades: { Args: { p_quantidade: number; p_tipo: string }; Returns: string[] }
+      agente_concluir: {
+        Args: { p_erro: string; p_ok: boolean; p_token: string; p_trabalho: string }
+        Returns: undefined
+      }
+      agente_ping: { Args: { p_token: string }; Returns: string }
+      agente_proximos: {
+        Args: { p_token: string }
+        Returns: {
+          descricao: string
+          id: string
+          ip: string
+          payload: string
+          porta: number
+        }[]
+      }
+      criar_dispositivo: { Args: { p_nome: string; p_obra: string }; Returns: string }
+      dados_adesivo: {
+        Args: { p_pessoa: string }
+        Returns: {
+          empresa: string
+          funcao: string
+          matricula: string
+          nome: string
+          nome_capacete: string
+          obra: string
+          token: string
+        }[]
+      }
+      enfileirar_impressao: {
+        Args: {
+          p_copias: number
+          p_descricao: string
+          p_obra: string
+          p_payload: string
+          p_pessoa?: string
+          p_tipo: string
+        }
+        Returns: string
+      }
       listar_acessos: {
         Args: { p_obra: string }
         Returns: {
@@ -892,13 +969,14 @@ export type Database = {
         }
         Returns: string
       }
+      revogar_dispositivo: { Args: { p_dispositivo: string }; Returns: undefined }
     }
     Enums: {
       linguagem_impressora: 'ZPL' | 'TSPL'
       motivo_avaria: 'quebrada' | 'cabo_rompido' | 'nao_liga' | 'desgaste' | 'peca_faltando'
       perfil: 'engenheiro' | 'almoxarife' | 'consulta'
       status_aviso: 'enviado' | 'cancelado' | 'confirmado'
-      status_impressao: 'pendente' | 'enviado' | 'erro'
+      status_impressao: 'pendente' | 'enviando' | 'enviado' | 'erro'
       status_unidade: 'livre' | 'em_uso' | 'manutencao' | 'baixada'
       tipo_empresa: 'propria' | 'empreiteira'
       tipo_movimento: 'retirada' | 'devolucao' | 'estorno'
@@ -1022,7 +1100,7 @@ export const Constants = {
       motivo_avaria: ['quebrada', 'cabo_rompido', 'nao_liga', 'desgaste', 'peca_faltando'],
       perfil: ['engenheiro', 'almoxarife', 'consulta'],
       status_aviso: ['enviado', 'cancelado', 'confirmado'],
-      status_impressao: ['pendente', 'enviado', 'erro'],
+      status_impressao: ['pendente', 'enviando', 'enviado', 'erro'],
       status_unidade: ['livre', 'em_uso', 'manutencao', 'baixada'],
       tipo_empresa: ['propria', 'empreiteira'],
       tipo_movimento: ['retirada', 'devolucao', 'estorno'],

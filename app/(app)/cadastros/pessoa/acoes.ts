@@ -3,11 +3,14 @@
 import { revalidatePath } from 'next/cache'
 import { redirect } from 'next/navigation'
 import { exigirEngenheiro } from '@/lib/acesso'
+import { enfileirarAdesivo, MENSAGEM_FALHA } from '@/lib/dados/adesivo'
+import { destinoSeguro } from '@/lib/dominio/destino'
 import {
   normalizarNomeCapacete,
   sugerirNomeCapacete,
   validarNomeCompleto,
 } from '@/lib/dominio/cadastros'
+import { lerCopias } from '@/lib/dominio/impressao'
 import { valoresDoForm, type Valores } from '@/lib/formulario'
 
 export type EstadoPessoa = {
@@ -58,15 +61,40 @@ export async function salvarPessoa(_: EstadoPessoa, form: FormData): Promise<Est
         .insert({ ...dados, obra_id: obraId })
         .select('id')
         .maybeSingle()
-  if (!error && !salva) return { erro: 'Pessoa não encontrada nesta obra.', valores }
   if (error) {
     if (error.code === '23503')
       return { campos: { empresa_id: 'Empresa inválida para esta obra.' }, valores }
     return { erro: 'Não foi possível salvar. Tente de novo.', valores }
   }
+  if (!salva) return { erro: 'Pessoa não encontrada nesta obra.', valores }
 
   revalidatePath('/cadastros/pessoas')
+  // "Salvar e imprimir adesivo": a pessoa já está salva; a tela Imprimir confirma as cópias.
+  if (!id) redirect(`/cadastros/pessoa/${salva.id}/imprimir?volta=/cadastros/pessoas`)
   redirect('/cadastros/pessoas')
+}
+
+export type EstadoImpressao = { erro?: string; copias?: number }
+
+/**
+ * Tela Imprimir (depois de salvar ou "Reimprimir"): 1 a 5 cópias do mesmo adesivo
+ * (mesmo token). Na fila, volta para a mesma tela acompanhando o trabalho.
+ */
+export async function imprimirAdesivo(
+  _: EstadoImpressao,
+  form: FormData,
+): Promise<EstadoImpressao> {
+  const { supabase, obraId } = await exigirEngenheiro()
+  const id = String(form.get('id') ?? '')
+  const copias = lerCopias(String(form.get('copias') ?? ''))
+  if (!copias) return { erro: 'Escolha de 1 a 5 cópias.' }
+  const fila = await enfileirarAdesivo(supabase, obraId, id, copias)
+  if (!fila.ok) return { erro: MENSAGEM_FALHA[fila.motivo], copias }
+  const volta = destinoSeguro(String(form.get('volta') ?? ''))
+  revalidatePath('/cadastros/pessoa/[id]', 'layout')
+  redirect(
+    `/cadastros/pessoa/${id}/imprimir?trabalho=${fila.id}&volta=${encodeURIComponent(volta)}`,
+  )
 }
 
 /** Inativar não apaga: a pessoa some das listas de lançamento, o histórico fica. */

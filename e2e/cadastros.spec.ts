@@ -1,20 +1,5 @@
-import { readFileSync } from 'node:fs'
 import { expect, test, type Page } from '@playwright/test'
-import { entrarComo, SENHA_SEED, semSeed, USUARIOS } from './apoio'
-
-/** URL e chave pública do Supabase local (o CI gera o .env.local antes do build). */
-function ambiente() {
-  const linhas = readFileSync('.env.local', 'utf8').split('\n')
-  // `supabase status -o env` grava os valores entre aspas; o Next tira, aqui também.
-  const valor = (chave: string) =>
-    (linhas.find((l) => l.startsWith(`${chave}=`))?.slice(chave.length + 1) ?? '')
-      .trim()
-      .replace(/^"(.*)"$/, '$1')
-  return {
-    url: valor('NEXT_PUBLIC_SUPABASE_URL'),
-    chave: valor('NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY'),
-  }
-}
+import { ambiente, entrarComo, SENHA_SEED, semSeed, USUARIOS } from './apoio'
 
 /** Token de um usuário do seed direto no Auth (para conferir o banco pela API). */
 async function tokenDe(page: Page, email: string) {
@@ -53,12 +38,14 @@ test.describe('cadastros do engenheiro', () => {
     await campo(page, 'Nome completo').fill(`Pedro ${sufixo} Costa`)
     await page.getByText('Pintor', { exact: true }).click()
     await page.locator('label').filter({ hasText: empresa }).click()
-    await page.getByRole('button', { name: 'Salvar pessoa' }).click()
-    await page.waitForURL((u) => u.pathname === '/cadastros/pessoas')
+    await page.getByRole('button', { name: 'Salvar e imprimir adesivo' }).click()
+    // Abre a tela Imprimir (nada sai antes de confirmar); volta para a lista.
+    await page.waitForURL((u) => u.pathname.endsWith('/imprimir'))
+    await page.goto('/cadastros/pessoas')
     // Capacete sugerido na tela ou preenchido pelo servidor (se digitou antes de a página
     // carregar): 'PEDRO', ou 'PEDRO C.' se outro teste já criou um PEDRO na obra.
     await expect(
-      page.getByRole('link', { name: new RegExp(`Pedro ${sufixo} Costa`) }),
+      page.getByRole('link', { name: new RegExp(`^Pedro ${sufixo} Costa`) }),
     ).toContainText(/PEDRO( C\.)? · Pintor/)
 
     const ferramenta = `Rompedor ${sufixo}`

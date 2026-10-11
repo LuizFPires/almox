@@ -1,0 +1,14 @@
+{
+  "name": "almox-agente-impressao",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Agente de impressão do Almox: leva os adesivos da fila para a impressora da obra.",
+  "type": "module",
+  "engines": {
+    "node": ">=22.18"
+  },
+  "scripts": {
+    "start": "node src/agente.ts",
+    "simulador": "node src/simulador.ts"
+  }
+}

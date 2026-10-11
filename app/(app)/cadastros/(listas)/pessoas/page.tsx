@@ -2,7 +2,7 @@ import type { Metadata } from 'next'
 import Link from 'next/link'
 import { Cartao } from '@/components/Cartao'
 import { BotaoNovo } from '@/components/Formulario'
-import { IconeInterface } from '@/components/IconeInterface'
+import { IconeImpressora } from '@/components/IconeImpressora'
 import { listarPessoas, type PessoaCadastro } from '@/lib/dados/pessoas'
 import { obterSessao } from '@/lib/sessao'
 
@@ -18,35 +18,47 @@ function iniciais(nome: string) {
 function LinhaPessoa({ p }: { p: PessoaCadastro }) {
   const itens = p.posses.length
   return (
-    <Link
-      href={`/cadastros/pessoa/${p.id}`}
-      className="flex min-h-16 items-center gap-3 rounded-cartao bg-cartao px-3.5 py-3"
-    >
-      <span
-        aria-hidden="true"
-        className={`flex size-11 shrink-0 items-center justify-center rounded-full text-[15px] font-bold ${
-          p.ativa ? 'bg-escuro text-amarelo' : 'bg-sutil text-texto-2'
-        }`}
+    <div className="flex min-h-16 items-center rounded-cartao bg-cartao">
+      <Link
+        href={`/cadastros/pessoa/${p.id}`}
+        className={`flex min-w-0 flex-1 items-center gap-3 self-stretch py-3 pl-3.5 ${p.ativa ? '' : 'pr-3.5'}`}
       >
-        {iniciais(p.nome)}
-      </span>
-      <span className="flex min-w-0 flex-1 flex-col">
-        <span className="truncate text-base font-bold">
-          {p.nome} <span className="font-mono text-xs font-medium text-texto-2">{p.matricula}</span>
+        <span
+          aria-hidden="true"
+          className={`flex size-11 shrink-0 items-center justify-center rounded-full text-[15px] font-bold ${
+            p.ativa ? 'bg-escuro text-amarelo' : 'bg-sutil text-texto-2'
+          }`}
+        >
+          {iniciais(p.nome)}
         </span>
-        <span className="truncate text-[13px] text-texto-2">
-          {p.nome_capacete} · {p.funcao} · {p.empresa?.nome}
+        <span className="flex min-w-0 flex-1 flex-col">
+          <span className="truncate text-base font-bold">
+            {p.nome}{' '}
+            <span className="font-mono text-xs font-medium text-texto-2">{p.matricula}</span>
+          </span>
+          <span className="truncate text-[13px] text-texto-2">
+            {p.nome_capacete} · {p.funcao} · {p.empresa?.nome}
+          </span>
         </span>
-      </span>
-      {p.ativa ? (
-        <span className="shrink-0 rounded-full bg-sutil px-2.5 py-1 text-[13px] font-semibold">
-          {itens === 0 ? 'nada' : `${itens} ${itens === 1 ? 'item' : 'itens'}`}
-        </span>
-      ) : (
-        <span className="shrink-0 text-[13px] font-semibold text-texto-2">inativa</span>
+        {p.ativa ? (
+          <span className="shrink-0 rounded-full bg-sutil px-2.5 py-1 text-[13px] font-semibold">
+            {itens === 0 ? 'nada' : `${itens} ${itens === 1 ? 'item' : 'itens'}`}
+          </span>
+        ) : (
+          <span className="shrink-0 text-[13px] font-semibold text-texto-2">inativa</span>
+        )}
+      </Link>
+      {p.ativa && (
+        // Atalho do protótipo: reimprimir o adesivo direto da lista (abre a tela Imprimir).
+        <Link
+          href={`/cadastros/pessoa/${p.id}/imprimir`}
+          aria-label={`Reimprimir adesivo de ${p.nome}`}
+          className="mx-1.5 flex size-toque shrink-0 items-center justify-center rounded-botao text-texto-2"
+        >
+          <IconeImpressora tamanho={20} />
+        </Link>
       )}
-      <IconeInterface nome="chevron-right" tamanho={18} className="shrink-0 text-texto-2" />
-    </Link>
+    </div>
   )
 }
 

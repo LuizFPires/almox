@@ -17,7 +17,7 @@ Fonte da verdade do produto: `PRD.md`. Regras para quem codifica: `CLAUDE.md`.
 | M0 | Fundação do projeto | ✅ Concluído | 11/10/2026 |
 | M1 | Banco, autenticação e perfis | ✅ Concluído | 11/10/2026 |
 | M2 | Cadastros do engenheiro | ✅ Concluído | 11/10/2026 |
-| M3 | Adesivo do capacete e impressão | ⬜ A fazer | |
+| M3 | Adesivo do capacete e impressão | ✅ Concluído (critério de 10 s conferido no simulador; falta a impressora real) | 11/10/2026 |
 | M4 | Identificação por QR e ficha da pessoa | ⬜ A fazer | |
 | M5 | Retirada | ⬜ A fazer | |
 | M6 | Devolução e avaria | ⬜ A fazer | |
@@ -108,14 +108,14 @@ Legenda: ⬜ A fazer · 🟨 Em andamento · ✅ Concluído · ⛔ Bloqueado
 **Objetivo:** ao cadastrar uma pessoa, o adesivo sai na impressora da obra.
 
 **Entregas**
-- [ ] QR Code com **apenas o token** (RN-17)
-- [ ] Layout do adesivo 60 × 80 mm: QR, nome no capacete grande, nome completo, função · empresa, rodapé "ALMOX · obra · matrícula" (igual ao protótipo)
-- [ ] Geração do adesivo em **ZPL** e **TSPL** (escolha pela impressora cadastrada) + prévia na tela
-- [ ] Tabela `trabalho_impressao` como fila (pendente → enviado / erro)
-- [ ] **Agente de impressão local** (Node, pasta `agente-impressao/`): roda no mini PC da TV, autentica por token de dispositivo, escuta a fila (realtime), envia para `ip:9100` da impressora, atualiza status; instalável como serviço (Windows e Linux)
-- [ ] Tela "Impressora": escolher impressora da obra, rolo, imprimir teste, ver status do agente (online/offline)
-- [ ] "Salvar e imprimir adesivo" no cadastro de pessoa; "Reimprimir" com 1–5 cópias
-- [ ] Mensagens de erro claras: agente offline, impressora sem resposta
+- [x] QR Code com **apenas o token** (RN-17)
+- [x] Layout do adesivo 60 × 80 mm: QR, nome no capacete grande, nome completo, função · empresa, rodapé "ALMOX · obra · matrícula" (igual ao protótipo)
+- [x] Geração do adesivo em **ZPL** e **TSPL** (escolha pela impressora cadastrada) + prévia na tela
+- [x] Tabela `trabalho_impressao` como fila (pendente → enviado / erro)
+- [x] **Agente de impressão local** (Node, pasta `agente-impressao/`): roda no mini PC da TV, autentica por token de dispositivo, consulta a fila a cada 2 s, envia para `ip:9100` da impressora, atualiza status; instalável como serviço (Windows e Linux)
+- [x] Tela "Impressora": escolher impressora da obra, rolo, imprimir teste, ver status do agente (online/offline)
+- [x] "Salvar e imprimir adesivo" no cadastro de pessoa; "Reimprimir" com 1–5 cópias
+- [x] Mensagens de erro claras: agente offline, impressora sem resposta
 
 **Critérios de aceite**
 - Com o agente rodando na mesma rede, cadastrar uma pessoa imprime o adesivo em até 10 s.
@@ -362,3 +362,15 @@ Legenda: ⬜ A fazer · 🟨 Em andamento · ✅ Concluído · ⛔ Bloqueado
 | 11/10/2026 | M2 (comparação com o protótipo): empreiteira **exige dono com e-mail** (sem ele o aviso da RN-13 não chega a ninguém); encarregado segue opcional com o alerta "Falta e-mail". Botão "Nova …" de largura total abaixo das abas. |
 | 11/10/2026 | M2 (comparação, diferenças aceitas): categoria de ferramenta (elétrica/manual/acesso) do protótipo **não entra** (fora do PRD §8; reavaliar no M7); botão de salvar sempre ativo com erros ao enviar (botão desligado sem explicação atrapalha leitor de tela); pessoas em ordem alfabética (achar alguém entre 100+); seed com 84 unidades em vez de 70 (cada pessoa do painel da TV tem a ferramenta); até 200 unidades por vez em vez de 20. |
 | 11/10/2026 | M2: `almox-prod` com as migrations do M2 e senha mínima de 10 no Auth; Cadastros conferidos na produção com o login do engenheiro (obra SL Betim). |
+| 11/10/2026 | M3: impressora ainda não comprada — o Almox gera **ZPL e TSPL** e é testado com impressora simulada; o critério "imprime em até 10 s" é conferido quando a impressora real chegar (térmica de transferência com rede, 60 × 80 mm, ribbon de resina). |
+| 11/10/2026 | M3: o agente **consulta a fila a cada 2 s** por RPC (só conexões de saída, sem sessão para renovar) em vez de Realtime. |
+| 11/10/2026 | M3: **um token por mini PC** (cadastro "dispositivo da obra") para TV e agente; o banco guarda só o hash; revogar desliga os dois. |
+| 11/10/2026 | M3: agente roda com **Node 24 + script que instala como serviço** (Windows e Linux). |
+| 11/10/2026 | M3: agente de impressão em **TypeScript rodado direto pelo Node** (sem build, sem dependências); no Windows roda como *Serviço Local* com a pasta gravável só por administradores, no Linux como unidade systemd. Log só de eventos, sem token nem conteúdo das etiquetas. |
+| 11/10/2026 | M3 (comparação, decidido pelo dono): **fluxo de impressão do protótipo**. "Salvar e imprimir adesivo" salva e abre a tela **Imprimir** (prévia, impressora verde/vermelha, cópias 1–5 com "Uma reserva ajuda se descolar", botão "Imprimir N etiquetas"). **Nada imprime antes de confirmar.** A tela acompanha o trabalho até "Impresso no almoxarifado. Cole na frente do capacete." e "Concluir". Reimprimir abre a mesma tela, pela ficha ou pelo **ícone de impressora em cada pessoa** da lista de Cadastros. Isso substitui a versão anterior (fila direta ao salvar), que tinha sido decidida na implementação sem consulta. |
+| 11/10/2026 | M3: agente "online" = deu sinal nos últimos 30 s; sem impressora escolhida, Cadastros mostra o cartão da impressora com borda vermelha. Trabalho parado em "enviando" por mais de 1 minuto volta para a fila. |
+| 11/10/2026 | M3 (revisão): impressora só com **IPv4 da rede da obra** (10.x, 172.16–31.x, 192.168.x; 127.x para o simulador) e **porta 9100–9199**, conferido no banco, na tela e no agente; fila só aceita conteúdo ZPL/TSPL; texto da etiqueta sem caracteres de controle. |
+| 11/10/2026 | M3 (revisão): fila sem impressão dupla. O trabalho guarda **quem pegou**, só esse mini PC conclui, "enviando" volta para a fila depois de 3 min e vira erro depois de 3 tentativas. O agente tenta confirmar de novo e não reimprime o que já saiu. O conteúdo da etiqueta (com o token) é apagado depois de impresso. |
+| 11/10/2026 | M3 (revisão): funções de gatilho voltam a ficar fora do alcance do cliente (o grant geral do M3 tinha devolvido); log do agente sem nome nem matrícula (só o id do trabalho); telas param de se atualizar sozinhas depois de 10 min; "offline desde" mostra a data quando não é hoje; instalador Linux não roda o serviço como root. |
+| 11/10/2026 | M3 (revisão, aceito sem mudança): aviso de dev do Next "uncached data outside `<Suspense>`" (navegação instantânea) vale para todas as rotas desde o M1; fica para um milestone de polimento com `loading.tsx`/`<Suspense>` por segmento. Instalador do Windows conferido por análise; execução real no mini PC na instalação. |
+| 11/10/2026 | M3 (comparação com o protótipo): rodapé do adesivo com **"ALMOX · obra" à esquerda e matrícula à direita** (obra comprida cortada com reticências); **nome no capacete comprido encolhe** para caber numa linha (até 16 letras). Prévia na tela desenhada com as mesmas posições e tamanhos do impresso (`layoutAdesivo`); QR com ampliação 9 e margem silenciosa de 4 módulos. |

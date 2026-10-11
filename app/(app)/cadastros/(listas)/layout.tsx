@@ -1,12 +1,15 @@
 import { AbasCadastros } from '@/components/AbasCadastros'
 import { BarraInferior } from '@/components/BarraInferior'
 import { Cabecalho } from '@/components/Cabecalho'
+import { CartaoImpressora } from '@/components/CartaoImpressora'
 import { SeloPerfil } from '@/components/SeloPerfil'
+import { situacaoImpressao } from '@/lib/dados/impressao'
 import { obterSessao } from '@/lib/sessao'
 
 /** Moldura das listas de cadastro: cabeçalho, abas e barra inferior. */
 export default async function LayoutListas({ children }: LayoutProps<'/cadastros'>) {
   const { obraAtual } = await obterSessao()
+  const { impressora, agente } = await situacaoImpressao(obraAtual.id)
   return (
     <>
       <Cabecalho
@@ -14,7 +17,8 @@ export default async function LayoutListas({ children }: LayoutProps<'/cadastros
         subtitulo={obraAtual.nome}
         selo={<SeloPerfil perfil={obraAtual.perfil} empresa={obraAtual.empresa?.nome} />}
       />
-      <div className="px-5 pt-1 pb-3">
+      <div className="flex flex-col gap-3 px-5 pt-1 pb-3">
+        <CartaoImpressora impressora={impressora} agente={agente} href="/cadastros/impressora" />
         <AbasCadastros />
       </div>
       <main className="flex flex-1 flex-col gap-2 px-5 pb-6">{children}</main>

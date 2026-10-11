@@ -160,9 +160,15 @@ export function FormPessoa({ pessoa, empresas, capacetesUsados }: Props) {
       </div>
 
       <RodapeAcao>
-        <Botao type="submit" tamanho="g" larguraTotal disabled={salvando}>
-          {salvando ? 'Salvando…' : pessoa ? 'Salvar alterações' : 'Salvar pessoa'}
-        </Botao>
+        {pessoa ? (
+          <Botao type="submit" tamanho="g" larguraTotal disabled={salvando}>
+            {salvando ? 'Salvando…' : 'Salvar alterações'}
+          </Botao>
+        ) : (
+          <Botao type="submit" tamanho="g" larguraTotal disabled={salvando}>
+            {salvando ? 'Salvando…' : 'Salvar e imprimir adesivo'}
+          </Botao>
+        )}
       </RodapeAcao>
     </form>
   )

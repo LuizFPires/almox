@@ -35,3 +35,7 @@ npm test               # Vitest
 npx supabase test db   # testes de banco (pgTAP)
 npm run e2e            # Playwright (faz o build e sobe o app na porta 3200)
 ```
+
+## Agente de impressão
+
+O agente que leva os adesivos da fila para a impressora da obra fica em [`agente-impressao/`](agente-impressao/LEIA-ME.md) (instalação no mini PC, teste com impressora simulada).

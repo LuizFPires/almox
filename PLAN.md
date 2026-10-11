@@ -19,7 +19,7 @@ Fonte da verdade do produto: `PRD.md`. Regras para quem codifica: `CLAUDE.md`.
 | M2 | Cadastros do engenheiro | ✅ Concluído | 11/10/2026 |
 | M3 | Adesivo do capacete e impressão | ✅ Concluído (critério de 10 s conferido no simulador; falta a impressora real) | 11/10/2026 |
 | M4 | Identificação por QR e ficha da pessoa | ✅ Concluído (câmera conferida no Chromium; falta testar no Android e no iPhone reais) | 11/10/2026 |
-| M5 | Retirada | ⬜ A fazer | |
+| M5 | Retirada | ✅ Concluído | 11/10/2026 |
 | M6 | Devolução e avaria | ⬜ A fazer | |
 | M7 | Lista, estoque e busca | ⬜ A fazer | |
 | M8 | Painel da TV | ⬜ A fazer | |
@@ -154,11 +154,11 @@ Legenda: ⬜ A fazer · 🟨 Em andamento · ✅ Concluído · ⛔ Bloqueado
 **Objetivo:** registrar retiradas por quantidade, com QR ou manual.
 
 **Entregas**
-- [ ] Grade de tipos com unidades livres; **toque no ícone soma 1**, botão −, selo com quantidade; limite = livres (RN-07)
-- [ ] Revisão: tipo × quantidade, unidades alocadas automaticamente (RN-08), selo ALTO VALOR (RN-10), confirmação obrigatória (RN-11), aviso de lançamento manual (RN-05)
-- [ ] RPC `registrar_retirada` transacional: cria `movimento` + `movimento_item`, cria `posse` com `via`, muda `unidade.status` para `em_uso`; falha se alguma unidade deixou de estar livre (concorrência)
-- [ ] Tela de sucesso e retorno para "Ler outro capacete"
-- [ ] Aparece em tempo real em "últimos lançamentos"
+- [x] Grade de tipos com unidades livres; **toque no ícone soma 1**, botão −, selo com quantidade; limite = livres (RN-07)
+- [x] Revisão: tipo × quantidade, unidades alocadas automaticamente (RN-08), selo ALTO VALOR (RN-10), confirmação obrigatória (RN-11), aviso de lançamento manual (RN-05)
+- [x] RPC `registrar_retirada` transacional: cria `movimento` + `movimento_item`, cria `posse` com `via`, muda `unidade.status` para `em_uso`; falha se alguma unidade deixou de estar livre (concorrência)
+- [x] Tela de sucesso e retorno para "Ler outro capacete"
+- [x] Aparece em tempo real em "últimos lançamentos"
 
 **Critérios de aceite**
 - Pegar 2 pás + 1 furadeira com QR: 3 unidades em uso, posse com `via = qr`, movimento registrado com almoxarife e hora.
@@ -383,3 +383,9 @@ Legenda: ⬜ A fazer · 🟨 Em andamento · ✅ Concluído · ⛔ Bloqueado
 | 11/10/2026 | M4 (revisão, aceito sem mudança): para a consulta, `?via=qr` só muda o texto "QR do capacete lido" (cosmético: consulta não lança). "Não é ele" derruba as conferências vigentes da pessoa de todos os usuários (capacete com outra pessoa). A limpeza das identificações vencidas fica para o M10. |
 | 11/10/2026 | M4 (comparação, decidido pelo dono): no Início da **consulta de empreiteira** só aparecem números da própria empresa ("com a {empresa}" e pendências). "No almox" e "manutenção" (da obra toda) ficam para o Estoque. |
 | 11/10/2026 | M4 (comparação, aceito sem mudança): barra inferior também na ficha; selo ALTO VALOR e ponto da cor da empresa na ficha; várias pendências listadas, com plural; selo do perfil no cabeçalho do Início (a lista geral tem atalho próprio); nome da ferramenta embaixo do ícone (regra do CLAUDE.md); "Ler capacete do …" e "Receber" abrem a leitura sem alvo (a câmera lê o capacete que estiver na frente); link "Sem capacete?" também na tela de leitura; apelido na lista manual; botões no rodapé. |
+| 11/10/2026 | M5: quem tem **pendência** (ferramenta desde antes de hoje) **pode retirar**; a revisão mostra o aviso em destaque ("Está com Martelete MT-01 desde ontem") antes da confirmação, e o almoxarife decide. |
+| 11/10/2026 | M5: `registrar_retirada` recebe o id da conferência (M4). É QR só com identificação válida da mesma pessoa; sem ela, é manual. Unidades livres em ordem de código (PA-100 depois de PA-99), travadas na transação: quem perder a corrida recebe "acabou de sair". A confirmação "Conferi pessoalmente…" (RN-11) é exigida no servidor. |
+| 11/10/2026 | M5: o aviso de retirada sem QR segue o PRD (RN-06: o que sai sem QR pode voltar sem QR), não o texto do protótipo. A grade mostra todos os tipos (o protótipo cortava em 12). Últimos lançamentos atualizam em tempo real (Supabase Realtime). A frase "Já atualizado no painel da TV" só entra com o M8. |
+| 11/10/2026 | M5 (revisão): retirada **idempotente**. O celular gera uma chave ao entrar na revisão; repetir "Concluir" depois de a rede cair devolve o mesmo movimento, sem duplicar. Cada item da lista é validado no servidor. O Início ao vivo usa um canal novo a cada abertura. O rodapé fixo deixa espaço para o campo em foco. |
+| 11/10/2026 | M5 (revisão, aceito sem mudança): com `skip locked`, se outro celular segura a unidade e desiste, este pode receber um "acabou de sair" falso e resolve tentando de novo. Esperar a trava evitaria isso, mas abriria risco de deadlock entre pedidos com vários tipos. O e2e de dois celulares testa o comportamento (um leva, o outro é avisado), não a simultaneidade exata no banco. |
+| 11/10/2026 | M5 (comparação com o protótipo): selo SAÍDA, "−" com "toque no ícone: +1", ícone em fundo branco quando escolhido, confirmação marcada em grafite com check amarelo, botão desligado em cinza (em todo o app) e botões lado a lado no sucesso. Aceito sem mudança: nome da ferramenta embaixo do ícone (regra do CLAUDE.md) em vez de ao lado; "todas escolhidas" no limite, porque avisa por que o toque não soma. |

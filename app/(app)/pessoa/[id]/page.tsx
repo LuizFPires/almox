@@ -131,14 +131,17 @@ export default async function PaginaFicha({ params, searchParams }: PageProps<'/
         {lanca ? (
           <section aria-label="Lançar" className="flex flex-col gap-2.5">
             <div className="grid grid-cols-2 gap-2.5">
-              <button
-                type="button"
-                disabled
-                className="flex min-h-24 flex-col items-start justify-between gap-2 rounded-cartao bg-amarelo p-4 text-left text-lg font-bold text-texto disabled:opacity-50"
+              <Link
+                href={`/pessoa/${pessoa.id}/retirada?${
+                  conferida && ident
+                    ? `ident=${ident}`
+                    : `via=${como === 'manual' ? 'manual' : 'lista'}`
+                }`}
+                className="flex min-h-24 flex-col items-start justify-between gap-2 rounded-cartao bg-amarelo p-4 text-left text-lg font-bold text-texto"
               >
                 <IconeInterface nome="checkout" tamanho={26} />
                 Retirada
-              </button>
+              </Link>
               <button
                 type="button"
                 disabled
@@ -151,7 +154,7 @@ export default async function PaginaFicha({ params, searchParams }: PageProps<'/
               </button>
             </div>
             <p className="text-center text-[13px] text-texto-2">
-              Retirada e devolução entram nas próximas versões do app.
+              A devolução entra na próxima versão do app.
             </p>
             {devolucao.aviso && (
               <div className="flex flex-col gap-2.5 rounded-cartao bg-aviso-claro px-4 py-3.5">

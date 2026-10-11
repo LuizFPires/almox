@@ -32,7 +32,7 @@ export function Botao({
   return (
     <button
       type={type}
-      className={`${VARIANTES[variante]} ${TAMANHOS[tamanho]} ${larguraTotal ? 'w-full' : ''} inline-flex items-center justify-center gap-2 font-bold disabled:opacity-40 ${className}`}
+      className={`${VARIANTES[variante]} ${TAMANHOS[tamanho]} ${larguraTotal ? 'w-full' : ''} inline-flex items-center justify-center gap-2 font-bold disabled:border-transparent disabled:bg-borda disabled:text-texto-2 ${className}`}
       {...resto}
     />
   )

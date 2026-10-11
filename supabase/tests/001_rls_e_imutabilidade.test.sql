@@ -124,11 +124,11 @@ select throws_ok(
   $$select qr_token from public.pessoa$$, '42501', null, 'qr_token não é legível pelo cliente'
 );
 select throws_ok(
-  $$select public.registrar_retirada('00000000-0000-0000-0000-0000000000a1', '00000000-0000-0000-0000-0000000000b1', 'qr', '[]', true)$$,
-  '0A000', null, 'almoxarife passa na permissão da RPC (esqueleto ainda não implementado)'
+  $$select public.registrar_retirada('00000000-0000-0000-0000-0000000000a1', '00000000-0000-0000-0000-0000000000b1', null, '[]', true)$$,
+  '22023', null, 'almoxarife passa na permissão da RPC (sem itens: erro de validação)'
 );
 select throws_ok(
-  $$select public.registrar_retirada('00000000-0000-0000-0000-0000000000a2', '00000000-0000-0000-0000-0000000000b4', 'qr', '[]', true)$$,
+  $$select public.registrar_retirada('00000000-0000-0000-0000-0000000000a2', '00000000-0000-0000-0000-0000000000b4', null, '[]', true)$$,
   '42501', null, 'almoxarife não lança em obra que não é dele'
 );
 
@@ -143,7 +143,7 @@ select throws_ok(
   '42501', null, 'consulta não insere em movimento'
 );
 select throws_ok(
-  $$select public.registrar_retirada('00000000-0000-0000-0000-0000000000a1', '00000000-0000-0000-0000-0000000000b1', 'qr', '[]', true)$$,
+  $$select public.registrar_retirada('00000000-0000-0000-0000-0000000000a1', '00000000-0000-0000-0000-0000000000b1', null, '[]', true)$$,
   '42501', null, 'consulta não lança retirada pela RPC'
 );
 select is((select count(*)::int from public.pessoa), 3, 'consulta da obra vê todas as pessoas da obra');

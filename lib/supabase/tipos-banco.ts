@@ -420,6 +420,7 @@ export type Database = {
       }
       movimento: {
         Row: {
+          chave_cliente: string | null
           conferido: boolean
           criado_em: string
           estorno_de: string | null
@@ -433,6 +434,7 @@ export type Database = {
         }
         ComputedFields: never
         Insert: {
+          chave_cliente?: string | null
           conferido?: boolean
           criado_em?: string
           estorno_de?: string | null
@@ -445,6 +447,7 @@ export type Database = {
           via: Database['public']['Enums']['via_movimento']
         }
         Update: {
+          chave_cliente?: string | null
           conferido?: boolean
           criado_em?: string
           estorno_de?: string | null
@@ -1030,11 +1033,12 @@ export type Database = {
       registrar_ocorrencia: { Args: { p_obra: string; p_token: string }; Returns: string }
       registrar_retirada: {
         Args: {
+          p_chave?: string
           p_confirmado: boolean
+          p_identificacao: string
           p_itens: Json
           p_obra: string
           p_pessoa: string
-          p_via: Database['public']['Enums']['via_movimento']
         }
         Returns: string
       }

@@ -1,5 +1,6 @@
 import type { Metadata } from 'next'
 import Link from 'next/link'
+import { AoVivo } from '@/components/AoVivo'
 import { BarraInferior } from '@/components/BarraInferior'
 import { Cartao } from '@/components/Cartao'
 import { IconeInterface } from '@/components/IconeInterface'
@@ -43,6 +44,7 @@ export default async function PaginaInicio() {
         <SeloPerfil perfil={obraAtual.perfil} empresa={obraAtual.empresa?.nome} />
       </header>
 
+      <AoVivo obraId={obraAtual.id} tabelas={['movimento', 'ocorrencia']} />
       <main className="flex flex-1 flex-col gap-3.5 px-5 pt-3.5 pb-5">
         {!lanca && (
           <p className="rounded-cartao bg-sutil px-3.5 py-3 text-sm leading-snug">

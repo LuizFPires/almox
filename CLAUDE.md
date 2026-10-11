@@ -1,48 +1,161 @@
-# CLAUDE.md
+# CLAUDE.md — Almox
 
-Guia deste projeto para sessões futuras do Claude Code.
+Guia para o Claude Code trabalhar neste repositório. Leia inteiro antes de qualquer tarefa.
 
-## O que é
-**ALMOX** — App para controle de fluxo de entrega / devolução de ferramentas de almoxarifado em uma obra
+## O que é o Almox
 
-Hoje o controle de entrega e devolução de ferramentas entre o almoxarifado e os trabalhadores no campo é feito de forma manual, controle em caderno, muitas vezes com um madeirite pregado no fundo da sala com uma lista das pessoas e quais ferramentas estão dispostas com elas naquele momento. E isso é um processo muito lento e que costuma falhar muito, principalmente no controle das devoluções e de quem pegou o que. Então ao final da obra, invariavelmente, existe muita perda de ferramentas, pela perda do controle no dia a dia. Fica difícil cobrar de determinado funcionário a devolução de uma ferramenta, se não temos absoluta certeza que está com ele.
+Sistema de controle de ferramentas do almoxarifado de obra. Cada trabalhador é identificado pelo **QR Code no capacete**. O almoxarife lança **retiradas e devoluções** pelo celular, e uma **TV no almoxarifado** mostra em loop quem está com o quê. Quando um funcionário de empreiteira não devolve uma ferramenta, o sistema avisa o dono e o encarregado da empreiteira com o valor de reposição, que será descontado na medição.
 
-## Como rodar
-**Stack:** Next.js (App Router) · Supabase (Postgres + Auth + Storage) · deploy na Vercel.
+- Produto completo: `PRD.md`
+- Ordem de implementação: `PLAN.md` (milestones M0–M12)
+- Histórico do que foi feito: `CHANGELOG.md`
 
-**Pré-requisitos:** Node LTS, conta Supabase, conta Vercel.
+## Como trabalhar neste repo
 
-**Variáveis de ambiente** (`.env.local`, nunca commitado):
-- `NEXT_PUBLIC_SUPABASE_URL`
-- `NEXT_PUBLIC_SUPABASE_ANON_KEY`
-- `SUPABASE_SERVICE_ROLE_KEY` (apenas server-side)
+1. Antes de começar, abra `PLAN.md` e identifique o **milestone em andamento**. Trabalhe só nele.
+2. Ao terminar uma entrega, marque `[x]` no `PLAN.md` no mesmo commit.
+3. Ao fechar um milestone: atualize a tabela de status, escreva a entrada no `CHANGELOG.md` e registre decisões novas na seção "Decisões" do `PLAN.md`.
+4. Se uma tarefa exigir contrariar o PRD ou uma regra de negócio abaixo, **pare e pergunte**. Não contorne.
+5. Prefira mudanças pequenas e testáveis. Rode lint e testes antes de considerar algo pronto.
 
-**Dev:** `npm install` → `npm run dev` (http://localhost:3000).
+## Stack
 
-> Comandos exatos a confirmar quando o projeto for scaffoldado no M0.
+| Camada | Tecnologia |
+|---|---|
+| App e painel | Next.js (App Router) + React + TypeScript (strict) |
+| Estilo | Tailwind CSS com os tokens do protótipo |
+| Banco, auth, realtime, arquivos | Supabase (Postgres + RLS, Auth, Realtime, Storage) |
+| Funções agendadas | Supabase Edge Functions / cron (encerramento automático 23:59) |
+| Mobile | PWA instalável (service worker, IndexedDB para fila offline) |
+| Leitura de QR | Câmera via biblioteca de leitura no navegador (ex.: `@zxing/browser`) |
+| Notificações | Web Push (VAPID) + e-mail transacional (Resend ou SMTP) |
+| Impressão | Agente Node local (`agente-impressao/`) → impressora ZPL/TSPL na porta 9100 |
+| Testes | Vitest (unidade), Playwright (e2e) |
+| Deploy | Vercel (app) + Supabase (dados) |
 
-## Como editar
-Consulte `SPEC.md` (arquitetura e modelo de dados) e `PLAN.md` (faseamento). Priorize os itens **Must** do `PRD.md`.
+## Estrutura de pastas
 
-## Convenções
-- **Idioma:** Português (Brasil)
-- **Tom:** Simples e direto
-- **Tema:** Escuro
+```
+/app
+  /(app)            telas do celular (inicio, leitura, ficha, retirada, devolucao, lista, estoque, fechamento, cadastros)
+  /tv               painel da TV (rota em tela cheia, token de dispositivo)
+  /api              rotas de servidor (impressão, e-mail, push)
+/components         componentes de UI (Botao, Cartao, IconeFerramenta, Contador…)
+/lib
+  /dominio          regras de negócio puras e testáveis (alocação de unidades, cálculo de avisos, permissões)
+  /supabase         clientes e tipos gerados
+  /formatos         formatarBRL, datas, normalizarTexto
+/supabase
+  /migrations       SQL versionado (nunca editar migration já aplicada; criar nova)
+  /functions        edge functions (encerramento, avisos)
+  seed.sql          dados de desenvolvimento do protótipo
+/agente-impressao   serviço Node que roda no mini PC da TV
+/e2e                testes Playwright
+```
 
-## Pontos de atenção
+## Comandos
 
-**Decisões de arquitetura (não violar)**
-- **Rastreio por unidade individual**, não por saldo. O saldo é sempre **derivado** (contagem de unidades por estado) — nunca um campo editável.
-- **Estado da unidade só muda via `movimentacao`** (entrega/devolução) ou baixa/perda explícita. Máquina de estados: DISPONIVEL → EM_POSSE → DISPONIVEL/EM_MANUTENCAO/PERDIDA/BAIXADA (ver `SPEC.md`).
-- **Multi-obra por RLS:** toda tabela tem `obra_id`; policies filtram por `perfil_obra`. Um almoxarife nunca vê outra obra.
-- **Fotos/assinaturas** no Supabase Storage privado (signed URLs) — sem URLs públicas.
+```bash
+npm run dev            # app local
+npm run lint           # lint + typecheck
+npm test               # Vitest
+npm run e2e            # Playwright
+npx supabase start     # Supabase local
+npx supabase db reset  # recria o banco local com migrations + seed
+npm run gen:types      # gera tipos TS a partir do schema
+```
 
-**Premissas assumidas**
-- Device único do almoxarife; trabalhador não tem login (só assina na tela).
-- Só online no MVP (offline é Fase 2). Devolução parcial suportada.
+## Glossário do domínio
 
-**Incógnitas a resolver** (ver `PRD.md`)
-- Identificação física da unidade (etiqueta/QR/nº manual); regra de PERDIDA (manual × N dias); foto na devolução sempre × só em avaria; cadastro do inventário inicial; prazo de retenção LGPD; papel/UX do engenheiro.
+| Termo | Significado |
+|---|---|
+| Obra | Canteiro onde o almoxarifado opera. Quase tudo é filtrado por obra. |
+| Empresa | Construtora (própria) ou empreiteira (subcontratada). |
+| Pessoa | Trabalhador com capacete. Não é usuário do sistema. |
+| Usuário | Quem faz login: engenheiro, almoxarife ou consulta (encarregado, dono de empreiteira etc.). |
+| Nome no capacete | Apelido impresso no adesivo (ex.: "ZÉ CARLOS"). |
+| Token do QR | Código opaco e aleatório no QR do capacete. |
+| Tipo de ferramenta | Ex.: Pá, Martelete. Tem valor de reposição e flag de alto valor. |
+| Unidade | Cada peça física de um tipo, com código interno (ex.: `PA-05`). Não tem QR. |
+| Posse | Registro vivo de qual unidade está com qual pessoa, desde quando e por qual via. |
+| Via | `qr` (capacete lido e pessoa conferida) ou `manual` (escolhida na lista). |
+| Pendência | Unidade que não voltou até o fim do dia. |
+| Aviso | Notificação + e-mail à empreiteira com o valor a descontar na medição. |
+| Medição | Fechamento periódico de pagamento da empreiteira. |
 
-**Non-goals (não implementar agora)**
-- Material de consumo; patrimônio/financeiro; manutenção/OS; app do trabalhador; WhatsApp e offline (fases futuras); multi-idioma.
+## Regras de negócio que nunca podem ser quebradas
+
+Estas regras são validadas **no servidor** (RPC/RLS), não só na tela. Detalhes no `PRD.md §6`.
+
+1. **Quem pegou, devolve.** A posse só muda por devolução da própria pessoa. Não existe transferência nem baixa por empresa.
+2. **Devolução exige QR** de quem retirou. Exceção: unidades com `via = manual` podem voltar sem QR.
+3. **Conferência obrigatória:** ao ler QR para lançar, o almoxarife confirma que é a pessoa. "Não é ele" grava ocorrência e **não registra nada**.
+4. **Retirada exige confirmação explícita** ("Conferi pessoalmente…").
+5. **Quantidade limitada às unidades livres.** A alocação é automática: na retirada, livres em ordem de código; na devolução, as mais antigas da pessoa.
+6. **Avaria exige foto e motivo.** A unidade vai para `manutencao`.
+7. **Fechamento do dia não dá baixa.** Só relatório e avisos.
+8. **Aviso só para empreiteira.** Funcionário próprio → só engenheiro. O desconto é cancelado se a ferramenta voltar antes do fechamento da medição.
+9. **Movimentos são imutáveis.** Nada de `UPDATE`/`DELETE` em `movimento` e `movimento_item`. Correção = movimento de `estorno` com motivo, só pelo engenheiro.
+10. **Cadastros e valores só pelo engenheiro.**
+11. **O QR contém só o token.** Nunca coloque nome, CPF, matrícula ou URL com dados pessoais no QR.
+
+## Convenções de código
+
+- **Idioma:** domínio e UI em português (nomes de tabelas, colunas, funções de domínio e textos). Termos técnicos genéricos (`useEffect`, `fetch`) seguem em inglês.
+- **Banco:** `snake_case`, singular (`pessoa`, `movimento_item`). Toda tabela tem RLS ativa. Escritas de negócio passam por **RPC transacional** (`registrar_retirada`, `registrar_devolucao`…), nunca por insert direto do cliente.
+- **Dinheiro:** sempre inteiro em **centavos**. Exibição só via `formatarBRL` → `R$ 1.234,56`. Entrada aceita `2.890,00` e `2890,00`. Nunca use float para dinheiro.
+- **Datas:** `timestamptz` no banco; exibição no fuso `America/Sao_Paulo`, formato `dd/MM/yyyy` e `HH:mm`.
+- **Busca:** sempre normalizar (minúsculas, sem acento) dos dois lados.
+- **Regras puras** ficam em `/lib/dominio` com testes unitários. Componentes não decidem regra de negócio.
+- **TypeScript strict**, sem `any`. Tipos do banco gerados (`npm run gen:types`).
+- **Acessibilidade e campo:** alvos de toque ≥ 44 px; `<button>` de verdade; `aria-label` em botões só com ícone; contraste alto (uso sob sol).
+- **Textos curtos**, linguagem de obra ("Retirada", "Devolveu tudo", "Não é ele").
+
+## Identidade visual (do protótipo)
+
+| Token | Valor |
+|---|---|
+| Fundo app (claro) | `#F4F2EE` |
+| Cartão | `#FFFFFF` |
+| Texto | `#1C1B19` |
+| Texto secundário | `#6B6760` |
+| Borda | `#E3DFD7` |
+| Amarelo segurança (primária, saída) | `#F5B800` |
+| Escuro (entrada, ações) | `#1C1B19` |
+| Engenheiro / cadastros | `#24406E` |
+| Sucesso | `#1E7A4B` |
+| Erro / pendência | `#C4302B` |
+| TV — fundo / cartão | `#111317` / `#1C1F25` |
+| Fontes | Barlow (texto), Barlow Condensed (títulos, números, nomes no capacete), JetBrains Mono (códigos) |
+
+Ícones de ferramenta: SVGs de traço do protótipo (pá, enxada, carrinho, colher, régua, linha, furadeira, martelete, esmerilhadeira, serra circular, martelo, escada, extensão), sempre com o **nome escrito embaixo**.
+
+## Painel da TV
+
+- Rota `/tv`, autenticação por **token de dispositivo** (somente leitura).
+- Loop: páginas de 12 cartões por pessoa (ordem alfabética, 8 s, esmaecimento 0,6 s) → colunas por empresa rolando a 45 px/s (pausas 2,5 s / 3 s) → recomeça.
+- Sem totais nem estoque na TV: esses números ficam só no app.
+- Animar com `transform` + `requestAnimationFrame`; atualizações de dados não podem reiniciar a animação em curso.
+- Tem que rodar dias seguidos: limpar timers e listeners, sem vazamento de memória.
+
+## Agente de impressão
+
+- Fica em `/agente-impressao`, roda no mini PC da TV, **na rede da obra**.
+- Autentica com token de dispositivo; escuta `trabalho_impressao` pendentes da sua obra; envia o payload ZPL/TSPL para `ip:9100`; atualiza o status.
+- Nunca exponha a impressora à internet. O agente só faz conexões de saída.
+
+## Segurança e LGPD
+
+- Sem biometria, sem foto de pessoas. Fotos só de ferramentas avariadas (Storage privado, URLs assinadas).
+- Consulta de empreiteira só vê a própria empresa (RLS).
+- Segredos só em variáveis de ambiente (`.env.example` lista todas, sem valores reais).
+- Não registre e-mails ou tokens em logs.
+
+## O que não fazer
+
+- Não criar QR para ferramentas, leitura biométrica ou foto de rosto (decisões do PRD).
+- Não criar "baixa geral" ou devolução em nome de outra pessoa.
+- Não editar nem apagar movimentos.
+- Não usar `float` para dinheiro nem formatar moeda à mão.
+- Não colocar regra de negócio só no front-end.
+- Não pular milestones nem marcar entrega como concluída sem os critérios de aceite.

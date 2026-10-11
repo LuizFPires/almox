@@ -1,1 +1,50 @@
 @import 'tailwindcss';
+
+/* Tokens do protótipo "Almox — Protótipo" (ver CLAUDE.md › Identidade visual). */
+@theme {
+  --color-fundo: #f4f2ee;
+  --color-cartao: #ffffff;
+  --color-texto: #1c1b19;
+  --color-texto-2: #6b6760;
+  --color-texto-3: #4a4640;
+  --color-borda: #e3dfd7;
+  --color-linha: #efece6;
+
+  --color-amarelo: #f5b800;
+  --color-amarelo-claro: #fdf0c2;
+  --color-escuro: #1c1b19;
+  --color-engenheiro: #24406e;
+  --color-engenheiro-claro: #f0f3f8;
+  --color-sucesso: #1e7a4b;
+  --color-sucesso-claro: #e4f6ec;
+  --color-erro: #c4302b;
+  --color-erro-escuro: #8e1f1b;
+  --color-erro-claro: #fbe3e2;
+  --color-icone: #f4efe3;
+
+  --color-tv-fundo: #111317;
+  --color-tv-cartao: #1c1f25;
+  --color-tv-chip: #262a31;
+  --color-tv-linha: #2a2e36;
+  --color-tv-texto: #f2f2ef;
+  --color-tv-texto-2: #9aa1ab;
+  --color-tv-alerta: #e5484d;
+  --color-tv-alerta-fundo: #3a1a1c;
+  --color-tv-alerta-texto: #ffb4b0;
+
+  --font-sans: var(--font-barlow), ui-sans-serif, system-ui, sans-serif;
+  --font-condensada: var(--font-barlow-condensed), ui-sans-serif, sans-serif;
+  --font-mono: var(--font-jetbrains-mono), ui-monospace, monospace;
+
+  --radius-botao: 12px;
+  --radius-cartao: 16px;
+  --radius-bloco: 18px;
+
+  --spacing-toque: 44px;
+}
+
+body {
+  background: var(--color-fundo);
+  color: var(--color-texto);
+  font-family: var(--font-sans);
+}

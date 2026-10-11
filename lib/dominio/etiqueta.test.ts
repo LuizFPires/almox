@@ -4,6 +4,7 @@ import {
   gerarAdesivoTspl,
   gerarAdesivoZpl,
   gerarEtiquetaTeste,
+  layoutAdesivo,
   type DadosAdesivo,
 } from './etiqueta'
 
@@ -33,7 +34,8 @@ describe('adesivo do capacete', () => {
       expect(etiqueta).toContain('ZÉ CARLOS')
       expect(etiqueta).toContain('José Carlos Teixeira')
       expect(etiqueta).toContain('Carpinteiro · Fôrmas Ribeiro')
-      expect(etiqueta).toContain('ALMOX · SL Betim · P-0013')
+      expect(etiqueta).toContain('ALMOX · SL Betim')
+      expect(etiqueta).toContain('P-0013')
     })
 
     it(`${linguagem}: recusa token que não é opaco`, () => {
@@ -85,5 +87,41 @@ describe('adesivo do capacete', () => {
     expect(tspl).toContain('PRINT 1,2')
     expect(tspl).toContain("José 'Zé' Silva")
     expect(tspl).not.toContain('"Zé"')
+  })
+
+  it('nome no capacete curto sai grande; comprido encolhe para caber numa linha', () => {
+    const curto = layoutAdesivo({ ...dados, nomeCapacete: 'ZÉ' }).capacete.altura
+    const oito = layoutAdesivo({ ...dados, nomeCapacete: 'ZÉ CARLO' }).capacete.altura
+    const longo = layoutAdesivo({ ...dados, nomeCapacete: 'MARIA APARECIDA' }).capacete
+    expect(curto).toBe(92)
+    expect(oito).toBeGreaterThanOrEqual(80)
+    expect(longo.altura).toBeLessThan(oito)
+    // cabe em 432 pontos com a largura média conservadora da fonte 0
+    expect(longo.texto.length * longo.altura * 0.62).toBeLessThanOrEqual(432)
+  })
+
+  it('ZPL: rodapé com obra à esquerda e matrícula à direita', () => {
+    const zpl = gerarAdesivoZpl(dados)
+    expect(zpl).toMatch(/\^FB432,1,0,L\^FDALMOX · SL Betim\^FS/)
+    expect(zpl).toMatch(/\^FB432,1,0,R\^FDP-0013\^FS/)
+  })
+
+  it('TSPL: rodapé alinhado à esquerda (1) e à direita (3)', () => {
+    const tspl = gerarAdesivoTspl(dados)
+    expect(tspl).toMatch(/,1,"ALMOX · SL Betim"/)
+    expect(tspl).toMatch(/,3,"P-0013"/)
+  })
+
+  it('obra de nome comprido é cortada com reticências no rodapé', () => {
+    const obra = 'Residencial Parque das Águas Claras Torre B'
+    const { rodape } = layoutAdesivo({ ...dados, obra })
+    expect(rodape.esquerda.endsWith('...')).toBe(true)
+    expect(rodape.esquerda.length).toBeLessThan(`ALMOX · ${obra}`.length)
+    expect(rodape.direita).toBe('P-0013')
+  })
+
+  it('QR com margem silenciosa de 4 módulos no topo', () => {
+    const { qr } = layoutAdesivo(dados)
+    expect(qr.y).toBeGreaterThanOrEqual(4 * qr.ampliacao)
   })
 })

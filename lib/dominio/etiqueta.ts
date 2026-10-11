@@ -18,6 +18,7 @@ export type DadosAdesivo = {
 }
 
 const LARGURA = 480 // 60 mm × 8 pontos/mm
+const ALTURA = 640 // 80 mm
 const MARGEM = 24
 
 /** Caracteres de controle (ESC etc.): a impressora executa alguns na hora, até dentro de texto. */
@@ -53,26 +54,76 @@ function copiasValidas(copias: number) {
   return copias
 }
 
-function rodape(d: DadosAdesivo) {
-  return `ALMOX · ${d.obra} · ${d.matricula}`
+/** Largura média de uma letra da fonte 0 (maiúsculas), em fração da altura. Conservador. */
+const LARGURA_LETRA = 0.62
+const LARGURA_TEXTO = LARGURA - 2 * MARGEM
+
+/** Maior altura (pontos) em que o texto cabe em `linhas` linhas, entre `minimo` e `maximo`. */
+function alturaQueCabe(texto: string, maximo: number, minimo: number, linhas = 1) {
+  const letras = Math.max(1, texto.length)
+  const cabe = Math.floor((LARGURA_TEXTO * linhas) / (letras * LARGURA_LETRA))
+  return Math.max(minimo, Math.min(maximo, cabe))
 }
+
+/** Corta com "..." para caber em `letras` caracteres. */
+function cortar(texto: string, letras: number) {
+  return texto.length <= letras ? texto : `${texto.slice(0, Math.max(1, letras - 3)).trimEnd()}...`
+}
+
+const ALTURA_RODAPE = 22
+
+/**
+ * Posições e tamanhos do adesivo, em pontos (203 dpi). Fonte única para ZPL, TSPL e a
+ * prévia na tela: nome comprido encolhe para caber numa linha (nunca sobrepõe nem corta).
+ */
+export function layoutAdesivo(d: Omit<DadosAdesivo, 'token'>) {
+  const funcaoEmpresa = `${d.funcao} · ${d.empresa}`
+  // Rodapé: "ALMOX · obra" à esquerda, matrícula à direita (corta a obra se precisar).
+  // Rodapé tem minúsculas e números: letra média mais estreita que a das maiúsculas.
+  const letraRodape = ALTURA_RODAPE * 0.5
+  const espacoEsquerda = LARGURA_TEXTO - (d.matricula.length + 2) * letraRodape
+  return {
+    largura: LARGURA,
+    altura: ALTURA,
+    margem: MARGEM,
+    larguraTexto: LARGURA_TEXTO,
+    // QR: ampliação 9 (~33 mm) com margem silenciosa de 4 módulos no topo.
+    qr: { x: 110, y: 36, ampliacao: 9 },
+    capacete: { y: 340, altura: alturaQueCabe(d.nomeCapacete, 92, 40), texto: d.nomeCapacete },
+    nome: { y: 448, altura: alturaQueCabe(d.nomeCompleto, 34, 22), texto: d.nomeCompleto },
+    funcao: { y: 494, altura: alturaQueCabe(funcaoEmpresa, 28, 20, 2), texto: funcaoEmpresa },
+    linha: { y: 582 },
+    rodape: {
+      y: 598,
+      altura: ALTURA_RODAPE,
+      esquerda: cortar(`ALMOX · ${d.obra}`, Math.floor(espacoEsquerda / letraRodape)),
+      direita: d.matricula,
+    },
+  }
+}
+
+/** TSPL mede a fonte 0 em pontos tipográficos (1/72"): 203 dpi ÷ 72 ≈ 2,82 pontos. */
+const escalaTspl = (alturaPontos: number) => Math.max(1, Math.round(alturaPontos / 2.82))
 
 export function gerarAdesivoZpl(d: DadosAdesivo, copias = 1): string {
   const t = textoZpl
-  const larguraTexto = LARGURA - 2 * MARGEM
+  const l = layoutAdesivo(d)
+  const texto = (y: number, altura: number, linhas: number, alinhar: 'L' | 'C' | 'R', s: string) =>
+    `^FO${MARGEM},${y}^A0N,${altura},${altura}^FB${LARGURA_TEXTO},${linhas},0,${alinhar}^FD${t(s)}^FS`
   return [
     '^XA',
     '^CI28', // UTF-8 (acentos)
     `^PW${LARGURA}`,
-    '^LL640',
+    `^LL${ALTURA}`,
     '^LH0,0',
-    // QR: modelo 2, ampliação 10 (~36 mm), correção M, só o token.
-    `^FO95,24^BQN,2,10^FDMA,${tokenSeguro(d.token)}^FS`,
-    `^FO${MARGEM},340^A0N,92,92^FB${larguraTexto},1,0,C^FD${t(d.nomeCapacete)}^FS`,
-    `^FO${MARGEM},450^A0N,34,34^FB${larguraTexto},1,0,C^FD${t(d.nomeCompleto)}^FS`,
-    `^FO${MARGEM},496^A0N,28,28^FB${larguraTexto},2,0,C^FD${t(`${d.funcao} · ${d.empresa}`)}^FS`,
-    `^FO${MARGEM},582^GB${larguraTexto},2,2^FS`,
-    `^FO${MARGEM},596^A0N,22,22^FB${larguraTexto},1,0,C^FD${t(rodape(d))}^FS`,
+    // QR: modelo 2, correção M, só o token.
+    `^FO${l.qr.x},${l.qr.y}^BQN,2,${l.qr.ampliacao}^FDMA,${tokenSeguro(d.token)}^FS`,
+    texto(l.capacete.y, l.capacete.altura, 1, 'C', l.capacete.texto),
+    texto(l.nome.y, l.nome.altura, 1, 'C', l.nome.texto),
+    texto(l.funcao.y, l.funcao.altura, 2, 'C', l.funcao.texto),
+    `^FO${MARGEM},${l.linha.y}^GB${LARGURA_TEXTO},2,2^FS`,
+    texto(l.rodape.y, l.rodape.altura, 1, 'L', l.rodape.esquerda),
+    texto(l.rodape.y, l.rodape.altura, 1, 'R', l.rodape.direita),
     `^PQ${copiasValidas(copias)}`,
     '^XZ',
   ].join('\n')
@@ -80,10 +131,12 @@ export function gerarAdesivoZpl(d: DadosAdesivo, copias = 1): string {
 
 export function gerarAdesivoTspl(d: DadosAdesivo, copias = 1): string {
   const t = textoTspl
-  const larguraTexto = LARGURA - 2 * MARGEM
-  // BLOCK x,y,largura,altura,"fonte",rotação,escalaX,escalaY,espaço,alinhamento(2=centro),"texto"
-  const bloco = (y: number, altura: number, escala: number, texto: string) =>
-    `BLOCK ${MARGEM},${y},${larguraTexto},${altura},"0",0,${escala},${escala},0,2,"${t(texto)}"`
+  const l = layoutAdesivo(d)
+  // BLOCK x,y,largura,altura,"fonte",rotação,escalaX,escalaY,espaço,alinhamento(1 esq., 2 centro, 3 dir.),"texto"
+  const bloco = (y: number, altura: number, linhas: number, alinhar: 1 | 2 | 3, s: string) => {
+    const escala = escalaTspl(altura)
+    return `BLOCK ${MARGEM},${y},${LARGURA_TEXTO},${Math.ceil(altura * 1.2 * linhas)},"0",0,${escala},${escala},0,${alinhar},"${t(s)}"`
+  }
   return [
     'SIZE 60 mm,80 mm',
     'GAP 3 mm,0 mm',
@@ -91,12 +144,13 @@ export function gerarAdesivoTspl(d: DadosAdesivo, copias = 1): string {
     'CODEPAGE UTF-8',
     'CLS',
     // QRCODE x,y,correção,célula,modo(A=automático),rotação,"dados" — só o token.
-    `QRCODE 95,24,M,10,A,0,"${tokenSeguro(d.token)}"`,
-    bloco(340, 100, 30, d.nomeCapacete),
-    bloco(450, 44, 11, d.nomeCompleto),
-    bloco(496, 76, 9, `${d.funcao} · ${d.empresa}`),
-    `BAR ${MARGEM},582,${larguraTexto},2`,
-    bloco(596, 30, 7, rodape(d)),
+    `QRCODE ${l.qr.x},${l.qr.y},M,${l.qr.ampliacao},A,0,"${tokenSeguro(d.token)}"`,
+    bloco(l.capacete.y, l.capacete.altura, 1, 2, l.capacete.texto),
+    bloco(l.nome.y, l.nome.altura, 1, 2, l.nome.texto),
+    bloco(l.funcao.y, l.funcao.altura, 2, 2, l.funcao.texto),
+    `BAR ${MARGEM},${l.linha.y},${LARGURA_TEXTO},2`,
+    bloco(l.rodape.y, l.rodape.altura, 1, 1, l.rodape.esquerda),
+    bloco(l.rodape.y, l.rodape.altura, 1, 3, l.rodape.direita),
     `PRINT 1,${copiasValidas(copias)}`,
   ].join('\r\n')
 }

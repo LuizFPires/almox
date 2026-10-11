@@ -18,7 +18,9 @@ export function TiposEstoque({ tipos, agora }: Props) {
   const momento = new Date(agora)
 
   if (tipos.length === 0) {
-    return <p className="py-6 text-center text-[15px] text-texto-2">Nenhuma ferramenta cadastrada.</p>
+    return (
+      <p className="py-6 text-center text-[15px] text-texto-2">Nenhuma ferramenta cadastrada.</p>
+    )
   }
 
   return (
@@ -80,9 +82,7 @@ export function TiposEstoque({ tipos, agora }: Props) {
                   ),
                 )}
                 {t.comOutrasEmpresas > 0 && (
-                  <p className="text-texto-2">
-                    {t.comOutrasEmpresas} com outras empresas
-                  </p>
+                  <p className="text-texto-2">{t.comOutrasEmpresas} com outras empresas</p>
                 )}
               </div>
             )}

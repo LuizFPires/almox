@@ -77,7 +77,9 @@ test.describe('lista e estoque', () => {
 
       await expect(page.getByText(`${prefixo}-01`)).toBeVisible({ timeout: 10_000 })
       await expect(linha).toContainText('1 /2', { timeout: 10_000 })
-      await expect(estoque.getByText(new RegExp(`${prefixo}-01 · Ivan Pereira · desde`))).toBeVisible()
+      await expect(
+        estoque.getByText(new RegExp(`${prefixo}-01 · Ivan Pereira · desde`)),
+      ).toBeVisible()
     } finally {
       await outro.close()
     }

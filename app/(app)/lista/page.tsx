@@ -25,7 +25,9 @@ export default async function PaginaLista() {
       <AoVivo obraId={obraAtual.id} tabelas={['movimento']} />
       <Cabecalho
         titulo="Quem está com o quê"
-        subtitulo={obraAtual.empresa ? `${obraAtual.empresa.nome} · agora` : 'Todas as empresas · agora'}
+        subtitulo={
+          obraAtual.empresa ? `${obraAtual.empresa.nome} · agora` : 'Todas as empresas · agora'
+        }
         voltarPara="/inicio"
         selo={<SeloPerfil perfil={obraAtual.perfil} empresa={obraAtual.empresa?.nome} />}
       />

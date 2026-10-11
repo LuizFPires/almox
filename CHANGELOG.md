@@ -9,9 +9,11 @@ Registro do que foi entregue em cada milestone (ver `PLAN.md`).
 - Fila de impressão (`trabalho_impressao`: pendente → enviando → enviado / erro) só por RPC; conteúdo da etiqueta ilegível pelo app.
 - Tela **Impressora** (engenheiro): impressora da obra (IP, porta, linguagem, rolo), etiqueta de teste, situação do agente, últimas impressões; cartão da impressora no topo de Cadastros.
 - Mini PC da obra com **token mostrado uma vez** (só o hash no banco) e revogação.
-- Pessoa nova com **"Salvar e imprimir adesivo"**; "Reimprimir" com 1 a 5 cópias; mensagens de agente desligado e impressora sem resposta.
+- Tela **Imprimir** como no protótipo. "Salvar e imprimir adesivo" abre essa tela, com prévia, impressora verde ou vermelha, cópias 1–5 e "Imprimir N etiquetas". Ela acompanha o trabalho até "Impresso no almoxarifado. Cole na frente do capacete.". Para reimprimir, há um atalho em cada pessoa da lista e na ficha. Mostra os avisos de agente desligado e de impressora sem resposta.
+- Adesivo com nome comprido que encolhe para caber, rodapé com obra à esquerda e matrícula à direita, prévia desenhada na mesma escala do impresso.
 - **Agente de impressão** (`agente-impressao/`): consulta a fila a cada 2 s, manda para `ip:9100`, informa o resultado; impressora simulada; instaladores de serviço para Windows e Linux; guia `LEIA-ME.md`.
-- 27 testes pgTAP do M3 (100 no total), 91 unitários e e2e de ponta a ponta com o agente de verdade (adesivo sai em menos de 1 s com a impressora simulada).
+- Revisão: impressora só na rede da obra (IP privado, porta 9100–9199), fila sem impressão dupla (quem pegou conclui; erro após 3 tentativas), conteúdo apagado depois de impresso, texto sem caracteres de controle.
+- 41 testes pgTAP do M3 (114 no total), 101 unitários e e2e de ponta a ponta com o agente de verdade (adesivo sai em menos de 1 s com a impressora simulada).
 
 ### Pendente
 - Critério "imprime em até 10 s" com a **impressora real** (ainda não comprada).

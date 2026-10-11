@@ -2,7 +2,7 @@
 
 Registro do que foi entregue em cada milestone (ver `PLAN.md`).
 
-## M2 — Cadastros do engenheiro (em andamento)
+## M2 — Cadastros do engenheiro (concluído em 11/10/2026)
 
 ### Adicionado
 - Cadastros (só engenheiro; os demais veem "Só o engenheiro cadastra"): abas Pessoas · Ferramentas · Empresas · Acessos, no visual do protótipo.
@@ -12,6 +12,15 @@ Registro do que foi entregue em cada milestone (ver `PLAN.md`).
 - Log de alterações (`alteracao`) gravado por gatilho: valores, empresa da pessoa, dados de aviso da empresa e acessos.
 - Acessos: o engenheiro dá acesso com senha provisória (mostrada uma vez), troca obrigatória no primeiro login, muda perfil e remove; Conta › Trocar senha.
 - 17 testes pgTAP novos (64 no total), regras puras com testes e e2e do critério de aceite.
+
+### Revisão e comparação com o protótipo
+- Migration de revisão: 100ª unidade (código não corta mais), vínculo de acesso imutável além de perfil/empresa, senha provisória pendente bloqueada também no banco, empreiteira com consulta restrita não vira própria, nome de quem alterou no log.
+- Dar acesso nunca troca nem mostra a senha de login existente (achado de segurança).
+- Formulários de criação recomeçam a cada visita; nome do capacete aceita espaço; empreiteira exige dono com e-mail; itens fora no cartão da empresa; prévia e botão de ferramenta como no protótipo; botão "Nova …" abaixo das abas.
+- 73 testes pgTAP, 56 unitários e 38 e2e.
+
+### Produção
+- `almox-prod` com as migrations do M2 e senha mínima de 10 caracteres; Cadastros conferidos com o login do engenheiro.
 
 ## M1 — Banco, autenticação e perfis (concluído em 11/10/2026)
 

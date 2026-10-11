@@ -43,7 +43,12 @@
   </head>
   <body>
     <h1>Sem conexão</h1>
-    <p>O celular está sem internet. Assim que o sinal voltar, toque em tentar de novo.</p>
+    <p>Sem internet agora. A tela volta sozinha quando o sinal voltar.</p>
     <button type="button" onclick="location.reload()">Tentar de novo</button>
+    <script>
+      // Recarrega sozinho: a TV do almoxarifado não tem quem toque na tela.
+      addEventListener('online', () => location.reload())
+      setInterval(() => navigator.onLine && location.reload(), 30000)
+    </script>
   </body>
 </html>

@@ -12,7 +12,7 @@
     "test": "vitest run",
     "test:watch": "vitest",
     "e2e": "playwright test",
-    "gen:types": "supabase gen types typescript --local > lib/supabase/tipos-banco.ts"
+    "gen:types": "supabase gen types typescript --local > lib/supabase/tipos-banco.ts && prettier --write lib/supabase/tipos-banco.ts"
   },
   "dependencies": {
     "@supabase/ssr": "^0.12.7",

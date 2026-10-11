@@ -53,3 +53,6 @@ next-env.d.ts
 # supabase local
 supabase/.branches
 supabase/.temp
+
+# playwright mcp (local)
+.playwright-mcp/

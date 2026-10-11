@@ -857,6 +857,18 @@ export type Database = {
     }
     Functions: {
       adicionar_unidades: { Args: { p_quantidade: number; p_tipo: string }; Returns: string[] }
+      listar_acessos: {
+        Args: { p_obra: string }
+        Returns: {
+          desde: string
+          email: string
+          empresa_id: string
+          empresa_nome: string
+          nome: string
+          perfil: Database['public']['Enums']['perfil']
+          usuario_id: string
+        }[]
+      }
       registrar_devolucao: {
         Args: {
           p_itens: Json

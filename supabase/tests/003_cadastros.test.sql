@@ -1,6 +1,6 @@
 -- M2 · Log de alterações e unidades sequenciais (usa o seed: Obra Demonstração).
 begin;
-select plan(14);
+select plan(17);
 
 set local role authenticated;
 select set_config('request.jwt.claims', '{"sub":"b0000000-0000-4000-8000-000000000001","role":"authenticated"}', true);
@@ -70,10 +70,24 @@ select is(
   'consulta→almoxarife', 'mudança de acesso é registrada'
 );
 
+select is(
+  (select count(*)::int from public.listar_acessos('a0000000-0000-4000-8000-000000000001')),
+  4, 'engenheira lista os acessos da obra'
+);
+select is(
+  (select email from public.listar_acessos('a0000000-0000-4000-8000-000000000001')
+    where usuario_id = 'b0000000-0000-4000-8000-000000000004'),
+  'formas@almox.exemplo', 'lista traz o e-mail (só para o engenheiro)'
+);
+
 -- Almoxarife ---------------------------------------------------------------------------------
 
 select set_config('request.jwt.claims', '{"sub":"b0000000-0000-4000-8000-000000000002","role":"authenticated"}', true);
 select is((select count(*)::int from public.alteracao), 0, 'almoxarife não lê o log');
+select throws_ok(
+  $$select * from public.listar_acessos('a0000000-0000-4000-8000-000000000001')$$,
+  '42501', null, 'almoxarife não lista acessos'
+);
 select throws_ok(
   $$select public.adicionar_unidades((select id from public.tipo_ferramenta where prefixo = 'PA'), 1)$$,
   '42501', null, 'almoxarife não adiciona unidades'

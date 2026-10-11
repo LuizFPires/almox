@@ -149,3 +149,37 @@ begin
 end;
 $$;
 revoke all on function public.definir_matricula() from public, anon, authenticated;
+
+-- Acessos da obra (tela do engenheiro): nome, e-mail e perfil. E-mail de usuario é
+-- fechado ao cliente; esta função só responde ao engenheiro da obra.
+create function public.listar_acessos(p_obra uuid)
+returns table (
+  usuario_id uuid,
+  nome text,
+  email text,
+  perfil public.perfil,
+  empresa_id uuid,
+  empresa_nome text,
+  desde timestamptz
+)
+language plpgsql
+stable
+security definer
+set search_path = ''
+as $$
+begin
+  if not privado.eh_engenheiro(p_obra) then
+    raise exception 'Só o engenheiro da obra vê os acessos.' using errcode = '42501';
+  end if;
+  return query
+    select u.id, u.nome, u.email, uo.perfil, uo.empresa_id, e.nome, uo.criado_em
+      from public.usuario_obra uo
+      join public.usuario u on u.id = uo.usuario_id
+      left join public.empresa e on e.id = uo.empresa_id
+     where uo.obra_id = p_obra
+     order by u.nome, u.email;
+end;
+$$;
+
+revoke all on function public.listar_acessos(uuid) from public, anon;
+grant execute on function public.listar_acessos(uuid) to authenticated;

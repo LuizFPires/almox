@@ -197,11 +197,11 @@ Legenda: ⬜ A fazer · 🟨 Em andamento · ✅ Concluído · ⛔ Bloqueado
 **Objetivo:** qualquer perfil vê quem está com o quê e quanto tem livre.
 
 **Entregas**
-- [ ] Lista "quem está com o quê" (F-07) agrupada por empresa, chips por item, pendência em vermelho
-- [ ] Busca por nome ou código, sem acento
-- [ ] Estoque (F-09): totais (na obra, livres, canteiro, manutenção), barra por tipo, toque mostra com quem está cada unidade
-- [ ] Consulta de empreiteira vê só a própria empresa
-- [ ] Atualização em tempo real
+- [x] Lista "quem está com o quê" (F-07) agrupada por empresa, chips por item, pendência em vermelho
+- [x] Busca por nome ou código, sem acento
+- [x] Estoque (F-09): totais (na obra, livres, canteiro, manutenção), barra por tipo, toque mostra com quem está cada unidade
+- [x] Consulta de empreiteira vê só a própria empresa
+- [x] Atualização em tempo real
 
 **Critérios de aceite**
 - Após uma retirada em outro celular, lista e estoque atualizam sem recarregar.

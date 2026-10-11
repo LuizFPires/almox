@@ -12,7 +12,10 @@ const ALTURA = 480
  * como o adesivo na frente do capacete. Devolve o caminho do arquivo.
  */
 export function videoComQr(texto: string): string {
-  const { modules } = QRCode.create(texto, { errorCorrectionLevel: 'M' })
+  // Como o adesivo: um segmento só de bytes.
+  const { modules } = QRCode.create([{ data: new TextEncoder().encode(texto), mode: 'byte' }], {
+    errorCorrectionLevel: 'M',
+  })
   const modulo = 8
   const lado = (modules.size + 8) * modulo // 4 módulos de margem de cada lado
   const x0 = Math.floor((LARGURA - lado) / 2)

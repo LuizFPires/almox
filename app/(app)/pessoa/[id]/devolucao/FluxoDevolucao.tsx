@@ -17,7 +17,7 @@ import {
 } from '@/lib/dominio/devolucao'
 import type { TextoIdentificacao } from '@/lib/dominio/ficha'
 import { registrarDevolucao, type FalhaDevolucao } from './acoes'
-import { FotoAvaria, type FotoFeita } from './FotoAvaria'
+import { descartarFoto, FotoAvaria, type FotoFeita } from './FotoAvaria'
 
 type Props = {
   obraId: string
@@ -99,25 +99,22 @@ export function FluxoDevolucao(props: Props) {
   const total = grupos.reduce((s, g) => s + (dev[g.tipoId] ?? 0), 0)
   const faltaFoto = grupos.some((g) => (avarias[g.tipoId] ?? []).some((a) => a === null))
 
+  /** Ajusta as avariadas do tipo; fotos que saem da lista são descartadas (Storage e prévia). */
+  function definirAvariadas(tipoId: string, n: number) {
+    const atual = avarias[tipoId] ?? []
+    atual.slice(n).forEach(descartarFoto)
+    const nova =
+      n > atual.length ? [...atual, ...Array<null>(n - atual.length).fill(null)] : atual.slice(0, n)
+    setAvarias({ ...avarias, [tipoId]: nova })
+  }
+
   function mudarDevolvendo(tipoId: string, valor: number) {
     setDev((d) => ({ ...d, [tipoId]: valor }))
-    setAvarias((a) => ({
-      ...a,
-      [tipoId]: (a[tipoId] ?? []).slice(0, limitarAvariadas(a[tipoId]?.length ?? 0, valor)),
-    }))
+    definirAvariadas(tipoId, limitarAvariadas(avarias[tipoId]?.length ?? 0, valor))
   }
 
   function mudarAvariadas(tipoId: string, n: number) {
-    setAvarias((a) => {
-      const atual = a[tipoId] ?? []
-      return {
-        ...a,
-        [tipoId]:
-          n > atual.length
-            ? [...atual, ...Array<null>(n - atual.length).fill(null)]
-            : atual.slice(0, n),
-      }
-    })
+    definirAvariadas(tipoId, n)
   }
 
   function registrar() {
@@ -161,11 +158,10 @@ export function FluxoDevolucao(props: Props) {
         selo={SELO_ENTRADA}
         aoVoltar={() => setFotografando(null)}
         aoUsar={(f) => {
-          setAvarias((a) => {
-            const lista = [...(a[fotografando.tipoId] ?? [])]
-            lista[fotografando.indice] = f
-            return { ...a, [fotografando.tipoId]: lista }
-          })
+          const lista = [...(avarias[fotografando.tipoId] ?? [])]
+          descartarFoto(lista[fotografando.indice]) // "Refazer": a foto anterior sai
+          lista[fotografando.indice] = f
+          setAvarias({ ...avarias, [fotografando.tipoId]: lista })
           setFotografando(null)
         }}
       />

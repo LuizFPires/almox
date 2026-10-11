@@ -1,6 +1,6 @@
 -- M6 · Devolução (RN-02, RN-06, RN-08, RN-09), estorno (RN-18) e manutenção. Usa o seed.
 begin;
-select plan(41);
+select plan(47);
 
 create temp table t_ctx (chave text primary key, valor text) on commit drop;
 grant all on t_ctx to authenticated, anon;
@@ -19,9 +19,11 @@ insert into public.unidade (id, obra_id, tipo_id, codigo) values
   ('d1000000-0000-4000-8000-000000000003', 'a0000000-0000-4000-8000-000000000001', 'f0000000-0000-4000-8000-0000000000a2', 'TC-01');
 
 -- Fotos já enviadas pelo almoxarife (e uma pela engenheira) ao Storage.
-insert into storage.objects (bucket_id, name, owner) values
-  ('avarias', 'a0000000-0000-4000-8000-000000000001/e1000000-0000-4000-8000-000000000001.jpg', 'b0000000-0000-4000-8000-000000000002'),
-  ('avarias', 'a0000000-0000-4000-8000-000000000001/e1000000-0000-4000-8000-000000000002.jpg', 'b0000000-0000-4000-8000-000000000001');
+insert into storage.objects (bucket_id, name, owner, owner_id) values
+  ('avarias', 'a0000000-0000-4000-8000-000000000001/e1000000-0000-4000-8000-000000000001.jpg', 'b0000000-0000-4000-8000-000000000002', 'b0000000-0000-4000-8000-000000000002'),
+  ('avarias', 'a0000000-0000-4000-8000-000000000001/e1000000-0000-4000-8000-000000000002.jpg', 'b0000000-0000-4000-8000-000000000001', 'b0000000-0000-4000-8000-000000000001'),
+  ('avarias', 'a0000000-0000-4000-8000-000000000001/e1000000-0000-4000-8000-000000000005.jpg', 'b0000000-0000-4000-8000-000000000002', 'b0000000-0000-4000-8000-000000000002'),
+  ('avarias', 'a0000000-0000-4000-8000-000000000001/e1000000-0000-4000-8000-000000000006.jpg', 'b0000000-0000-4000-8000-000000000002', 'b0000000-0000-4000-8000-000000000002');
 
 -- Almoxarife ----------------------------------------------------------------------------------------
 set local role authenticated;
@@ -132,6 +134,37 @@ select results_eq(
      where m.id = (select valor::uuid from t_ctx where chave = 'dev_manual')$$,
   $$values ('manual'::text, 'livre'::text)$$, 'item que saiu sem QR voltou sem QR e está livre');
 
+-- Revisão do M6 ------------------------------------------------------------------------------------
+select set_config('request.jwt.claims', '{"sub":"b0000000-0000-4000-8000-000000000002","role":"authenticated"}', true);
+select throws_ok(
+  $$select public.registrar_devolucao('a0000000-0000-4000-8000-000000000001',
+      (select valor::uuid from t_ctx where chave = 'helio_id'), (select valor::uuid from t_ctx where chave = 'ident'),
+      '[{"tipo":"f0000000-0000-4000-8000-0000000000a2","quantidade":1}]')$$,
+  'AL001', null, 'conferência do Joaquim não vale para devolução do Hélio'
+);
+select throws_ok(
+  $$select public.registrar_devolucao('a0000000-0000-4000-8000-000000000001',
+      (select valor::uuid from t_ctx where chave = 'joaquim_id'), (select valor::uuid from t_ctx where chave = 'ident'),
+      '[{"tipo":"f0000000-0000-4000-8000-0000000000a1","quantidade":1,"avarias":[{"motivo":"quebrada","foto":"a0000000-0000-4000-8000-000000000002/e1000000-0000-4000-8000-000000000005.jpg"}]}]')$$,
+  'AL005', null, 'foto com caminho de outra obra não vale'
+);
+select throws_ok(
+  $$select public.registrar_devolucao('a0000000-0000-4000-8000-000000000001',
+      (select valor::uuid from t_ctx where chave = 'joaquim_id'), (select valor::uuid from t_ctx where chave = 'ident'),
+      '[{"tipo":"f0000000-0000-4000-8000-0000000000a1","quantidade":2,"avarias":[
+        {"motivo":"quebrada","foto":"a0000000-0000-4000-8000-000000000001/e1000000-0000-4000-8000-000000000005.jpg"},
+        {"motivo":"desgaste","foto":"a0000000-0000-4000-8000-000000000001/e1000000-0000-4000-8000-000000000005.jpg"}]}]')$$,
+  'AL005', null, 'a mesma foto duas vezes no mesmo pedido não vale'
+);
+select throws_ok(
+  $$select public.registrar_devolucao('a0000000-0000-4000-8000-000000000001',
+      (select valor::uuid from t_ctx where chave = 'joaquim_id'), (select valor::uuid from t_ctx where chave = 'ident'),
+      '[{"tipo":"f0000000-0000-4000-8000-0000000000a1","quantidade":"abc"}]')$$,
+  '22023', null, 'quantidade em texto é recusada com mensagem própria'
+);
+-- Apagar foto (dono, não usada) é conferido pela API do Storage (o banco bloqueia delete direto).
+set local role authenticated;
+
 -- Consulta não devolve; ninguém altera devolução nem avaria (RN-18).
 set local role authenticated;
 select set_config('request.jwt.claims', '{"sub":"b0000000-0000-4000-8000-000000000003","role":"authenticated"}', true);
@@ -142,12 +175,17 @@ select throws_ok(
   '42501', null, 'consulta não devolve'
 );
 select throws_ok($$delete from public.avaria$$, '42501', null, 'ninguém apaga avaria');
+select throws_ok(
+  $$select public.concluir_manutencao('a0000000-0000-4000-8000-000000000001', 'd1000000-0000-4000-8000-000000000001', 'consertada')$$,
+  '42501', null, 'consulta não mexe na manutenção'
+);
 
 -- Storage: quem lança envia foto da própria obra; consulta não vê fotos.
 select set_config('request.jwt.claims', '{"sub":"b0000000-0000-4000-8000-000000000002","role":"authenticated"}', true);
 select lives_ok(
-  $$insert into storage.objects (bucket_id, name, owner)
-    values ('avarias', 'a0000000-0000-4000-8000-000000000001/e1000000-0000-4000-8000-000000000003.jpg', 'b0000000-0000-4000-8000-000000000002')$$,
+  $$insert into storage.objects (bucket_id, name, owner, owner_id)
+    values ('avarias', 'a0000000-0000-4000-8000-000000000001/e1000000-0000-4000-8000-000000000003.jpg',
+            'b0000000-0000-4000-8000-000000000002', 'b0000000-0000-4000-8000-000000000002')$$,
   'almoxarife envia foto de avaria da obra dele'
 );
 select throws_ok(
@@ -236,6 +274,9 @@ select is((select string_agg(status::text, ',' order by codigo) from public.unid
 select is((select count(*)::int from public.alteracao where tabela = 'unidade' and campo = 'status'
              and registro_id in ('d1000000-0000-4000-8000-000000000001', 'd1000000-0000-4000-8000-000000000002')),
   2, 'conserto e baixa ficam no log de alterações');
+select is((select count(*)::int from public.alteracao where tabela = 'unidade' and usuario_nome is not null
+             and registro_id in ('d1000000-0000-4000-8000-000000000001', 'd1000000-0000-4000-8000-000000000002')),
+  2, 'o log da manutenção guarda o nome de quem fez');
 
 -- Estorno de devolução depois de conserto: bloqueado (a peça mudou).
 set local role authenticated;

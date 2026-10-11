@@ -17,5 +17,8 @@ export async function concluirManutencao(form: FormData) {
   })
   revalidatePath('/manutencao')
   revalidatePath('/inicio')
-  if (error) redirect(`/manutencao?erro=${acao}`)
+  if (error) {
+    const motivo = error.code === '42501' ? 'permissao' : error.code === 'P0002' ? 'saiu' : 'falhou'
+    redirect(`/manutencao?erro=${motivo}`)
+  }
 }

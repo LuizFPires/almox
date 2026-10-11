@@ -228,6 +228,7 @@ test.describe('devolução e avaria', () => {
     await expect(linha.getByRole('img', { name: /Foto da avaria/ })).toBeVisible()
     await expect(linha.getByText('Quebrada')).toBeVisible()
     await linha.getByRole('button', { name: 'Voltou do conserto' }).click()
+    await page.getByRole('button', { name: /^Confirmar: .* voltou$/ }).click()
     await expect(page.getByText(nome)).toHaveCount(0)
     const emManutencao = await eng.get<unknown[]>(
       `unidade?select=id&tipo_id=eq.${tipo}&status=eq.manutencao`,

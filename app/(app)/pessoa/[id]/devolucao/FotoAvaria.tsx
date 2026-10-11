@@ -169,3 +169,10 @@ export function FotoAvaria({ obraId, tipo, qual, aoVoltar, aoUsar, selo }: Props
     </>
   )
 }
+
+/** Foto que não vai mais ser usada ("Refazer", menos avariadas): libera a prévia e apaga do Storage. */
+export function descartarFoto(f: FotoFeita | null | undefined) {
+  if (!f) return
+  URL.revokeObjectURL(f.previa)
+  void criarClienteNavegador().storage.from('avarias').remove([f.foto])
+}

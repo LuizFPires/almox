@@ -7,7 +7,7 @@ export async function comprimirFoto(
   ladoMaximo = 1280,
   qualidade = 0.7,
 ): Promise<Blob> {
-  const imagem = await createImageBitmap(arquivo, { imageOrientation: 'from-image' })
+  const imagem = await abrirImagem(arquivo)
   const escala = Math.min(1, ladoMaximo / Math.max(imagem.width, imagem.height))
   const largura = Math.round(imagem.width * escala)
   const altura = Math.round(imagem.height * escala)
@@ -16,8 +16,8 @@ export async function comprimirFoto(
   tela.height = altura
   const contexto = tela.getContext('2d')
   if (!contexto) throw new Error('Não foi possível preparar a foto.')
-  contexto.drawImage(imagem, 0, 0, largura, altura)
-  imagem.close()
+  contexto.drawImage(imagem.fonte, 0, 0, largura, altura)
+  imagem.fechar()
   return new Promise((resolver, rejeitar) =>
     tela.toBlob(
       (blob) => (blob ? resolver(blob) : rejeitar(new Error('Não foi possível preparar a foto.'))),
@@ -25,4 +25,38 @@ export async function comprimirFoto(
       qualidade,
     ),
   )
+}
+
+type ImagemAberta = { fonte: CanvasImageSource; width: number; height: number; fechar: () => void }
+
+/**
+ * Abre a foto respeitando a orientação da câmera. Celulares mais antigos não aceitam
+ * `imageOrientation: 'from-image'` (ou nem têm createImageBitmap): cai para `<img>`, que
+ * nos navegadores atuais já aplica a orientação do EXIF.
+ */
+async function abrirImagem(arquivo: Blob): Promise<ImagemAberta> {
+  for (const opcoes of [{ imageOrientation: 'from-image' } as const, undefined]) {
+    try {
+      if (typeof createImageBitmap !== 'function') break
+      const bitmap = await createImageBitmap(arquivo, opcoes)
+      return {
+        fonte: bitmap,
+        width: bitmap.width,
+        height: bitmap.height,
+        fechar: () => bitmap.close(),
+      }
+    } catch {
+      // tenta o próximo jeito
+    }
+  }
+  const url = URL.createObjectURL(arquivo)
+  const img = new Image()
+  img.src = url
+  await img.decode()
+  return {
+    fonte: img,
+    width: img.naturalWidth,
+    height: img.naturalHeight,
+    fechar: () => URL.revokeObjectURL(url),
+  }
 }

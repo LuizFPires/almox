@@ -45,7 +45,7 @@ if (process.argv[1] && fileURLToPath(import.meta.url) === process.argv[1]) {
   const porta = Number(process.argv[2] ?? 9101)
   const pasta = join(dirname(fileURLToPath(import.meta.url)), '..', 'etiquetas-recebidas')
   await iniciarSimulador(porta, pasta, ({ conteudo, arquivo }) => {
-    const qr = /\^FDMA,([^^]*)\^FS|QRCODE [^"]*"([^"]*)"/.exec(conteudo)
+    const qr = /\^FDM[AM],(?:B\d{4})?([^^]*)\^FS|QRCODE [^"]*"(?:B\d{4})?([^"]*)"/.exec(conteudo)
     console.log(`Etiqueta recebida (${conteudo.length} bytes) → ${arquivo}`)
     if (qr) console.log(`  QR: ${qr[1] ?? qr[2]}`)
   })

@@ -15,7 +15,11 @@ type Props = {
 
 /** Desenha o QR como um único path SVG (sem HTML injetado). */
 function caminhoQr(token: string) {
-  const { modules } = QRCode.create(token, { errorCorrectionLevel: 'M' })
+  // Um segmento só de bytes, como no adesivo impresso (o modo automático pode misturar
+  // segmentos que alguns leitores não leem).
+  const { modules } = QRCode.create([{ data: new TextEncoder().encode(token), mode: 'byte' }], {
+    errorCorrectionLevel: 'M',
+  })
   let d = ''
   for (let linha = 0; linha < modules.size; linha++) {
     for (let coluna = 0; coluna < modules.size; coluna++) {

@@ -1,6 +1,5 @@
 import type { Metadata } from 'next'
 import { redirect } from 'next/navigation'
-import { Botao } from '@/components/Botao'
 import { Cabecalho } from '@/components/Cabecalho'
 import { Cartao } from '@/components/Cartao'
 import { ErroFormulario } from '@/components/Formulario'
@@ -10,7 +9,7 @@ import { textoDesde } from '@/lib/dominio/ficha'
 import { podeCadastrar, podeLancar } from '@/lib/dominio/permissoes'
 import { obterSessao } from '@/lib/sessao'
 import { concluirManutencao } from './acoes'
-import { BotaoBaixa } from './BotaoBaixa'
+import { BotaoConfirmar } from './BotaoConfirmar'
 
 export const metadata: Metadata = { title: 'Manutenção · Almox' }
 
@@ -34,9 +33,11 @@ export default async function PaginaManutencao({ searchParams }: PageProps<'/man
         {erro && (
           <ErroFormulario
             mensagem={
-              erro === 'baixada'
-                ? 'Não foi possível dar baixa (só o engenheiro dá baixa).'
-                : 'Não foi possível marcar como consertada. Tente de novo.'
+              erro === 'permissao'
+                ? 'Só o engenheiro dá baixa.'
+                : erro === 'saiu'
+                  ? 'Essa peça já não está mais em manutenção (alguém mexeu antes).'
+                  : 'Não foi possível concluir. Tente de novo.'
             }
           />
         )}
@@ -73,16 +74,22 @@ export default async function PaginaManutencao({ searchParams }: PageProps<'/man
             </div>
             <form action={concluirManutencao} className="grid grid-cols-2 gap-2.5">
               <input type="hidden" name="unidade" value={p.id} />
-              <Botao
-                type="submit"
-                name="acao"
-                value="consertada"
-                variante="sucesso"
-                className={engenheiro ? '' : 'col-span-2'}
-              >
-                Voltou do conserto
-              </Botao>
-              {engenheiro && <BotaoBaixa codigo={p.codigo} />}
+              <span className={engenheiro ? '' : 'col-span-2'}>
+                <BotaoConfirmar
+                  rotulo="Voltou do conserto"
+                  confirmar={`Confirmar: ${p.codigo} voltou`}
+                  acao="consertada"
+                  variante="sucesso"
+                />
+              </span>
+              {engenheiro && (
+                <BotaoConfirmar
+                  rotulo="Dar baixa"
+                  confirmar={`Confirmar baixa de ${p.codigo}`}
+                  acao="baixada"
+                  variante="perigo"
+                />
+              )}
             </form>
           </Cartao>
         ))}

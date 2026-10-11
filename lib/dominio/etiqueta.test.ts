@@ -19,7 +19,10 @@ const dados: DadosAdesivo = {
 }
 
 function conteudoDoQr(etiqueta: string) {
-  return /\^FDMA,([^^]*)\^FS/.exec(etiqueta)?.[1] ?? /QRCODE [^"]*"([^"]*)"/.exec(etiqueta)?.[1]
+  return (
+    /\^FDMM,B\d{4}([^^]*)\^FS/.exec(etiqueta)?.[1] ??
+    /QRCODE [^"]*"B\d{4}([^"]*)"/.exec(etiqueta)?.[1]
+  )
 }
 
 describe('adesivo do capacete', () => {

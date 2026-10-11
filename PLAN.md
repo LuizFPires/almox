@@ -15,7 +15,7 @@ Fonte da verdade do produto: `PRD.md`. Regras para quem codifica: `CLAUDE.md`.
 | # | Milestone | Status | Concluído em |
 |---|---|---|---|
 | M0 | Fundação do projeto | ✅ Concluído | 11/10/2026 |
-| M1 | Banco, autenticação e perfis | 🟨 Em andamento | |
+| M1 | Banco, autenticação e perfis | ✅ Concluído | 11/10/2026 |
 | M2 | Cadastros do engenheiro | ⬜ A fazer | |
 | M3 | Adesivo do capacete e impressão | ⬜ A fazer | |
 | M4 | Identificação por QR e ficha da pessoa | ⬜ A fazer | |
@@ -346,3 +346,4 @@ Legenda: ⬜ A fazer · 🟨 Em andamento · ✅ Concluído · ⛔ Bloqueado
 | 11/10/2026 | M1 (revisão): URLs de retorno do Auth sem curinga (`*-luiz-fp-ires.vercel.app` permitiria roubo de sessão por link mágico); `emailRedirectTo` usa `NEXT_PUBLIC_SITE_URL`. Prévias da Vercel entram por senha. |
 | 11/10/2026 | M1 (revisão): senhas dos usuários de teste no `almox-dev` trocadas por senhas aleatórias fora do git (o repositório é público); o seed recusa banco que já tem obras. |
 | 11/10/2026 | M1 (revisão, aceito sem mudança): consulta de empreiteira vê o estoque total da obra (PRD §5 permite estoque); e-mails de dono/encarregado das empresas legíveis por quem é da obra (contato comercial, não dado de trabalhador); link mágico em outro aparelho falha (PKCE) — trocar o modelo de e-mail para `token_hash` fica para o M9 junto com o SMTP; mudança de empresa/tipo com ferramenta em posse entra no log de alterações do M2. |
+| 11/10/2026 | M1: `almox-prod` com as migrations (sem seed) e Auth fechado (cadastro desligado, URL exata, `site_url` do domínio oficial). Primeira obra "SL Betim" e o login do engenheiro criados pelo administrador, já confirmado e com senha aleatória entregue fora do git — o e-mail padrão do Supabase só entrega para membros da organização até o SMTP próprio (M9). |

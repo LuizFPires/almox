@@ -2,7 +2,7 @@
 
 Registro do que foi entregue em cada milestone (ver `PLAN.md`).
 
-## M1 — Banco, autenticação e perfis (em andamento)
+## M1 — Banco, autenticação e perfis (concluído em 11/10/2026)
 
 ### Adicionado
 - Schema completo do PRD §8 em `supabase/migrations`, com **perfil por obra** (`usuario_obra`), dinheiro em centavos, `timestamptz` e chaves compostas que impedem misturar obras. Matrícula automática (`P-0001`) e `qr_token` opaco gerados no banco.
@@ -14,6 +14,13 @@ Registro do que foi entregue em cada milestone (ver `PLAN.md`).
 - Perfil e obra no app: selo de perfil, tela "Conta e obra" (trocar obra e sair), abas e telas conforme `lib/dominio/permissoes`.
 - e2e de login por perfil; CI sobe o Supabase local, roda pgTAP e confere os tipos gerados.
 - `almox-dev` com as migrations e o seed; cadastro público desligado no Auth.
+
+### Revisão
+- Migration de revisão: privilégios padrão revogados, posse ⇔ unidade em uso, encarregado da própria empresa, avisos só para engenheiro e empreiteira, nomes de quem lançou visíveis na obra; 47 testes pgTAP.
+- Auth sem curinga nas URLs de retorno; senhas de teste do `almox-dev` fora do repositório.
+
+### Produção
+- `almox-prod` com o schema (sem seed) e Auth fechado; obra SL Betim e login do engenheiro criados e testados em https://almox-chi.vercel.app.
 
 ## M0 — Fundação do projeto (concluído em 11/10/2026)
 

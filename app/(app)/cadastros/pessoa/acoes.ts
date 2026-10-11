@@ -4,6 +4,7 @@ import { revalidatePath } from 'next/cache'
 import { redirect } from 'next/navigation'
 import { exigirEngenheiro } from '@/lib/acesso'
 import { enfileirarAdesivo, MENSAGEM_FALHA } from '@/lib/dados/adesivo'
+import { destinoSeguro } from '@/lib/dominio/destino'
 import {
   normalizarNomeCapacete,
   sugerirNomeCapacete,
@@ -68,28 +69,32 @@ export async function salvarPessoa(_: EstadoPessoa, form: FormData): Promise<Est
   if (!salva) return { erro: 'Pessoa não encontrada nesta obra.', valores }
 
   revalidatePath('/cadastros/pessoas')
-  // "Salvar e imprimir adesivo": a pessoa já está salva; a falha na fila só vira aviso.
-  if (!id && form.get('imprimir') === '1') {
-    const fila = await enfileirarAdesivo(supabase, obraId, salva.id, 1)
-    redirect(`/cadastros/pessoa/${salva.id}?adesivo=${fila.ok ? 'fila' : fila.motivo}`)
-  }
+  // "Salvar e imprimir adesivo": a pessoa já está salva; a tela Imprimir confirma as cópias.
+  if (!id) redirect(`/cadastros/pessoa/${salva.id}/imprimir?volta=/cadastros/pessoas`)
   redirect('/cadastros/pessoas')
 }
 
-export type EstadoReimpressao = { erro?: string; aviso?: string }
+export type EstadoImpressao = { erro?: string; copias?: number }
 
-/** "Reimprimir" na ficha da pessoa: 1 a 5 cópias do mesmo adesivo (mesmo token). */
-export async function reimprimirAdesivo(
-  _: EstadoReimpressao,
+/**
+ * Tela Imprimir (depois de salvar ou "Reimprimir"): 1 a 5 cópias do mesmo adesivo
+ * (mesmo token). Na fila, volta para a mesma tela acompanhando o trabalho.
+ */
+export async function imprimirAdesivo(
+  _: EstadoImpressao,
   form: FormData,
-): Promise<EstadoReimpressao> {
+): Promise<EstadoImpressao> {
   const { supabase, obraId } = await exigirEngenheiro()
+  const id = String(form.get('id') ?? '')
   const copias = lerCopias(String(form.get('copias') ?? ''))
   if (!copias) return { erro: 'Escolha de 1 a 5 cópias.' }
-  const fila = await enfileirarAdesivo(supabase, obraId, String(form.get('id') ?? ''), copias)
-  if (!fila.ok) return { erro: MENSAGEM_FALHA[fila.motivo] }
-  revalidatePath('/cadastros/pessoa/[id]', 'page')
-  return { aviso: copias === 1 ? 'Adesivo na fila.' : `${copias} adesivos na fila.` }
+  const fila = await enfileirarAdesivo(supabase, obraId, id, copias)
+  if (!fila.ok) return { erro: MENSAGEM_FALHA[fila.motivo], copias }
+  const volta = destinoSeguro(String(form.get('volta') ?? ''))
+  revalidatePath('/cadastros/pessoa/[id]', 'layout')
+  redirect(
+    `/cadastros/pessoa/${id}/imprimir?trabalho=${fila.id}&volta=${encodeURIComponent(volta)}`,
+  )
 }
 
 /** Inativar não apaga: a pessoa some das listas de lançamento, o histórico fica. */

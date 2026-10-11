@@ -165,21 +165,9 @@ export function FormPessoa({ pessoa, empresas, capacetesUsados }: Props) {
             {salvando ? 'Salvando…' : 'Salvar alterações'}
           </Botao>
         ) : (
-          <>
-            <Botao
-              type="submit"
-              name="imprimir"
-              value="1"
-              tamanho="g"
-              larguraTotal
-              disabled={salvando}
-            >
-              {salvando ? 'Salvando…' : 'Salvar e imprimir adesivo'}
-            </Botao>
-            <Botao type="submit" variante="secundaria" larguraTotal disabled={salvando}>
-              Salvar sem imprimir
-            </Botao>
-          </>
+          <Botao type="submit" tamanho="g" larguraTotal disabled={salvando}>
+            {salvando ? 'Salvando…' : 'Salvar e imprimir adesivo'}
+          </Botao>
         )}
       </RodapeAcao>
     </form>

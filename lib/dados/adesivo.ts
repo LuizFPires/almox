@@ -32,7 +32,7 @@ export const MENSAGEM_FALHA: Record<MotivoFalha, string> = {
   falhou: 'Não foi possível mandar o adesivo para a fila. Tente de novo.',
 }
 
-export type ResultadoAdesivo = { ok: true } | { ok: false; motivo: MotivoFalha }
+export type ResultadoAdesivo = { ok: true; id: string } | { ok: false; motivo: MotivoFalha }
 
 /**
  * Gera o adesivo na linguagem da impressora da obra e põe na fila. O agente do mini PC
@@ -54,7 +54,7 @@ export async function enfileirarAdesivo(
   const dados = await dadosAdesivo(pessoaId, supabase)
   if (!dados) return { ok: false, motivo: 'sem-pessoa' }
 
-  const { error } = await supabase.rpc('enfileirar_impressao', {
+  const { data: id, error } = await supabase.rpc('enfileirar_impressao', {
     p_obra: obraId,
     p_tipo: 'adesivo',
     p_descricao: `Adesivo de ${dados.nomeCapacete} (${dados.matricula})`,
@@ -62,6 +62,8 @@ export async function enfileirarAdesivo(
     p_copias: copias,
     p_pessoa: pessoaId,
   })
-  if (error) return { ok: false, motivo: error.code === 'P0002' ? 'sem-impressora' : 'falhou' }
-  return { ok: true }
+  if (error || !id) {
+    return { ok: false, motivo: error?.code === 'P0002' ? 'sem-impressora' : 'falhou' }
+  }
+  return { ok: true, id }
 }

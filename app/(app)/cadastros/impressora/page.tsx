@@ -6,6 +6,7 @@ import { Cartao } from '@/components/Cartao'
 import { ErroFormulario } from '@/components/Formulario'
 import { NovaVisita } from '@/components/NovaVisita'
 import { impressoraAtiva, listarDispositivos, ultimosTrabalhos } from '@/lib/dados/impressao'
+import { destinoSeguro } from '@/lib/dominio/destino'
 import { agenteOnline, descreverTrabalho, situacaoAgente } from '@/lib/dominio/impressao'
 import { formatarDataHora } from '@/lib/formatos/datas'
 import { obterSessao } from '@/lib/sessao'
@@ -26,7 +27,8 @@ function Titulo({ id, children }: { id: string; children: string }) {
 export default async function PaginaImpressora({
   searchParams,
 }: PageProps<'/cadastros/impressora'>) {
-  const { erro } = (await searchParams) as { erro?: string }
+  const { erro, volta: voltaPedida } = (await searchParams) as { erro?: string; volta?: string }
+  const volta = voltaPedida ? destinoSeguro(voltaPedida) : '/cadastros/pessoas'
   const { obraAtual } = await obterSessao()
   const [impressora, dispositivos, trabalhos] = await Promise.all([
     impressoraAtiva(obraAtual.id),
@@ -44,7 +46,7 @@ export default async function PaginaImpressora({
   return (
     <>
       <AtualizarSozinho segundos={5} />
-      <Cabecalho titulo="Impressora" subtitulo={obraAtual.nome} voltarPara="/cadastros/pessoas" />
+      <Cabecalho titulo="Impressora" subtitulo="Na rede Wi-Fi da obra" voltarPara={volta} />
       <main className="flex flex-1 flex-col gap-6 px-5 pt-2 pb-8">
         <section aria-labelledby="t-impressora" className="flex flex-col gap-3">
           <Titulo id="t-impressora">IMPRESSORA DE ETIQUETAS</Titulo>

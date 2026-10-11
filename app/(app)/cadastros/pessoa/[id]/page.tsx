@@ -1,20 +1,20 @@
 import type { Metadata } from 'next'
+import Link from 'next/link'
 import { notFound } from 'next/navigation'
 import { AdesivoCapacete } from '@/components/AdesivoCapacete'
 import { AtualizarSozinho } from '@/components/AtualizarSozinho'
 import { Botao } from '@/components/Botao'
 import { Cabecalho } from '@/components/Cabecalho'
 import { ErroFormulario } from '@/components/Formulario'
-import { dadosAdesivo, MENSAGEM_FALHA, type MotivoFalha } from '@/lib/dados/adesivo'
+import { dadosAdesivo } from '@/lib/dados/adesivo'
 import { listarEmpresas } from '@/lib/dados/empresas'
-import { listarDispositivos, ultimosTrabalhos } from '@/lib/dados/impressao'
+import { situacaoImpressao, ultimosTrabalhos } from '@/lib/dados/impressao'
 import { buscarPessoa, listarPessoas } from '@/lib/dados/pessoas'
-import { descreverTrabalho, emAndamento, situacaoAgente } from '@/lib/dominio/impressao'
+import { descreverTrabalho, emAndamento } from '@/lib/dominio/impressao'
 import { formatarDataHora } from '@/lib/formatos/datas'
 import { obterSessao } from '@/lib/sessao'
 import { alternarAtiva } from '../acoes'
 import { FormPessoa } from '../FormPessoa'
-import { Reimprimir } from '../Reimprimir'
 
 export const metadata: Metadata = { title: 'Editar pessoa · Almox' }
 
@@ -23,29 +23,18 @@ export default async function PaginaEditarPessoa({
   searchParams,
 }: PageProps<'/cadastros/pessoa/[id]'>) {
   const { id } = await params
-  const { erro, adesivo: retornoAdesivo } = (await searchParams) as {
-    erro?: string
-    adesivo?: string
-  }
+  const { erro } = (await searchParams) as { erro?: string }
   const { obraAtual } = await obterSessao()
-  const [pessoa, empresas, pessoas, adesivo, trabalhos, dispositivos] = await Promise.all([
+  const [pessoa, empresas, pessoas, adesivo, trabalhos, { agente }] = await Promise.all([
     buscarPessoa(obraAtual.id, id),
     listarEmpresas(obraAtual.id),
     listarPessoas(obraAtual.id),
     dadosAdesivo(id),
     ultimosTrabalhos(obraAtual.id, id),
-    listarDispositivos(obraAtual.id),
+    situacaoImpressao(obraAtual.id),
   ])
   if (!pessoa) notFound()
   const itens = pessoa.posses.length
-  const agente = situacaoAgente(
-    dispositivos.filter((d) => !d.revogado_em).map((d) => d.ultimo_ping),
-    new Date(),
-  )
-  const falhaAoSalvar =
-    retornoAdesivo && retornoAdesivo in MENSAGEM_FALHA
-      ? MENSAGEM_FALHA[retornoAdesivo as MotivoFalha]
-      : null
 
   return (
     <>
@@ -73,16 +62,6 @@ export default async function PaginaEditarPessoa({
           <h2 id="t-adesivo" className="text-[13px] font-bold tracking-[1.2px] text-texto-2">
             ADESIVO DO CAPACETE
           </h2>
-          {retornoAdesivo === 'fila' && (
-            <p role="status" className="rounded-botao bg-sucesso-claro px-3 py-2.5 text-sucesso">
-              Pessoa salva. Adesivo mandado para a impressora.
-            </p>
-          )}
-          {falhaAoSalvar && (
-            <ErroFormulario
-              mensagem={`Pessoa salva, mas o adesivo não foi para a fila. ${falhaAoSalvar}`}
-            />
-          )}
           <AdesivoCapacete
             token={adesivo.token}
             nomeCapacete={adesivo.nomeCapacete}
@@ -106,7 +85,12 @@ export default async function PaginaEditarPessoa({
               ))}
             </ul>
           )}
-          <Reimprimir pessoaId={pessoa.id} />
+          <Link
+            href={`/cadastros/pessoa/${pessoa.id}/imprimir?volta=${encodeURIComponent(`/cadastros/pessoa/${pessoa.id}`)}`}
+            className="flex min-h-toque items-center justify-center rounded-botao bg-escuro px-4 font-bold text-white"
+          >
+            Reimprimir adesivo
+          </Link>
         </section>
       )}
       <form action={alternarAtiva} className="px-5 pb-6">

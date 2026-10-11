@@ -1,4 +1,5 @@
 import 'server-only'
+import { situacaoAgente } from '@/lib/dominio/impressao'
 import { criarClienteServidor } from '@/lib/supabase/servidor'
 
 export type Impressora = {
@@ -65,4 +66,14 @@ export async function ultimosTrabalhos(obraId: string, pessoaId?: string): Promi
   const { data, error } = await consulta
   if (error) throw new Error('Não foi possível carregar a fila de impressão.')
   return data
+}
+
+/** Impressora ativa e situação do agente (o dispositivo ativo com sinal mais recente). */
+export async function situacaoImpressao(obraId: string) {
+  const [impressora, dispositivos] = await Promise.all([
+    impressoraAtiva(obraId),
+    listarDispositivos(obraId),
+  ])
+  const pings = dispositivos.filter((d) => !d.revogado_em).map((d) => d.ultimo_ping)
+  return { impressora, agente: situacaoAgente(pings, new Date()) }
 }

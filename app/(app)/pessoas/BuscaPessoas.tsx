@@ -2,6 +2,7 @@
 
 import Link from 'next/link'
 import { useState } from 'react'
+import { IconeInterface } from '@/components/IconeInterface'
 import { filtrarPessoas } from '@/lib/dominio/busca'
 import { contarItens } from '@/lib/dominio/ficha'
 
@@ -27,15 +28,20 @@ export function BuscaPessoas({ pessoas }: { pessoas: Pessoa[] }) {
   const achadas = filtrarPessoas(pessoas, busca)
   return (
     <>
-      <label className="flex flex-col gap-1.5">
+      <label className="relative flex items-center">
         <span className="sr-only">Buscar pelo nome</span>
+        <IconeInterface
+          nome="search"
+          tamanho={20}
+          className="pointer-events-none absolute left-4 text-texto-2"
+        />
         <input
           type="search"
           value={busca}
           onChange={(e) => setBusca(e.target.value)}
           placeholder="Buscar pelo nome"
           autoComplete="off"
-          className="min-h-14 rounded-cartao border-[1.5px] border-escuro bg-cartao px-4 text-[17px]"
+          className="min-h-14 w-full rounded-cartao border-[1.5px] border-escuro bg-cartao pr-4 pl-12 text-[17px]"
         />
       </label>
       {achadas.length === 0 && (
@@ -50,7 +56,7 @@ export function BuscaPessoas({ pessoas }: { pessoas: Pessoa[] }) {
             >
               <span
                 aria-hidden="true"
-                className="flex size-11 shrink-0 items-center justify-center rounded-full bg-escuro text-[15px] font-bold text-amarelo"
+                className="flex size-11 shrink-0 items-center justify-center rounded-full bg-sutil text-[15px] font-bold text-texto"
               >
                 {iniciais(p.nome)}
               </span>

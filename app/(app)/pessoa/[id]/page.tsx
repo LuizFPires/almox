@@ -6,6 +6,7 @@ import { Cabecalho } from '@/components/Cabecalho'
 import { Cartao } from '@/components/Cartao'
 import { IconeFerramenta } from '@/components/IconeFerramenta'
 import type { ChaveIcone } from '@/components/icones-ferramenta'
+import { IconeInterface } from '@/components/IconeInterface'
 import { SeloPerfil } from '@/components/SeloPerfil'
 import { buscarFicha, equipeDaEmpresa, identificacaoValida } from '@/lib/dados/ficha'
 import {
@@ -16,6 +17,7 @@ import {
   textoIdentificacao,
   type ComoIdentificada,
 } from '@/lib/dominio/ficha'
+import { destinoSeguro } from '@/lib/dominio/destino'
 import { primeiroNome } from '@/lib/dominio/leitura'
 import { podeLancar } from '@/lib/dominio/permissoes'
 import { obterSessao } from '@/lib/sessao'
@@ -33,7 +35,11 @@ function comoFoiAberta(via: string | undefined, ident: string | undefined): Como
 /** Ficha da pessoa (F-04): o que está com ela, como foi identificada e a equipe. */
 export default async function PaginaFicha({ params, searchParams }: PageProps<'/pessoa/[id]'>) {
   const { id } = await params
-  const { via, ident } = (await searchParams) as { via?: string; ident?: string }
+  const { via, ident, volta } = (await searchParams) as {
+    via?: string
+    ident?: string
+    volta?: string
+  }
   const { obraAtual } = await obterSessao()
   const lanca = podeLancar(obraAtual.perfil)
   const [pessoa, conferidaAte] = await Promise.all([
@@ -60,16 +66,16 @@ export default async function PaginaFicha({ params, searchParams }: PageProps<'/
       <Cabecalho
         titulo={primeiro}
         subtitulo={nomeEmpresa}
-        voltarPara={como === 'manual' ? '/pessoas' : '/inicio'}
+        voltarPara={volta ? destinoSeguro(volta) : como === 'manual' ? '/pessoas' : '/inicio'}
         selo={<SeloPerfil perfil={obraAtual.perfil} empresa={obraAtual.empresa?.nome} />}
       />
       <main className="flex flex-1 flex-col gap-4 px-5 pt-2 pb-6">
-        <Cartao className="flex flex-col gap-0.5">
+        <Cartao className="flex flex-col items-center gap-0.5 text-center">
           <span className="text-[40px] leading-none font-extrabold break-words">
             {pessoa.nome_capacete}
           </span>
           <span className="text-lg font-semibold">{pessoa.nome}</span>
-          <span className="flex items-center gap-1.5 text-[15px] text-texto-2">
+          <span className="flex items-center justify-center gap-1.5 text-[15px] text-texto-2">
             {pessoa.empresa && (
               <span
                 aria-hidden="true"
@@ -128,17 +134,19 @@ export default async function PaginaFicha({ params, searchParams }: PageProps<'/
               <button
                 type="button"
                 disabled
-                className="flex min-h-16 flex-col items-center justify-center rounded-cartao bg-amarelo text-lg font-bold text-texto disabled:opacity-50"
+                className="flex min-h-24 flex-col items-start justify-between gap-2 rounded-cartao bg-amarelo p-4 text-left text-lg font-bold text-texto disabled:opacity-50"
               >
+                <IconeInterface nome="checkout" tamanho={26} />
                 Retirada
               </button>
               <button
                 type="button"
                 disabled
-                className={`flex min-h-16 flex-col items-center justify-center rounded-cartao text-lg font-bold disabled:opacity-50 ${
+                className={`flex min-h-24 flex-col items-start justify-between gap-2 rounded-cartao p-4 text-left text-lg font-bold disabled:opacity-50 ${
                   devolucao.permitida ? 'bg-escuro text-white' : 'bg-borda text-texto-2'
                 }`}
               >
+                <IconeInterface nome="return" tamanho={26} />
                 Devolução
               </button>
             </div>
@@ -177,7 +185,7 @@ export default async function PaginaFicha({ params, searchParams }: PageProps<'/
                 {equipe.map((c) => (
                   <Link
                     key={c.id}
-                    href={`/pessoa/${c.id}`}
+                    href={`/pessoa/${c.id}?volta=${encodeURIComponent(`/pessoa/${pessoa.id}`)}`}
                     className="flex min-h-toque items-center justify-between gap-3 py-2"
                   >
                     <span className="truncate font-semibold">{c.nome}</span>

@@ -152,6 +152,10 @@ test.describe('identificação pelo QR do capacete', () => {
       await pagina.goto('/leitura')
       await expect(pagina.getByText('Pessoa de outra empresa')).toBeVisible({ timeout: 15_000 })
       await expect(pagina.getByText('Joaquim')).toHaveCount(0)
+      // Início da empreiteira: só números da própria empresa.
+      await pagina.goto('/inicio')
+      await expect(pagina.getByText('com a Fôrmas Ribeiro', { exact: true })).toBeVisible()
+      await expect(pagina.getByText('no almox', { exact: true })).toHaveCount(0)
     } finally {
       await navegador.close()
     }

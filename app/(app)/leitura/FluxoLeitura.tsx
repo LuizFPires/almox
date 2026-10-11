@@ -65,7 +65,7 @@ export function FluxoLeitura({ lanca }: { lanca: boolean }) {
         <Cabecalho
           titulo="Conferir pessoa"
           subtitulo="Compare com quem está na sua frente"
-          voltarPara="/inicio"
+          aoVoltar={lerDeNovo}
         />
         <main className="flex flex-1 flex-col gap-4 px-5 pt-2 pb-6">
           <p className="flex items-center gap-2 text-[15px] font-semibold text-sucesso">
@@ -156,7 +156,7 @@ export function FluxoLeitura({ lanca }: { lanca: boolean }) {
         <main className="flex flex-1 flex-col items-center gap-4 px-5 pt-6 pb-6 text-center">
           <span
             aria-hidden="true"
-            className="flex size-24 items-center justify-center rounded-full bg-erro text-white"
+            className="flex size-24 items-center justify-center rounded-full bg-erro-claro text-erro"
           >
             <svg
               width="48"

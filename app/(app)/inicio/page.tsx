@@ -22,6 +22,7 @@ const CLASSE_ATALHO =
 export default async function PaginaInicio() {
   const { obraAtual } = await obterSessao()
   const lanca = podeLancar(obraAtual.perfil)
+  const restrita = obraAtual.perfil === 'consulta' ? obraAtual.empresa : null
   const agora = new Date()
   const [{ resumo, pendencias }, ultimos] = await Promise.all([
     resumoDoDia(obraAtual.id, agora),
@@ -35,8 +36,8 @@ export default async function PaginaInicio() {
           <h1>
             <Marca altura={34} />
           </h1>
-          <span className="truncate text-sm text-texto-2">
-            {obraAtual.nome} · <Relogio formato="dia" />
+          <span className="text-sm leading-snug text-texto-2">
+            {obraAtual.nome} · <Relogio formato="dia" /> · <Relogio formato="hora" />
           </span>
         </div>
         <SeloPerfil perfil={obraAtual.perfil} empresa={obraAtual.empresa?.nome} />
@@ -88,10 +89,14 @@ export default async function PaginaInicio() {
           </Link>
         )}
 
-        <Cartao className="grid grid-cols-4 gap-1.5">
-          <Indicador valor={resumo.noCanteiro} rotulo="no canteiro" />
-          <Indicador valor={resumo.noAlmox} rotulo="no almox" />
-          <Indicador valor={resumo.manutencao} rotulo="manutenção" />
+        {/* Consulta de empreiteira: só números da própria empresa (PLAN › Decisões). */}
+        <Cartao className={`grid gap-1.5 ${restrita ? 'grid-cols-2' : 'grid-cols-4'}`}>
+          <Indicador
+            valor={resumo.noCanteiro}
+            rotulo={restrita ? `com a ${restrita.nome}` : 'no canteiro'}
+          />
+          {!restrita && <Indicador valor={resumo.noAlmox} rotulo="no almox" />}
+          {!restrita && <Indicador valor={resumo.manutencao} rotulo="manutenção" />}
           <Indicador
             valor={resumo.pendencias}
             rotulo={resumo.pendencias === 1 ? 'pendência' : 'pendências'}
@@ -102,9 +107,15 @@ export default async function PaginaInicio() {
         {lanca && (
           <Link
             href="/fechamento"
-            className="flex min-h-toque items-center justify-between gap-3 rounded-cartao border border-borda bg-cartao px-4 py-3"
+            className="flex min-h-toque items-center gap-3 rounded-cartao bg-cartao px-4 py-3"
           >
-            <span className="flex flex-col">
+            <span
+              aria-hidden="true"
+              className="flex size-10 shrink-0 items-center justify-center rounded-full bg-sutil"
+            >
+              <IconeInterface nome="clock" tamanho={22} />
+            </span>
+            <span className="flex flex-1 flex-col">
               <span className="font-bold">Fechamento do dia</span>
               <span className="text-[13px] text-texto-2">
                 {resumo.pessoasComFerramenta === 0
@@ -118,20 +129,29 @@ export default async function PaginaInicio() {
 
         {pendencias.length > 0 && (
           <section className="flex flex-col gap-2" aria-labelledby="titulo-pendencias">
-            <h2 id="titulo-pendencias" className="text-[13px] font-bold tracking-[1.2px] text-erro">
+            <h2
+              id="titulo-pendencias"
+              className="text-[13px] font-bold tracking-[1.2px] text-texto-2"
+            >
               PENDÊNCIAS
             </h2>
             {pendencias.map((p) => (
               <Link
                 key={p.unidadeId}
                 href={lanca ? '/leitura' : `/pessoa/${p.pessoa.id}`}
-                className="flex min-h-toque items-center justify-between gap-3 rounded-cartao border-2 border-erro bg-cartao px-4 py-3"
+                className="flex min-h-toque items-center gap-3 rounded-cartao border-2 border-erro bg-cartao px-4 py-3"
               >
-                <span className="flex min-w-0 flex-col">
+                <span
+                  aria-hidden="true"
+                  className="flex size-10 shrink-0 items-center justify-center rounded-full bg-erro-claro text-erro"
+                >
+                  <IconeInterface nome="tool" tamanho={22} />
+                </span>
+                <span className="flex min-w-0 flex-1 flex-col">
                   <span className="truncate font-bold">
                     {p.ferramenta} <span className="font-mono text-sm">{p.codigo}</span>
                   </span>
-                  <span className="truncate text-[13px] text-erro">
+                  <span className="truncate text-[13px] text-texto-2">
                     {p.pessoa.nome} · {textoDesde(p.desde, agora)}
                   </span>
                 </span>
@@ -167,7 +187,16 @@ export default async function PaginaInicio() {
                             : 'bg-escuro text-white'
                       }`}
                     >
-                      {l.tipo === 'ocorrencia' ? '!' : l.tipo === 'retirada' ? '↑' : '↓'}
+                      <IconeInterface
+                        nome={
+                          l.tipo === 'ocorrencia'
+                            ? 'warning'
+                            : l.tipo === 'retirada'
+                              ? 'checkout'
+                              : 'return'
+                        }
+                        tamanho={18}
+                      />
                     </span>
                     <span className="flex min-w-0 flex-1 flex-col">
                       <span className="truncate text-[15px] font-semibold">{l.pessoa}</span>

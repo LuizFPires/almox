@@ -133,8 +133,8 @@ Legenda: ⬜ A fazer · 🟨 Em andamento · ✅ Concluído · ⛔ Bloqueado
 **Entregas**
 - [x] Leitor de QR pela câmera (PWA), leitura automática, lanterna, funciona em Android e iPhone
 - [x] Token desconhecido → "Capacete não cadastrado"
-- [ ] **Conferência** (RN-03): nome do capacete grande, nome completo, função/empresa; "Sim, é o {nome}" / "Não é ele"
-- [ ] **Bloqueio** (RN-04): "Nada foi registrado", grava `ocorrencia`, notifica encarregado; opções "Ler o capacete certo" / "Escolher na lista (manual)"
+- [x] **Conferência** (RN-03): nome do capacete grande, nome completo, função/empresa; "Sim, é o {nome}" / "Não é ele"
+- [x] **Bloqueio** (RN-04): "Nada foi registrado", grava `ocorrencia`, notifica encarregado; opções "Ler o capacete certo" / "Escolher na lista (manual)"
 - [ ] **Ficha da pessoa** (F-04): o que está com ela (com hora e marca "sem QR"), equipe da empresa, identificação usada
 - [ ] Perfil consulta: QR abre direto a ficha, sem botões de lançamento
 - [ ] Lista manual (F-08) com busca por nome/apelido sem acento

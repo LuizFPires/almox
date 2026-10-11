@@ -41,10 +41,8 @@ export default async function PaginaInicio() {
           </p>
         )}
 
-        {/* A leitura do QR chega no M4. */}
-        <button
-          type="button"
-          disabled
+        <Link
+          href="/leitura"
           className={`flex min-h-28 items-center gap-4 rounded-cartao px-5 text-left ${
             lanca ? 'bg-escuro text-white' : 'border border-borda bg-cartao text-texto'
           }`}
@@ -59,10 +57,10 @@ export default async function PaginaInicio() {
           <span className="flex flex-col gap-0.5">
             <span className="text-[22px] leading-tight font-bold">Ler QR do capacete</span>
             <span className="text-sm opacity-80">
-              {lanca ? 'Em breve: retirada e devolução' : 'Em breve: ver o que está com a pessoa'}
+              {lanca ? 'Para registrar retirada ou devolução' : 'Ver o que está com a pessoa'}
             </span>
           </span>
-        </button>
+        </Link>
 
         <Link href="/lista" className={CLASSE_ATALHO}>
           <IconeInterface nome="users" tamanho={20} />
@@ -74,7 +72,7 @@ export default async function PaginaInicio() {
         </Link>
         {lanca && (
           <Link
-            href="/lista"
+            href="/pessoas"
             className="flex min-h-toque items-center justify-center text-sm font-semibold text-texto-3 underline"
           >
             Sem capacete ou QR ilegível? Escolher na lista

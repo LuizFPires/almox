@@ -29,7 +29,13 @@ async function capaceteDe(request: APIRequestContext, nome: string) {
         await request.get(`${url}/rest/v1/posse?select=unidade_id&pessoa_id=eq.${id}`, { headers })
       ).json()) as unknown[]
     ).length
-  return { id, token: dados?.token ?? '', posses }
+  const movimentos = async () =>
+    (
+      (await (
+        await request.get(`${url}/rest/v1/movimento?select=id&pessoa_id=eq.${id}`, { headers })
+      ).json()) as unknown[]
+    ).length
+  return { id, token: dados?.token ?? '', posses, movimentos }
 }
 
 /** Abre o app num Chromium cuja câmera mostra o QR e entra com o perfil. */
@@ -69,6 +75,9 @@ test.describe('identificação pelo QR do capacete', () => {
       await expect(pagina.getByText('QR do capacete · pessoa conferida')).toBeVisible()
       await expect(pagina.getByRole('button', { name: 'Retirada' })).toBeVisible()
       await expect(pagina.getByRole('button', { name: 'Devolução' })).toBeVisible()
+      // A mesma pessoa aberta pela lista manual não herda a conferência do QR.
+      await pagina.goto(`/pessoa/${joaquim.id}?via=manual`)
+      await expect(pagina.getByText('Escolhido na lista · sem QR')).toBeVisible()
     } finally {
       await navegador.close()
     }
@@ -80,6 +89,7 @@ test.describe('identificação pelo QR do capacete', () => {
   }) => {
     const joaquim = await capaceteDe(request, 'Joaquim Silva')
     const antes = await joaquim.posses()
+    const movimentosAntes = await joaquim.movimentos()
     const { navegador, pagina } = await celularLendo(joaquim.token, 'almoxarife', baseURL)
     try {
       await pagina.goto('/leitura')
@@ -87,10 +97,33 @@ test.describe('identificação pelo QR do capacete', () => {
       await expect(pagina.getByRole('heading', { name: 'Nada foi registrado' })).toBeVisible()
       await expect(pagina.getByText(/A ocorrência ficou anotada no histórico/)).toBeVisible()
       expect(await joaquim.posses()).toBe(antes)
+      expect(await joaquim.movimentos()).toBe(movimentosAntes)
       await pagina.goto('/inicio')
       await expect(
         pagina.getByText('Bloqueado: capacete usado por outra pessoa').first(),
       ).toBeVisible()
+    } finally {
+      await navegador.close()
+    }
+  })
+
+  test('sem internet na conferência: avisa na tela em vez de quebrar', async ({
+    request,
+    baseURL,
+  }) => {
+    const joaquim = await capaceteDe(request, 'Joaquim Silva')
+    const { navegador, pagina } = await celularLendo(joaquim.token, 'almoxarife', baseURL)
+    try {
+      await pagina.goto('/leitura')
+      await expect(pagina.getByText('É o Joaquim que está na sua frente?')).toBeVisible({
+        timeout: 15_000,
+      })
+      await pagina.context().setOffline(true)
+      await pagina.getByRole('button', { name: 'Sim, é o Joaquim' }).click()
+      await expect(pagina.getByText('Sem conexão com o Almox. Tente de novo.')).toBeVisible()
+      await pagina.getByRole('button', { name: 'Não é ele' }).click()
+      await expect(pagina.getByRole('heading', { name: 'Nada foi registrado' })).toBeVisible()
+      await expect(pagina.getByText(/Não foi possível anotar a ocorrência agora/)).toBeVisible()
     } finally {
       await navegador.close()
     }

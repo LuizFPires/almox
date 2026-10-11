@@ -7,7 +7,7 @@ import { Cartao } from '@/components/Cartao'
 import { IconeFerramenta } from '@/components/IconeFerramenta'
 import type { ChaveIcone } from '@/components/icones-ferramenta'
 import { SeloPerfil } from '@/components/SeloPerfil'
-import { buscarFicha, conferenciaVigente, equipeDaEmpresa } from '@/lib/dados/ficha'
+import { buscarFicha, equipeDaEmpresa, identificacaoValida } from '@/lib/dados/ficha'
 import {
   contarItens,
   ehPendencia,
@@ -24,25 +24,27 @@ export const metadata: Metadata = { title: 'Ficha · Almox' }
 
 const TONS = { sucesso: 'text-sucesso', erro: 'text-erro', neutro: 'text-texto-2' } as const
 
-function comoFoiAberta(via: string | undefined): ComoIdentificada {
-  return via === 'qr' || via === 'manual' ? via : 'lista'
+/** `ident` = id da conferência (quem lança); `via=qr` = consulta que leu o capacete. */
+function comoFoiAberta(via: string | undefined, ident: string | undefined): ComoIdentificada {
+  if (ident || via === 'qr') return 'qr'
+  return via === 'manual' ? 'manual' : 'lista'
 }
 
 /** Ficha da pessoa (F-04): o que está com ela, como foi identificada e a equipe. */
 export default async function PaginaFicha({ params, searchParams }: PageProps<'/pessoa/[id]'>) {
   const { id } = await params
-  const { via } = (await searchParams) as { via?: string }
+  const { via, ident } = (await searchParams) as { via?: string; ident?: string }
   const { obraAtual } = await obterSessao()
   const lanca = podeLancar(obraAtual.perfil)
   const [pessoa, conferidaAte] = await Promise.all([
     buscarFicha(obraAtual.id, id),
-    lanca ? conferenciaVigente(obraAtual.id, id) : Promise.resolve(null),
+    lanca ? identificacaoValida(obraAtual.id, ident, id) : Promise.resolve(null),
   ])
   if (!pessoa) notFound()
   const equipe = pessoa.empresa ? await equipeDaEmpresa(obraAtual.id, pessoa.empresa.id, id) : []
 
   const agora = new Date()
-  const como = comoFoiAberta(via)
+  const como = comoFoiAberta(via, ident)
   const conferida = como === 'qr' && Boolean(conferidaAte)
   const identificacao = textoIdentificacao(como, lanca, conferida)
   const primeiro = primeiroNome(pessoa.nome)

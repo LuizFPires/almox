@@ -15,6 +15,15 @@ type Etapa =
   | { tipo: 'conferir'; token: string; pessoa: PessoaLida }
   | { tipo: 'bloqueado'; pessoa: PessoaLida; anotada: boolean }
 
+/**
+ * Redirecionamento de Server Action (ex.: abrir a ficha) chega como erro especial do Next:
+ * precisa seguir adiante. Qualquer outro erro é falha de rede e vira mensagem na tela.
+ */
+function repassarNavegacao(erro: unknown) {
+  const digest = (erro as { digest?: unknown } | null)?.digest
+  if (typeof digest === 'string' && digest.startsWith('NEXT_')) throw erro
+}
+
 const CLASSE_BOTAO_GRANDE =
   'flex min-h-14 w-full items-center justify-center rounded-cartao px-5 text-lg font-bold'
 
@@ -37,9 +46,14 @@ export function FluxoLeitura({ lanca }: { lanca: boolean }) {
   function aoLer(token: string) {
     setEtapa({ tipo: 'buscando' })
     iniciar(async () => {
-      const r = await lerCapacete(token)
-      if (r.situacao === 'ok') setEtapa({ tipo: 'conferir', token, pessoa: r.pessoa })
-      else setEtapa({ tipo: 'aviso', situacao: r.situacao })
+      try {
+        const r = await lerCapacete(token)
+        if (r.situacao === 'ok') setEtapa({ tipo: 'conferir', token, pessoa: r.pessoa })
+        else setEtapa({ tipo: 'aviso', situacao: r.situacao })
+      } catch (e) {
+        repassarNavegacao(e)
+        setEtapa({ tipo: 'aviso', situacao: 'falhou' })
+      }
     })
   }
 
@@ -98,8 +112,13 @@ export function FluxoLeitura({ lanca }: { lanca: boolean }) {
               disabled={enviando}
               onClick={() =>
                 iniciar(async () => {
-                  const r = await confirmarPessoa(token)
-                  setErro(r.erro)
+                  try {
+                    const r = await confirmarPessoa(token)
+                    setErro(r.erro)
+                  } catch (e) {
+                    repassarNavegacao(e)
+                    setErro('Sem conexão com o Almox. Tente de novo.')
+                  }
                 })
               }
             >
@@ -110,8 +129,13 @@ export function FluxoLeitura({ lanca }: { lanca: boolean }) {
               disabled={enviando}
               onClick={() =>
                 iniciar(async () => {
-                  const r = await naoEhEle(token)
-                  setEtapa({ tipo: 'bloqueado', pessoa, anotada: r.ok })
+                  let anotada = false
+                  try {
+                    anotada = (await naoEhEle(token)).ok
+                  } catch (e) {
+                    repassarNavegacao(e)
+                  }
+                  setEtapa({ tipo: 'bloqueado', pessoa, anotada })
                 })
               }
               className={`${CLASSE_BOTAO_GRANDE} border-2 border-erro bg-cartao text-erro disabled:opacity-40`}
@@ -151,7 +175,7 @@ export function FluxoLeitura({ lanca }: { lanca: boolean }) {
           <p className="text-[17px]">
             O capacete de {pessoa.nome} está com outra pessoa.{' '}
             {anotada
-              ? `A ocorrência ficou anotada no histórico e o encarregado da ${pessoa.empresa} será avisado.`
+              ? 'A ocorrência ficou anotada no histórico.'
               : 'Não foi possível anotar a ocorrência agora (sem conexão?). Avise o engenheiro.'}
           </p>
           <div className="mt-auto flex w-full flex-col gap-2.5">

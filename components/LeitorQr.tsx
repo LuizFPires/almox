@@ -35,6 +35,8 @@ export function LeitorQr({ aoLer }: Props) {
       }
       try {
         const { BrowserQRCodeReader } = await import('@zxing/browser')
+        // StrictMode (dev) monta, desmonta e monta de novo: não abre a câmera duas vezes.
+        if (cancelado) return
         const leitor = new BrowserQRCodeReader(undefined, { delayBetweenScanAttempts: 120 })
         const c = await leitor.decodeFromConstraints(
           { audio: false, video: { facingMode: { ideal: 'environment' } } },

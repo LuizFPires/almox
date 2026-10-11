@@ -134,7 +134,7 @@ Legenda: ⬜ A fazer · 🟨 Em andamento · ✅ Concluído · ⛔ Bloqueado
 - [x] Leitor de QR pela câmera (PWA), leitura automática, lanterna, funciona em Android e iPhone
 - [x] Token desconhecido → "Capacete não cadastrado"
 - [x] **Conferência** (RN-03): nome do capacete grande, nome completo, função/empresa; "Sim, é o {nome}" / "Não é ele"
-- [x] **Bloqueio** (RN-04): "Nada foi registrado", grava `ocorrencia`, notifica encarregado; opções "Ler o capacete certo" / "Escolher na lista (manual)"
+- [x] **Bloqueio** (RN-04): "Nada foi registrado", grava `ocorrencia` (aviso ao encarregado no M9, ver Decisões); opções "Ler o capacete certo" / "Escolher na lista (manual)"
 - [x] **Ficha da pessoa** (F-04): o que está com ela (com hora e marca "sem QR"), equipe da empresa, identificação usada
 - [x] Perfil consulta: QR abre direto a ficha, sem botões de lançamento
 - [x] Lista manual (F-08) com busca por nome/apelido sem acento
@@ -379,3 +379,5 @@ Legenda: ⬜ A fazer · 🟨 Em andamento · ✅ Concluído · ⛔ Bloqueado
 | 11/10/2026 | M4: consulta restrita de empreiteira que lê o capacete de outra empresa vê **"Pessoa de outra empresa"**, sem nome nem ferramentas. |
 | 11/10/2026 | M4: **pendência** = ferramenta com alguém desde antes de hoje (dia da obra, fuso de São Paulo), em vermelho com "desde ontem" ou "desde dd/MM", já no Início e na ficha. O fechamento do dia (M9) só passa a gerar os avisos. |
 | 11/10/2026 | M4: botões Retirada/Devolução aparecem na ficha desde já, desligados com aviso até o M5/M6. Abrir a pessoa pela lista geral conta como "sem QR" (como no protótipo). |
+| 11/10/2026 | M4 (revisão): a conferência fica **presa à leitura**. "Sim, é o …" devolve o id da identificação, a ficha o carrega (`?ident=`) e o servidor confere dono, pessoa, obra e validade. Abrir a mesma pessoa pela lista manual não conta como QR. M5/M6 recebem esse id. Falha de rede na leitura vira mensagem na tela (e há `error.tsx`). O bloqueio não promete aviso ao encarregado até o M9. |
+| 11/10/2026 | M4 (revisão, aceito sem mudança): para a consulta, `?via=qr` só muda o texto "QR do capacete lido" (cosmético: consulta não lança). "Não é ele" derruba as conferências vigentes da pessoa de todos os usuários (capacete com outra pessoa). A limpeza das identificações vencidas fica para o M10. |

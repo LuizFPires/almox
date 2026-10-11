@@ -70,6 +70,9 @@ describe('pendência e horário', () => {
   it('vira o dia pelo fuso de São Paulo, não pelo UTC', () => {
     // 01:30 UTC de 11/10 = 22:30 de 10/10 em São Paulo
     expect(ehPendencia('2026-10-11T01:30:00Z', agora)).toBe(true)
+    // 02:59 UTC = 23:59 do dia 10; 03:00 UTC = 00:00 do dia 11
+    expect(ehPendencia('2026-10-11T02:59:00Z', agora)).toBe(true)
+    expect(ehPendencia('2026-10-11T03:00:00Z', agora)).toBe(false)
   })
 
   it('textos de "desde"', () => {

@@ -956,7 +956,13 @@ export type Database = {
           porta: number
         }[]
       }
-      confirmar_identificacao: { Args: { p_obra: string; p_token: string }; Returns: string }
+      conferir_pessoa: {
+        Args: { p_obra: string; p_token: string }
+        Returns: {
+          identificacao: string
+          pessoa_id: string
+        }[]
+      }
       criar_dispositivo: { Args: { p_nome: string; p_obra: string }; Returns: string }
       dados_adesivo: {
         Args: { p_pessoa: string }
@@ -981,7 +987,13 @@ export type Database = {
         }
         Returns: string
       }
-      identificacao_vigente: { Args: { p_obra: string; p_pessoa: string }; Returns: string }
+      identificacao_valida: {
+        Args: { p_identificacao: string; p_obra: string }
+        Returns: {
+          expira_em: string
+          pessoa_id: string
+        }[]
+      }
       ler_capacete: {
         Args: { p_obra: string; p_token: string }
         Returns: {

@@ -72,13 +72,22 @@ export async function equipeDaEmpresa(
   }))
 }
 
-/** Até quando vale a conferência deste usuário para a pessoa (null = não conferida). */
-export async function conferenciaVigente(obraId: string, pessoaId: string): Promise<string | null> {
+const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i
+
+/**
+ * A identificação (id vindo da conferência) ainda vale para este usuário e é desta pessoa?
+ * Devolve até quando vale, ou null.
+ */
+export async function identificacaoValida(
+  obraId: string,
+  identificacao: string | undefined,
+  pessoaId: string,
+): Promise<string | null> {
+  if (!identificacao || !UUID.test(identificacao)) return null
   const supabase = await criarClienteServidor()
-  const { data, error } = await supabase.rpc('identificacao_vigente', {
-    p_obra: obraId,
-    p_pessoa: pessoaId,
-  })
-  if (error) return null
-  return data
+  const { data, error } = await supabase
+    .rpc('identificacao_valida', { p_obra: obraId, p_identificacao: identificacao })
+    .maybeSingle()
+  if (error || !data || data.pessoa_id !== pessoaId) return null
+  return data.expira_em
 }

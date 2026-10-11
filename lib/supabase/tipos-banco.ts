@@ -427,6 +427,7 @@ export type Database = {
           id: string
           obra_id: string
           obs: string | null
+          ordem: number
           pessoa_id: string
           tipo: Database['public']['Enums']['tipo_movimento']
           usuario_id: string
@@ -441,6 +442,7 @@ export type Database = {
           id?: string
           obra_id: string
           obs?: string | null
+          ordem?: never
           pessoa_id: string
           tipo: Database['public']['Enums']['tipo_movimento']
           usuario_id: string
@@ -454,6 +456,7 @@ export type Database = {
           id?: string
           obra_id?: string
           obs?: string | null
+          ordem?: never
           pessoa_id?: string
           tipo?: Database['public']['Enums']['tipo_movimento']
           usuario_id?: string
@@ -495,6 +498,7 @@ export type Database = {
           avariada: boolean
           movimento_id: string
           obra_id: string
+          retirada_id: string | null
           unidade_id: string
         }
         ComputedFields: never
@@ -502,18 +506,27 @@ export type Database = {
           avariada?: boolean
           movimento_id: string
           obra_id: string
+          retirada_id?: string | null
           unidade_id: string
         }
         Update: {
           avariada?: boolean
           movimento_id?: string
           obra_id?: string
+          retirada_id?: string | null
           unidade_id?: string
         }
         Relationships: [
           {
             foreignKeyName: 'movimento_item_movimento_id_obra_id_fkey'
             columns: ['movimento_id', 'obra_id']
+            isOneToOne: false
+            referencedRelation: 'movimento'
+            referencedColumns: ['id', 'obra_id']
+          },
+          {
+            foreignKeyName: 'movimento_item_retirada_fk'
+            columns: ['retirada_id', 'obra_id']
             isOneToOne: false
             referencedRelation: 'movimento'
             referencedColumns: ['id', 'obra_id']
@@ -959,6 +972,10 @@ export type Database = {
           porta: number
         }[]
       }
+      concluir_manutencao: {
+        Args: { p_acao: string; p_obra: string; p_unidade: string }
+        Returns: undefined
+      }
       conferir_pessoa: {
         Args: { p_obra: string; p_token: string }
         Returns: {
@@ -988,6 +1005,10 @@ export type Database = {
           p_pessoa?: string
           p_tipo: string
         }
+        Returns: string
+      }
+      estornar_movimento: {
+        Args: { p_motivo: string; p_movimento: string; p_obra: string }
         Returns: string
       }
       identificacao_valida: {
@@ -1023,10 +1044,11 @@ export type Database = {
       }
       registrar_devolucao: {
         Args: {
+          p_chave?: string
+          p_identificacao: string
           p_itens: Json
           p_obra: string
           p_pessoa: string
-          p_via: Database['public']['Enums']['via_movimento']
         }
         Returns: string
       }

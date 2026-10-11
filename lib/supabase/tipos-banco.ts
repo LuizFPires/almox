@@ -330,6 +330,49 @@ export type Database = {
           },
         ]
       }
+      identificacao: {
+        Row: {
+          criado_em: string
+          expira_em: string
+          id: string
+          obra_id: string
+          pessoa_id: string
+          usuario_id: string
+        }
+        ComputedFields: never
+        Insert: {
+          criado_em?: string
+          expira_em: string
+          id?: string
+          obra_id: string
+          pessoa_id: string
+          usuario_id: string
+        }
+        Update: {
+          criado_em?: string
+          expira_em?: string
+          id?: string
+          obra_id?: string
+          pessoa_id?: string
+          usuario_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: 'identificacao_pessoa_id_obra_id_fkey'
+            columns: ['pessoa_id', 'obra_id']
+            isOneToOne: false
+            referencedRelation: 'pessoa'
+            referencedColumns: ['id', 'obra_id']
+          },
+          {
+            foreignKeyName: 'identificacao_usuario_id_fkey'
+            columns: ['usuario_id']
+            isOneToOne: false
+            referencedRelation: 'usuario'
+            referencedColumns: ['id']
+          },
+        ]
+      }
       impressora: {
         Row: {
           ativa: boolean
@@ -913,6 +956,7 @@ export type Database = {
           porta: number
         }[]
       }
+      confirmar_identificacao: { Args: { p_obra: string; p_token: string }; Returns: string }
       criar_dispositivo: { Args: { p_nome: string; p_obra: string }; Returns: string }
       dados_adesivo: {
         Args: { p_pessoa: string }
@@ -937,6 +981,19 @@ export type Database = {
         }
         Returns: string
       }
+      identificacao_vigente: { Args: { p_obra: string; p_pessoa: string }; Returns: string }
+      ler_capacete: {
+        Args: { p_obra: string; p_token: string }
+        Returns: {
+          empresa: string
+          empresa_cor: string
+          funcao: string
+          nome: string
+          nome_capacete: string
+          pessoa_id: string
+          situacao: string
+        }[]
+      }
       listar_acessos: {
         Args: { p_obra: string }
         Returns: {
@@ -958,7 +1015,7 @@ export type Database = {
         }
         Returns: string
       }
-      registrar_ocorrencia: { Args: { p_obra: string; p_pessoa: string }; Returns: string }
+      registrar_ocorrencia: { Args: { p_obra: string; p_token: string }; Returns: string }
       registrar_retirada: {
         Args: {
           p_confirmado: boolean

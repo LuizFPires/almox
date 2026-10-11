@@ -17,7 +17,7 @@ Fonte da verdade do produto: `PRD.md`. Regras para quem codifica: `CLAUDE.md`.
 | M0 | Fundação do projeto | ✅ Concluído | 11/10/2026 |
 | M1 | Banco, autenticação e perfis | ✅ Concluído | 11/10/2026 |
 | M2 | Cadastros do engenheiro | ✅ Concluído | 11/10/2026 |
-| M3 | Adesivo do capacete e impressão | ⬜ A fazer | |
+| M3 | Adesivo do capacete e impressão | 🟨 Em andamento | |
 | M4 | Identificação por QR e ficha da pessoa | ⬜ A fazer | |
 | M5 | Retirada | ⬜ A fazer | |
 | M6 | Devolução e avaria | ⬜ A fazer | |
@@ -112,7 +112,7 @@ Legenda: ⬜ A fazer · 🟨 Em andamento · ✅ Concluído · ⛔ Bloqueado
 - [ ] Layout do adesivo 60 × 80 mm: QR, nome no capacete grande, nome completo, função · empresa, rodapé "ALMOX · obra · matrícula" (igual ao protótipo)
 - [ ] Geração do adesivo em **ZPL** e **TSPL** (escolha pela impressora cadastrada) + prévia na tela
 - [ ] Tabela `trabalho_impressao` como fila (pendente → enviado / erro)
-- [ ] **Agente de impressão local** (Node, pasta `agente-impressao/`): roda no mini PC da TV, autentica por token de dispositivo, escuta a fila (realtime), envia para `ip:9100` da impressora, atualiza status; instalável como serviço (Windows e Linux)
+- [ ] **Agente de impressão local** (Node, pasta `agente-impressao/`): roda no mini PC da TV, autentica por token de dispositivo, consulta a fila a cada 2 s, envia para `ip:9100` da impressora, atualiza status; instalável como serviço (Windows e Linux)
 - [ ] Tela "Impressora": escolher impressora da obra, rolo, imprimir teste, ver status do agente (online/offline)
 - [ ] "Salvar e imprimir adesivo" no cadastro de pessoa; "Reimprimir" com 1–5 cópias
 - [ ] Mensagens de erro claras: agente offline, impressora sem resposta
@@ -362,3 +362,7 @@ Legenda: ⬜ A fazer · 🟨 Em andamento · ✅ Concluído · ⛔ Bloqueado
 | 11/10/2026 | M2 (comparação com o protótipo): empreiteira **exige dono com e-mail** (sem ele o aviso da RN-13 não chega a ninguém); encarregado segue opcional com o alerta "Falta e-mail". Botão "Nova …" de largura total abaixo das abas. |
 | 11/10/2026 | M2 (comparação, diferenças aceitas): categoria de ferramenta (elétrica/manual/acesso) do protótipo **não entra** (fora do PRD §8; reavaliar no M7); botão de salvar sempre ativo com erros ao enviar (botão desligado sem explicação atrapalha leitor de tela); pessoas em ordem alfabética (achar alguém entre 100+); seed com 84 unidades em vez de 70 (cada pessoa do painel da TV tem a ferramenta); até 200 unidades por vez em vez de 20. |
 | 11/10/2026 | M2: `almox-prod` com as migrations do M2 e senha mínima de 10 no Auth; Cadastros conferidos na produção com o login do engenheiro (obra SL Betim). |
+| 11/10/2026 | M3: impressora ainda não comprada — o Almox gera **ZPL e TSPL** e é testado com impressora simulada; o critério "imprime em até 10 s" é conferido quando a impressora real chegar (térmica de transferência com rede, 60 × 80 mm, ribbon de resina). |
+| 11/10/2026 | M3: o agente **consulta a fila a cada 2 s** por RPC (só conexões de saída, sem sessão para renovar) em vez de Realtime. |
+| 11/10/2026 | M3: **um token por mini PC** (cadastro "dispositivo da obra") para TV e agente; o banco guarda só o hash; revogar desliga os dois. |
+| 11/10/2026 | M3: agente roda com **Node 24 + script que instala como serviço** (Windows e Linux). |

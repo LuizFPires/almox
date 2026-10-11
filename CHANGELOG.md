@@ -2,6 +2,24 @@
 
 Registro do que foi entregue em cada milestone (ver `PLAN.md`).
 
+## M5 — Retirada (em revisão)
+
+### Adicionado
+- **Retirada** a partir da ficha: grade com todos os tipos da obra. Cada toque no ícone soma 1, há o botão "−" e "N livres", e o limite são as unidades livres (RN-07).
+- **Revisão:**
+  - os códigos que vão sair (livres em ordem de código, RN-08) e ALTO VALOR (RN-10);
+  - aviso de quem ainda tem ferramenta de outro dia;
+  - aviso de lançamento sem QR, conforme RN-05/RN-06;
+  - "Conferi pessoalmente…" obrigatório (RN-11).
+- **`registrar_retirada`** transacional:
+  - grava movimento, itens, posse e unidade em uso;
+  - é QR só com a conferência do capacete válida; sem ela, é manual;
+  - conferência vencida pede nova leitura;
+  - dois celulares na mesma unidade: um leva e o outro vê "… acabou de sair".
+- Tela **"Retirada registrada"** com "Ler outro capacete" e "Início".
+- **Últimos lançamentos ao vivo** (Supabase Realtime, com RLS).
+- 22 testes pgTAP novos (166 no total) e e2e dos 3 critérios de aceite. A corrida entre dois celulares é testada de verdade.
+
 ## M4 — Identificação por QR e ficha da pessoa (concluído em 11/10/2026)
 
 ### Adicionado

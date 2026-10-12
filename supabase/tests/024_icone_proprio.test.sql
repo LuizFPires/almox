@@ -22,7 +22,7 @@ select throws_ok(
 );
 select throws_ok(
   $$insert into public.tipo_ferramenta (obra_id, nome, icone, prefixo, valor_reposicao)
-    values ('a0000000-0000-4000-8000-000000000001', 'Betoneira D', 'betoneira', 'BED', 429000)$$,
+    values ('a0000000-0000-4000-8000-000000000001', 'Betoneira D', 'foguete', 'BED', 429000)$$,
   '23514', null, 'chave de ícone que não existe: recusada'
 );
 

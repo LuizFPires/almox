@@ -8,16 +8,19 @@ import { IconeFerramenta } from '@/components/IconeFerramenta'
 import { IconeInterface } from '@/components/IconeInterface'
 import {
   CHAVES_ICONE,
+  GRUPOS_ICONE,
   ICONES_FERRAMENTA,
   ehChaveIcone,
   ehIcone,
   ehIconeArquivo,
+  type GrupoIcone,
   type Icone,
   type IconeArquivo,
 } from '@/components/icones-ferramenta'
 import { RodapeAcao } from '@/components/RodapeAcao'
 import { previaCodigos, sugerirPrefixo } from '@/lib/dominio/cadastros'
 import { formatarBRL } from '@/lib/formatos/moeda'
+import { normalizarTexto } from '@/lib/formatos/texto'
 import { prepararIcone } from '@/lib/imagem'
 import { criarClienteNavegador } from '@/lib/supabase/navegador'
 import { salvarFerramenta } from './acoes'
@@ -62,6 +65,7 @@ export function FormFerramenta({ obraId, tipo, prefixosUsados, iconesProprios }:
   const [enviando, setEnviando] = useState(false)
   const [erroIcone, setErroIcone] = useState<string | null>(null)
   const entradaArquivo = useRef<HTMLInputElement>(null)
+  const [filtroIcone, setFiltroIcone] = useState('')
 
   const [nome, setNome] = useState(v.nome ?? tipo?.nome ?? '')
   const [quantidade, setQuantidade] = useState(Number(v.quantidade ?? (novo ? 1 : 0)))
@@ -96,50 +100,77 @@ export function FormFerramenta({ obraId, tipo, prefixosUsados, iconesProprios }:
     }
   }
 
-  const opcoes: Icone[] = [...CHAVES_ICONE, ...enviados]
+  const busca = normalizarTexto(filtroIcone.trim())
+  const grupos: { titulo: string; icones: Icone[] }[] = [
+    { titulo: 'Próprios da obra', icones: busca ? [] : enviados },
+    ...(Object.keys(GRUPOS_ICONE) as GrupoIcone[]).map((grupo) => ({
+      titulo: GRUPOS_ICONE[grupo],
+      icones: CHAVES_ICONE.filter(
+        (c) =>
+          ICONES_FERRAMENTA[c].grupo === grupo &&
+          (!busca || normalizarTexto(ICONES_FERRAMENTA[c].nome).includes(busca)),
+      ),
+    })),
+  ].filter((g) => g.icones.length > 0)
+
+  function escolher(chave: Icone) {
+    setIcone(chave)
+    // Ferramenta nova sem nome: o nome do ícone já serve de ponto de partida.
+    if (novo && !nome.trim() && ehChaveIcone(chave)) setNome(ICONES_FERRAMENTA[chave].nome)
+  }
+
+  function opcao(chave: Icone) {
+    return (
+      <label
+        key={chave}
+        className={`flex cursor-pointer flex-col items-center rounded-cartao border-2 px-1 py-2 has-[:focus-visible]:outline-3 has-[:focus-visible]:outline-foco ${
+          icone === chave ? 'border-escuro bg-cartao' : 'border-transparent bg-cartao'
+        }`}
+      >
+        <input
+          type="radio"
+          name="icone"
+          value={chave}
+          checked={icone === chave}
+          onChange={() => escolher(chave)}
+          className="sr-only"
+        />
+        <IconeFerramenta
+          icone={chave}
+          nome={ehChaveIcone(chave) ? undefined : 'Próprio'}
+          tamanho="p"
+        />
+      </label>
+    )
+  }
 
   return (
     <form action={acao} className="flex flex-1 flex-col">
       <div className="flex flex-1 flex-col gap-5 px-5 pt-2 pb-6">
         {tipo && <input type="hidden" name="id" value={tipo.id} />}
 
-        <fieldset className="flex flex-col gap-2">
+        <fieldset className="flex flex-col gap-3">
           <legend className="mb-1.5 text-sm font-semibold">Ícone</legend>
-          <div className="grid grid-cols-3 gap-2 min-[420px]:grid-cols-4">
-            {opcoes.map((chave) => (
-              <label
-                key={chave}
-                className={`flex cursor-pointer flex-col items-center rounded-cartao border-2 px-1 py-2 has-[:focus-visible]:outline-3 has-[:focus-visible]:outline-foco ${
-                  icone === chave ? 'border-escuro bg-cartao' : 'border-transparent bg-cartao'
-                }`}
-              >
-                <input
-                  type="radio"
-                  name="icone"
-                  value={chave}
-                  checked={icone === chave}
-                  onChange={() => setIcone(chave)}
-                  className="sr-only"
-                />
-                <IconeFerramenta
-                  icone={chave}
-                  nome={ehChaveIcone(chave) ? undefined : 'Próprio'}
-                  tamanho="p"
-                />
-              </label>
-            ))}
+          <div className="flex gap-2">
+            <label className="flex h-12 min-w-0 flex-1 items-center gap-2 rounded-botao border border-borda bg-cartao px-3 has-[:focus-visible]:outline-3 has-[:focus-visible]:outline-offset-3 has-[:focus-visible]:outline-foco">
+              <IconeInterface nome="search" tamanho={20} className="shrink-0 text-texto-2" />
+              <span className="sr-only">Buscar ícone</span>
+              <input
+                type="search"
+                value={filtroIcone}
+                onChange={(e) => setFiltroIcone(e.target.value)}
+                placeholder="Buscar ícone"
+                className="min-w-0 flex-1 bg-transparent text-base outline-none"
+              />
+            </label>
             <button
               type="button"
               onClick={() => entradaArquivo.current?.click()}
               disabled={enviando}
-              className="flex min-h-toque flex-col items-center gap-1.5 rounded-cartao border-2 border-dashed border-texto-2 bg-sutil px-1 py-2"
+              className="flex h-12 shrink-0 items-center gap-1.5 rounded-botao border-2 border-dashed border-texto-2 bg-sutil px-3 text-sm font-bold"
             >
-              <span className="flex size-[34px] items-center justify-center rounded-full bg-cartao">
-                <IconeInterface nome="upload" tamanho={18} />
-              </span>
-              <span className="text-[13px] leading-tight font-bold">
-                {enviando ? 'Enviando…' : 'Enviar ícone'}
-              </span>
+              <IconeInterface nome="upload" tamanho={18} />
+              {enviando ? 'Enviando…' : 'Enviar ícone'}
             </button>
           </div>
           <input
@@ -151,16 +182,32 @@ export function FormFerramenta({ obraId, tipo, prefixosUsados, iconesProprios }:
             aria-label="Escolher imagem do ícone"
             onChange={(e) => void enviarIcone(e.target.files?.[0])}
           />
-          <span className="text-sm text-texto-2">
-            Não achou? Envie uma imagem da ferramenta (PNG, JPG ou SVG), de preferência com fundo
-            transparente. Fica disponível para as outras ferramentas da obra.
-          </span>
           {erroIcone && (
             <span role="alert" className="text-sm font-semibold text-erro">
               {erroIcone}
             </span>
           )}
           {erros.icone && <span className="text-sm font-semibold text-erro">{erros.icone}</span>}
+          {grupos.map((g) => (
+            <div key={g.titulo} className="flex flex-col gap-2">
+              <span className="text-[13px] font-bold tracking-[1.2px] text-texto-2 uppercase">
+                {g.titulo}
+              </span>
+              <div className="grid grid-cols-3 gap-2 min-[420px]:grid-cols-4">
+                {g.icones.map((chave) => opcao(chave))}
+              </div>
+            </div>
+          ))}
+          {grupos.length === 0 && (
+            <span className="text-sm text-texto-2">
+              Nenhum ícone com “{filtroIcone.trim()}”. Use <b>Enviar ícone</b> com uma imagem da
+              ferramenta.
+            </span>
+          )}
+          <span className="text-sm text-texto-2">
+            Não achou? Envie uma imagem da ferramenta (PNG, JPG ou SVG), de preferência com fundo
+            transparente. Fica disponível para as outras ferramentas da obra.
+          </span>
         </fieldset>
 
         <Campo

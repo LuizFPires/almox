@@ -2,6 +2,8 @@ import { describe, expect, it } from 'vitest'
 import { resumirEstoque, subtituloTipo, type TipoEstoque } from './estoque'
 import {
   agruparPorEmpresa,
+  avariasPorPessoa,
+  pendenciasPorPessoa,
   bateBusca,
   resumoGrupo,
   textoSemFerramenta,
@@ -9,12 +11,17 @@ import {
 } from './lista'
 
 const agora = new Date('2026-10-11T12:00:00Z')
-const construtora = { id: 'c', nome: 'Construtora', cor: '#F4B400' }
-const formas = { id: 'f', nome: 'Fôrmas Ribeiro', cor: '#FF8A3D' }
+const construtora = { id: 'c', nome: 'Construtora', cor: '#F4B400', tipo: 'propria' as const }
+const formas = {
+  id: 'f',
+  nome: 'Fôrmas Ribeiro',
+  cor: '#FF8A3D',
+  tipo: 'empreiteira' as const,
+}
 const pessoa = (
   id: string,
   nome: string,
-  empresa: typeof construtora,
+  empresa: PessoaLista['empresa'],
   itens: [string, string][] = [],
   ativa = true,
 ): PessoaLista => ({
@@ -24,7 +31,13 @@ const pessoa = (
   nomeCapacete: nome.split(' ')[0]!.toUpperCase(),
   funcao: 'Pedreiro',
   empresa,
-  itens: itens.map(([codigo, desde]) => ({ codigo, tipo: 'Martelete', icone: 'martelete', desde })),
+  itens: itens.map(([codigo, desde]) => ({
+    codigo,
+    tipo: 'Martelete',
+    icone: 'martelete',
+    desde,
+    valor: 289000,
+  })),
 })
 
 const pessoas = [
@@ -142,5 +155,54 @@ describe('estoque', () => {
     ])
     expect(t.comOutrasEmpresas).toBe(1)
     expect(subtituloTipo(t)).toBe('2 no canteiro · 1 manutenção · toque para ver com quem')
+  })
+})
+
+describe('aba Não devolvidas', () => {
+  it('só peças de antes de hoje, por pessoa, com o total a descontar das empreiteiras', () => {
+    const lista = [
+      ...pessoas,
+      pessoa('5', 'Antônio Ferreira', formas, [
+        ['PA-07', '2026-10-10T19:40:00Z'],
+        ['MT-03', '2026-10-10T19:40:00Z'],
+        ['PA-09', '2026-10-11T09:00:00Z'],
+      ]),
+    ]
+    const r = pendenciasPorPessoa(lista, agora)
+    expect(
+      r.lista.map((p) => [p.pessoa.nome, p.itens.map((i) => i.codigo), p.descontavel]),
+    ).toEqual([
+      ['Antônio Ferreira', ['MT-03', 'PA-07'], true],
+      ['Raimundo Alves', ['MT-01'], false],
+    ])
+    expect(r.pecas).toBe(3)
+    // Só a empreiteira entra no "a descontar" (2 peças × R$ 2.890,00).
+    expect(r.aDescontar).toBe(578000)
+    expect(r.lista[0]?.desde).toBe('2026-10-10T19:40:00Z')
+  })
+})
+
+describe('aba Avarias', () => {
+  it('por quem devolveu, a mais recente primeiro; sem pessoa visível fica de fora', () => {
+    const peca = (id: string, devolvidaPor: string | null, quando: string) => ({
+      id,
+      codigo: id,
+      tipo: 'Pá',
+      motivo: 'quebrada',
+      detalhes: null,
+      quando,
+      devolvidaPor,
+      foto: null,
+    })
+    const g = avariasPorPessoa([
+      peca('PA-01', 'Wagner Pinto', '2026-10-10T10:00:00Z'),
+      peca('PA-02', 'Valter Gomes', '2026-10-11T10:00:00Z'),
+      peca('PA-03', 'Wagner Pinto', '2026-10-11T08:00:00Z'),
+      peca('PA-04', null, '2026-10-11T09:00:00Z'),
+    ])
+    expect(g.map((x) => [x.pessoa, x.itens.map((i) => i.codigo)])).toEqual([
+      ['Valter Gomes', ['PA-02']],
+      ['Wagner Pinto', ['PA-03', 'PA-01']],
+    ])
   })
 })

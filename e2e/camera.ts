@@ -1,7 +1,7 @@
 import { writeFileSync } from 'node:fs'
 import { tmpdir } from 'node:os'
 import { join } from 'node:path'
-import { chromium, devices, type Browser } from '@playwright/test'
+import { chromium, devices, test, type Browser } from '@playwright/test'
 import QRCode from 'qrcode'
 
 const LARGURA = 640
@@ -43,6 +43,8 @@ export function videoComQr(texto: string): string {
 
 /** Chromium com a câmera falsa mostrando o QR (permissão de câmera já concedida). */
 export async function navegadorComQr(texto: string): Promise<Browser> {
+  // Teste com câmera falsa: a leitura do QR (até LEITURA_QR_MS) precisa caber no tempo do teste.
+  test.slow()
   return chromium.launch({
     args: [
       '--use-fake-ui-for-media-stream',

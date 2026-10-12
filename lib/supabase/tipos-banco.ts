@@ -183,6 +183,40 @@ export type Database = {
           },
         ]
       }
+      aviso_desconto: {
+        Row: {
+          aviso_id: string
+          desconto_id: string
+          obra_id: string
+        }
+        ComputedFields: never
+        Insert: {
+          aviso_id: string
+          desconto_id: string
+          obra_id: string
+        }
+        Update: {
+          aviso_id?: string
+          desconto_id?: string
+          obra_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: 'aviso_desconto_aviso_id_obra_id_fkey'
+            columns: ['aviso_id', 'obra_id']
+            isOneToOne: false
+            referencedRelation: 'aviso'
+            referencedColumns: ['id', 'obra_id']
+          },
+          {
+            foreignKeyName: 'aviso_desconto_desconto_id_obra_id_fkey'
+            columns: ['desconto_id', 'obra_id']
+            isOneToOne: false
+            referencedRelation: 'desconto'
+            referencedColumns: ['id', 'obra_id']
+          },
+        ]
+      }
       codigo_tv: {
         Row: {
           codigo_hash: string
@@ -249,6 +283,94 @@ export type Database = {
             isOneToOne: true
             referencedRelation: 'obra'
             referencedColumns: ['id']
+          },
+        ]
+      }
+      desconto: {
+        Row: {
+          cancelado_em: string | null
+          codigo: string
+          criado_em: string
+          empresa_id: string
+          id: string
+          medicao_id: string | null
+          movimento_retirada_id: string
+          obra_id: string
+          pessoa_id: string
+          primeiro_aviso_id: string | null
+          status: Database['public']['Enums']['status_desconto']
+          tipo_nome: string
+          unidade_id: string
+          valor: number
+        }
+        ComputedFields: never
+        Insert: {
+          cancelado_em?: string | null
+          codigo: string
+          criado_em?: string
+          empresa_id: string
+          id?: string
+          medicao_id?: string | null
+          movimento_retirada_id: string
+          obra_id: string
+          pessoa_id: string
+          primeiro_aviso_id?: string | null
+          status?: Database['public']['Enums']['status_desconto']
+          tipo_nome: string
+          unidade_id: string
+          valor: number
+        }
+        Update: {
+          cancelado_em?: string | null
+          codigo?: string
+          criado_em?: string
+          empresa_id?: string
+          id?: string
+          medicao_id?: string | null
+          movimento_retirada_id?: string
+          obra_id?: string
+          pessoa_id?: string
+          primeiro_aviso_id?: string | null
+          status?: Database['public']['Enums']['status_desconto']
+          tipo_nome?: string
+          unidade_id?: string
+          valor?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: 'desconto_empresa_id_obra_id_fkey'
+            columns: ['empresa_id', 'obra_id']
+            isOneToOne: false
+            referencedRelation: 'empresa'
+            referencedColumns: ['id', 'obra_id']
+          },
+          {
+            foreignKeyName: 'desconto_medicao_id_obra_id_fkey'
+            columns: ['medicao_id', 'obra_id']
+            isOneToOne: false
+            referencedRelation: 'medicao'
+            referencedColumns: ['id', 'obra_id']
+          },
+          {
+            foreignKeyName: 'desconto_pessoa_id_obra_id_fkey'
+            columns: ['pessoa_id', 'obra_id']
+            isOneToOne: false
+            referencedRelation: 'pessoa'
+            referencedColumns: ['id', 'obra_id']
+          },
+          {
+            foreignKeyName: 'desconto_primeiro_aviso_id_fkey'
+            columns: ['primeiro_aviso_id']
+            isOneToOne: false
+            referencedRelation: 'aviso'
+            referencedColumns: ['id']
+          },
+          {
+            foreignKeyName: 'desconto_unidade_id_obra_id_fkey'
+            columns: ['unidade_id', 'obra_id']
+            isOneToOne: false
+            referencedRelation: 'unidade'
+            referencedColumns: ['id', 'obra_id']
           },
         ]
       }
@@ -362,9 +484,70 @@ export type Database = {
           },
         ]
       }
+      envio: {
+        Row: {
+          canal: Database['public']['Enums']['canal_envio']
+          criado_em: string
+          dados: NonNullable<Json>
+          destino: string
+          enviado_em: string | null
+          erro: string | null
+          id: string
+          obra_id: string
+          pego_em: string | null
+          proxima_tentativa_em: string
+          referencia: string
+          status: Database['public']['Enums']['status_envio']
+          tentativas: number
+          tipo: Database['public']['Enums']['tipo_envio']
+        }
+        ComputedFields: never
+        Insert: {
+          canal: Database['public']['Enums']['canal_envio']
+          criado_em?: string
+          dados?: NonNullable<Json>
+          destino: string
+          enviado_em?: string | null
+          erro?: string | null
+          id?: string
+          obra_id: string
+          pego_em?: string | null
+          proxima_tentativa_em?: string
+          referencia: string
+          status?: Database['public']['Enums']['status_envio']
+          tentativas?: number
+          tipo: Database['public']['Enums']['tipo_envio']
+        }
+        Update: {
+          canal?: Database['public']['Enums']['canal_envio']
+          criado_em?: string
+          dados?: NonNullable<Json>
+          destino?: string
+          enviado_em?: string | null
+          erro?: string | null
+          id?: string
+          obra_id?: string
+          pego_em?: string | null
+          proxima_tentativa_em?: string
+          referencia?: string
+          status?: Database['public']['Enums']['status_envio']
+          tentativas?: number
+          tipo?: Database['public']['Enums']['tipo_envio']
+        }
+        Relationships: [
+          {
+            foreignKeyName: 'envio_obra_id_fkey'
+            columns: ['obra_id']
+            isOneToOne: false
+            referencedRelation: 'obra'
+            referencedColumns: ['id']
+          },
+        ]
+      }
       fechamento_dia: {
         Row: {
           automatico: boolean
+          complementado_em: string | null
           data: string
           encerrado_em: string
           encerrado_por: string | null
@@ -374,6 +557,7 @@ export type Database = {
         ComputedFields: never
         Insert: {
           automatico?: boolean
+          complementado_em?: string | null
           data: string
           encerrado_em?: string
           encerrado_por?: string | null
@@ -382,6 +566,7 @@ export type Database = {
         }
         Update: {
           automatico?: boolean
+          complementado_em?: string | null
           data?: string
           encerrado_em?: string
           encerrado_por?: string | null
@@ -489,6 +674,85 @@ export type Database = {
             columns: ['obra_id']
             isOneToOne: false
             referencedRelation: 'obra'
+            referencedColumns: ['id']
+          },
+        ]
+      }
+      inscricao_push: {
+        Row: {
+          auth: string
+          criado_em: string
+          endpoint: string
+          p256dh: string
+          usuario_id: string
+        }
+        ComputedFields: never
+        Insert: {
+          auth: string
+          criado_em?: string
+          endpoint: string
+          p256dh: string
+          usuario_id: string
+        }
+        Update: {
+          auth?: string
+          criado_em?: string
+          endpoint?: string
+          p256dh?: string
+          usuario_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: 'inscricao_push_usuario_id_fkey'
+            columns: ['usuario_id']
+            isOneToOne: false
+            referencedRelation: 'usuario'
+            referencedColumns: ['id']
+          },
+        ]
+      }
+      medicao: {
+        Row: {
+          empresa_id: string
+          fechada_em: string
+          fechada_por: string
+          id: string
+          obra_id: string
+          proxima: string | null
+          total: number
+        }
+        ComputedFields: never
+        Insert: {
+          empresa_id: string
+          fechada_em?: string
+          fechada_por: string
+          id?: string
+          obra_id: string
+          proxima?: string | null
+          total: number
+        }
+        Update: {
+          empresa_id?: string
+          fechada_em?: string
+          fechada_por?: string
+          id?: string
+          obra_id?: string
+          proxima?: string | null
+          total?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: 'medicao_empresa_id_obra_id_fkey'
+            columns: ['empresa_id', 'obra_id']
+            isOneToOne: false
+            referencedRelation: 'empresa'
+            referencedColumns: ['id', 'obra_id']
+          },
+          {
+            foreignKeyName: 'medicao_fechada_por_fkey'
+            columns: ['fechada_por']
+            isOneToOne: false
+            referencedRelation: 'usuario'
             referencedColumns: ['id']
           },
         ]
@@ -1047,6 +1311,10 @@ export type Database = {
           porta: number
         }[]
       }
+      concluir_envio: {
+        Args: { p_envio: string; p_erro?: string; p_ok: boolean; p_sem_destino?: boolean }
+        Returns: undefined
+      }
       concluir_manutencao: {
         Args: { p_acao: string; p_obra: string; p_unidade: string }
         Returns: undefined
@@ -1071,6 +1339,8 @@ export type Database = {
           token: string
         }[]
       }
+      dados_envio: { Args: { p_envio: string }; Returns: Json }
+      encerrar_dia: { Args: { p_obra: string }; Returns: string }
       enfileirar_impressao: {
         Args: {
           p_copias: number
@@ -1082,10 +1352,16 @@ export type Database = {
         }
         Returns: string
       }
+      envios_com_problema: { Args: { p_obra: string }; Returns: Json }
       estornar_movimento: {
         Args: { p_motivo: string; p_movimento: string; p_obra: string }
         Returns: string
       }
+      fechar_medicao: {
+        Args: { p_empresa: string; p_obra: string; p_proxima: string }
+        Returns: string
+      }
+      fotos_orfas: { Args: { p_limite?: number }; Returns: string[] }
       gerar_codigo_tv: { Args: { p_dispositivo: string }; Returns: string }
       identificacao_valida: {
         Args: { p_identificacao: string; p_obra: string }
@@ -1119,6 +1395,31 @@ export type Database = {
         }[]
       }
       painel_tv: { Args: { p_token: string; p_versao?: string }; Returns: Json }
+      pegar_envios: {
+        Args: { p_limite?: number }
+        Returns: {
+          canal: Database['public']['Enums']['canal_envio']
+          criado_em: string
+          dados: NonNullable<Json>
+          destino: string
+          enviado_em: string | null
+          erro: string | null
+          id: string
+          obra_id: string
+          pego_em: string | null
+          proxima_tentativa_em: string
+          referencia: string
+          status: Database['public']['Enums']['status_envio']
+          tentativas: number
+          tipo: Database['public']['Enums']['tipo_envio']
+        }[]
+        SetofOptions: {
+          from: '*'
+          to: 'envio'
+          isOneToOne: false
+          isSetofReturn: true
+        }
+      }
       registrar_devolucao: {
         Args: {
           p_chave?: string
@@ -1141,6 +1442,8 @@ export type Database = {
         }
         Returns: string
       }
+      remover_inscricao_push: { Args: { p_endpoint: string }; Returns: undefined }
+      resumo_fechamento: { Args: { p_fechamento: string }; Returns: Json }
       revogar_dispositivo: { Args: { p_dispositivo: string }; Returns: undefined }
       salvar_config_tv: {
         Args: {
@@ -1156,13 +1459,18 @@ export type Database = {
       trocar_codigo_tv: { Args: { p_codigo: string }; Returns: string }
     }
     Enums: {
+      canal_envio: 'email' | 'push'
       linguagem_impressora: 'ZPL' | 'TSPL'
       motivo_avaria: 'quebrada' | 'cabo_rompido' | 'nao_liga' | 'desgaste' | 'peca_faltando'
       perfil: 'engenheiro' | 'almoxarife' | 'consulta'
       status_aviso: 'enviado' | 'cancelado' | 'confirmado'
+      status_desconto: 'aberto' | 'cancelado' | 'confirmado'
+      status_envio: 'pendente' | 'enviado' | 'erro' | 'sem_destino'
       status_impressao: 'pendente' | 'enviando' | 'enviado' | 'erro'
       status_unidade: 'livre' | 'em_uso' | 'manutencao' | 'baixada'
       tipo_empresa: 'propria' | 'empreiteira'
+      tipo_envio:
+        'aviso' | 'desconto_cancelado' | 'resumo_proprios' | 'ocorrencia' | 'desconto_reaberto'
       tipo_movimento: 'retirada' | 'devolucao' | 'estorno'
       tipo_ocorrencia: 'capacete_trocado'
       via_movimento: 'qr' | 'manual'
@@ -1280,13 +1588,23 @@ export const Constants = {
   },
   public: {
     Enums: {
+      canal_envio: ['email', 'push'],
       linguagem_impressora: ['ZPL', 'TSPL'],
       motivo_avaria: ['quebrada', 'cabo_rompido', 'nao_liga', 'desgaste', 'peca_faltando'],
       perfil: ['engenheiro', 'almoxarife', 'consulta'],
       status_aviso: ['enviado', 'cancelado', 'confirmado'],
+      status_desconto: ['aberto', 'cancelado', 'confirmado'],
+      status_envio: ['pendente', 'enviado', 'erro', 'sem_destino'],
       status_impressao: ['pendente', 'enviando', 'enviado', 'erro'],
       status_unidade: ['livre', 'em_uso', 'manutencao', 'baixada'],
       tipo_empresa: ['propria', 'empreiteira'],
+      tipo_envio: [
+        'aviso',
+        'desconto_cancelado',
+        'resumo_proprios',
+        'ocorrencia',
+        'desconto_reaberto',
+      ],
       tipo_movimento: ['retirada', 'devolucao', 'estorno'],
       tipo_ocorrencia: ['capacete_trocado'],
       via_movimento: ['qr', 'manual'],

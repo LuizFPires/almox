@@ -23,7 +23,7 @@ Fonte da verdade do produto: `PRD.md`. Regras para quem codifica: `CLAUDE.md`.
 | M6 | Devolução e avaria | ✅ Concluído | 11/10/2026 |
 | M7 | Lista, estoque e busca | ✅ Concluído | 11/10/2026 |
 | M8 | Painel da TV | ✅ Concluído (soak acelerado no build de produção; falta conferir 60 fps e 72 h no mini PC real) | 12/10/2026 |
-| M9 | Fechamento do dia e avisos às empreiteiras | ⬜ A fazer | |
+| M9 | Fechamento do dia e avisos às empreiteiras | ✅ Concluído (e-mail real depende da conta no Resend; notificação conferida até a inscrição) | 12/10/2026 |
 | M10 | Offline, auditoria e endurecimento | ⬜ A fazer | |
 | M11 | Piloto em obra | ⬜ A fazer | |
 | M12 | Conector ioo | ⬜ A fazer | |
@@ -240,15 +240,15 @@ Legenda: ⬜ A fazer · 🟨 Em andamento · ✅ Concluído · ⛔ Bloqueado
 **Objetivo:** relatório diário e cobrança automática de reposição.
 
 **Entregas**
-- [ ] Tela de fechamento (F-10): pendentes por pessoa (empresa, itens, valor, "desde ontem"), quem devolveu tudo hoje, atalho "chegou: ler capacete e devolver"
-- [ ] **Sem baixa geral** (RN-12): encerrar só gera relatório e avisos
-- [ ] Encerramento manual + automático às 23:59 (job agendado)
-- [ ] Cálculo por empreiteira: soma dos valores vigentes das unidades pendentes (RN-16); construtora própria → só engenheiro (RN-15)
-- [ ] **Notificação no app** (Web Push, VAPID) para dono e encarregado, que precisam ter login de consulta
-- [ ] **E-mail** transacional (Resend ou SMTP) com o modelo do protótipo: destinatários, assunto, tabela pessoa/itens/valor, total, texto do desconto e do cancelamento
-- [ ] Tabela `aviso` com status `enviado` → `cancelado` (ferramenta devolvida antes do fechamento da medição — RN-14, com novo e-mail avisando o cancelamento) ou `confirmado` (no fechamento da medição)
-- [ ] Data da medição por empresa; relatório "valores a descontar por empresa" para o engenheiro
-- [ ] Tela "Ver aviso enviado" (prévia da notificação e do e-mail)
+- [x] Tela de fechamento (F-10): pendentes por pessoa (empresa, itens, valor, "desde ontem"), quem devolveu tudo hoje, atalho "chegou: ler capacete e devolver"
+- [x] **Sem baixa geral** (RN-12): encerrar só gera relatório e avisos
+- [x] Encerramento manual + automático às 23:59 (job agendado)
+- [x] Cálculo por empreiteira: soma dos valores vigentes das unidades pendentes (RN-16); construtora própria → só engenheiro (RN-15)
+- [x] **Notificação no app** (Web Push, VAPID) para dono e encarregado, que precisam ter login de consulta
+- [x] **E-mail** transacional (Resend ou SMTP) com o modelo do protótipo: destinatários, assunto, tabela pessoa/itens/valor, total, texto do desconto e do cancelamento
+- [x] Tabela `aviso` com status `enviado` → `cancelado` (ferramenta devolvida antes do fechamento da medição — RN-14, com novo e-mail avisando o cancelamento) ou `confirmado` (no fechamento da medição)
+- [x] Data da medição por empresa; relatório "valores a descontar por empresa" para o engenheiro
+- [x] Tela "Ver aviso enviado" (prévia da notificação e do e-mail)
 
 **Critérios de aceite**
 - Encerrar o dia com pendências de 2 empreiteiras gera 2 avisos, cada um com o total correto e e-mail entregue ao dono e ao encarregado.
@@ -412,3 +412,12 @@ Legenda: ⬜ A fazer · 🟨 Em andamento · ✅ Concluído · ⛔ Bloqueado
 | 12/10/2026 | M8 (revisão): a TV tem **credencial própria, só de leitura do painel**. O engenheiro toca em "Conectar uma TV" no mini PC (Cadastros › Impressora) e recebe um endereço com **código de uso único que vale 10 minutos**, só em texto (sem link, para não conectar o celular); a TV troca o código pela credencial. O cadastro do mini PC continua um só e revogar desliga TV e agente (ajuste da decisão do M3). O token do agente não abre mais o painel. |
 | 12/10/2026 | M8 (revisão): só "dispositivo não autorizado" (erro AL008) desliga a TV; qualquer outra falha é passageira. Mesmo sem autorização, a TV segue perguntando a cada 60 s e recarrega a cada 5 min. Quando nada mudou, o servidor responde só a hora (versão dos dados). O sinal da TV fica separado do sinal do agente. Coluna de empresa ganha uma subcoluna a cada 6 pessoas (dupla, tripla…), para ninguém ficar cortado. |
 | 12/10/2026 | M8 (comparação com o protótipo): a tela da TV é montada sempre em **1920 × 1080 e escalada** para a TV (qualquer resolução ou zoom do sistema), como no protótipo. Nas colunas por empresa, a tela **mede a altura de cada pessoa** e abre outra subcoluna quando ela não cabe (começa com 6 por subcoluna; subcolunas de 436 px com 28 px entre elas). Borda da pendência no vermelho forte do protótipo; nome de ferramenta longo quebra com hífen em até 2 linhas; o relógio do cabeçalho usa a hora do servidor. Mantidos do DS: fundo do círculo do ícone (sutil) e raio de 18 px do protótipo nos cartões. |
+| 12/10/2026 | M9: e-mail em produção pelo **Resend com o domínio da construtora** (o usuário cria a conta e confirma o domínio no DNS). Local e CI enviam para a caixa de teste do Supabase (Mailpit), que prova a entrega nos e2e. O mesmo envio resolve o login por link do Supabase (pendência do M1). |
+| 12/10/2026 | M9: peça pendente por vários dias gera **lembrete a cada encerramento**, com o mesmo valor (não acumula): o aviso do dia lista as peças ainda pendentes; cada peça é cobrada uma vez na medição. |
+| 12/10/2026 | M9: devolução antes da medição **cancela peça a peça** (RN-14): o aviso fica com o total novo e o dono/encarregado recebem e-mail de atualização; quando todas voltam, o aviso vira `cancelado`. |
+| 12/10/2026 | M9: o **engenheiro fecha a medição** da empresa no relatório "valores a descontar": confirma os avisos em aberto (`confirmado`) e informa a data da próxima medição. |
+| 12/10/2026 | M9: "Não é ele" avisa o **encarregado na hora, por notificação** (sem e-mail). Pendências de funcionários próprios: **notificação de resumo ao engenheiro** no encerramento (sem e-mail). Encerramento automático das 23:59 agendado no Supabase (pg_cron), com fila de envios e nova tentativa. |
+| 12/10/2026 | M9 (revisão): **estorno de uma devolução** reabre o desconto, volta o aviso para "a descontar" e manda e-mail de correção à empreiteira. **Estorno de retirada** antes da medição cancela o desconto com o texto "lançamento corrigido pelo engenheiro"; depois de confirmado na medição, é recusado. |
+| 12/10/2026 | M9 (revisão): **trocar a empresa da pessoa, ou o tipo da empresa, com desconto em aberto é recusado** (feche a medição ou espere a devolução); o desconto fica com a empresa em que a pessoa estava quando virou pendência. |
+| 12/10/2026 | M9 (revisão): o **almoxarife vê só o resultado do encerramento de hoje** (exceção à decisão do M1, só para o dia que acabou de encerrar); o histórico de avisos e valores é do engenheiro e da própria empreiteira. "Encerrar o dia" pede confirmação com o número de empreiteiras e o total. Na lista de avisos, cada peça conta no aviso que a cobrou primeiro; os dos dias seguintes aparecem como lembrete, sem valor novo. Relatórios do M9 não usam avarias (a pendência do M6 sobre avarias estornadas não se aplica). |
+| 12/10/2026 | M9 (comparação com o protótipo): o dia continua com **um encerramento**, mas se ele foi encerrado à mão o sistema faz um **complemento automático às 23:59**: avisa só as peças de empreiteira que saíram depois e não voltaram, uma vez. Saudação do e-mail com **nomes completos** (como no protótipo); itens sempre com "×n"; pendência com o "desde" real ("desde ontem 16:40", "desde 09/10"). |

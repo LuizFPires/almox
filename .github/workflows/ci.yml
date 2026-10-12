@@ -36,11 +36,12 @@ jobs:
       - name: Testes unitários
         run: npm test
 
-      # Só os serviços que os testes usam: banco, Auth, API REST, gateway, Realtime e Storage.
+      # Só os serviços que os testes usam: banco, Auth, API REST, gateway, Realtime, Storage e a
+      # caixa de e-mail de teste (Mailpit), que prova a entrega dos avisos no e2e (M9).
       - name: Supabase local
         run: >-
           npx supabase start
-          -x studio,imgproxy,vector,logflare,edge-runtime,supavisor,postgres-meta,mailpit
+          -x studio,imgproxy,vector,logflare,edge-runtime,supavisor,postgres-meta
 
       - name: Testes de banco (RLS e imutabilidade)
         run: npx supabase test db
@@ -58,6 +59,8 @@ jobs:
             --override-name auth.secret_key=SUPABASE_SECRET_KEY \
             | grep -E '^(NEXT_PUBLIC_SUPABASE_(URL|PUBLISHABLE_KEY)|SUPABASE_SECRET_KEY)=' > .env.local
           echo "NEXT_PUBLIC_SITE_URL=http://localhost:3200" >> .env.local
+          echo "MAILPIT_URL=http://127.0.0.1:54424" >> .env.local
+          echo "ENVIOS_SEGREDO=$(openssl rand -hex 32)" >> .env.local
           cut -d= -f1 .env.local
 
       - name: Build

@@ -3,6 +3,7 @@
 import { revalidatePath } from 'next/cache'
 import { redirect } from 'next/navigation'
 import { podeLancar } from '@/lib/dominio/permissoes'
+import { enviarDepois } from '@/lib/envios/depois'
 import { obterSessao } from '@/lib/sessao'
 import { criarClienteServidor } from '@/lib/supabase/servidor'
 
@@ -48,6 +49,8 @@ export async function registrarDevolucao(pedido: PedidoDevolucao): Promise<Falha
     }
     return { erro: 'Não foi possível registrar a devolução. Tente de novo.', motivo: 'outro' }
   }
+  // Peça de empreiteira devolvida antes da medição: desconto cancelado, empreiteira avisada.
+  enviarDepois()
   revalidatePath('/inicio')
   redirect(`/pessoa/${pedido.pessoaId}/devolucao/feita?mov=${movimento}`)
 }

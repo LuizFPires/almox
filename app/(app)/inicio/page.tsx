@@ -10,6 +10,7 @@ import { Relogio } from '@/components/Relogio'
 import { SeloPerfil } from '@/components/SeloPerfil'
 import { resumoDoDia, ultimosLancamentos } from '@/lib/dados/inicio'
 import { textoDesde } from '@/lib/dominio/ficha'
+import { resumoFechamento } from '@/lib/dominio/fechamento'
 import { descreverLancamento } from '@/lib/dominio/lancamentos'
 import { podeLancar } from '@/lib/dominio/permissoes'
 import { formatarHora } from '@/lib/formatos/datas'
@@ -120,20 +121,33 @@ export default async function PaginaInicio() {
           >
             <span
               aria-hidden="true"
-              className="flex size-10 shrink-0 items-center justify-center rounded-full bg-sutil"
+              className="flex size-11 shrink-0 items-center justify-center rounded-full bg-sutil"
             >
               <IconeInterface nome="clock" tamanho={22} />
             </span>
             <span className="flex flex-1 flex-col">
               <span className="font-bold">Fechamento do dia</span>
-              <span className="text-[13px] text-texto-2">
-                {resumo.pessoasComFerramenta === 0
-                  ? 'Todos devolveram'
-                  : `${resumo.pessoasComFerramenta} ${resumo.pessoasComFerramenta === 1 ? 'pessoa ainda' : 'pessoas ainda'} com ferramenta`}
+              <span className="text-sm text-texto-2">
+                {resumoFechamento(resumo.pessoasComFerramenta)}
               </span>
             </span>
             <IconeInterface nome="chevron-right" tamanho={20} className="text-texto-2" />
           </Link>
+        )}
+
+        {/* Quem recebe aviso (PRD §5): engenheiro e a consulta da empreiteira. */}
+        {(obraAtual.perfil === 'engenheiro' || restrita) && (
+          <div className={`grid gap-2 ${obraAtual.perfil === 'engenheiro' ? 'grid-cols-2' : ''}`}>
+            <Link href="/avisos" className={CLASSE_ATALHO}>
+              <IconeInterface nome="warning" tamanho={20} />
+              Avisos
+            </Link>
+            {obraAtual.perfil === 'engenheiro' && (
+              <Link href="/medicao" className={CLASSE_ATALHO}>
+                <IconeInterface nome="history" tamanho={20} />A descontar
+              </Link>
+            )}
+          </div>
         )}
 
         {pendencias.length > 0 && (

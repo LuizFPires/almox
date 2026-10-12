@@ -2,6 +2,55 @@
 
 Registro do que foi entregue em cada milestone (ver `PLAN.md`).
 
+## M9 — Fechamento do dia e avisos às empreiteiras (concluído em 12/10/2026)
+
+### Adicionado
+- **Fechamento do dia (F-10):**
+  - peças no canteiro;
+  - quem ainda está com ferramenta (itens, valor, "desde ontem 16:40", "{nome} chegou: ler capacete e devolver");
+  - quem devolveu tudo hoje;
+  - "Encerrar o dia e enviar relatório", com confirmação.
+- **Encerrar não dá baixa em nada (RN-12).** Um encerramento por dia, automático às 23:59 pelo agendamento do Supabase quando ninguém encerrou. Se o dia foi encerrado à mão, às 23:59 sai um complemento só com as peças que saíram depois.
+- **Desconto peça a peça:**
+  - cada peça de empreiteira que não voltou vira um desconto uma vez só, com o valor vigente no primeiro encerramento (RN-16);
+  - o aviso dos dias seguintes lembra as peças pendentes, sem somar de novo;
+  - funcionário próprio não gera aviso, só uma notificação de resumo ao engenheiro (RN-15).
+- **Aviso por empreiteira:**
+  - e-mail ao dono e ao encarregado com pessoa, ferramentas, valor, total e a regra do desconto e do cancelamento;
+  - notificação no celular (Web Push) para quem ativou em Conta.
+  - Telas "Dia encerrado" e "Aviso enviado", com a prévia da notificação e do e-mail.
+- **Devolução antes da medição (RN-14):** cancela o desconto daquela peça, e a empreiteira recebe e-mail de atualização. Quando todas voltam, o aviso fica "cancelado".
+- **Medição:**
+  - "Valores a descontar" por empreiteira;
+  - o engenheiro fecha a medição, os descontos em aberto viram "descontado" e ele informa a data da próxima.
+- **Avisos:** a tela mostra a situação de cada peça, para a empreiteira (só a dela) e para o engenheiro.
+- **"Não é ele":** notificação na hora ao encarregado da empresa da pessoa.
+- **Fila de envios no banco:**
+  - nova tentativa com espera crescente (1, 4, 16 e 64 min);
+  - "sem destino" quando ninguém ativou notificação;
+  - o engenheiro vê os envios com problema;
+  - e-mail pelo Resend em produção e pela caixa de teste (Mailpit) localmente e no CI.
+- **Limpeza diária** das fotos de avaria que nenhuma devolução usou (pendência do M6).
+
+### Revisão e comparação com o protótipo
+- **Estornos:**
+  - o estorno de uma devolução reabre o desconto e o aviso, com e-mail de correção;
+  - o estorno de retirada cancela o desconto com "lançamento corrigido pelo engenheiro", e é recusado depois da medição.
+- **E-mail de cancelamento:** lista exatamente as peças daquele movimento. A mesma peça em semanas anteriores não soma mais.
+- **Troca de empresa da pessoa, ou de tipo da empresa, com desconto em aberto:** recusada.
+- **Almoxarife:** vê só o encerramento de hoje.
+- **Encerramento automático:** acerta o dia mesmo com atraso; uma obra com erro não desfaz as outras.
+- **Segurança:**
+  - endereço de notificação só de serviços de push conhecidos (SSRF);
+  - processador de envios só com segredo longo;
+  - "Sair" desliga a notificação do aparelho;
+  - o clique na notificação só abre o próprio app.
+- **E-mail como o protótipo:** nomes completos na saudação, itens com ×n e frase de lembrete.
+- **Teste do QR do adesivo com mais tempo:** era a falha intermitente dos unitários, por causa da importação lenta do zxing com a máquina ocupada.
+- **Testes:**
+  - 346 de banco (+82 no M9), 184 unitários e 73 e2e;
+  - inclui os critérios: 2 empreiteiras geram 2 avisos com o total certo e e-mail entregue ao dono e ao encarregado; funcionário próprio sem aviso; devolução antes da medição cancela e manda o e-mail.
+
 ## M8 — Painel da TV (concluído em 12/10/2026)
 
 ### Adicionado

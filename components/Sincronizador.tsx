@@ -28,7 +28,7 @@ export function Sincronizador({ obra, lanca }: { obra: string; lanca: boolean })
       void navigator.serviceWorker?.ready
         .then((r) => r.active?.postMessage({ tipo: 'guardar-campo' }))
         .catch(() => undefined)
-      void import('@zxing/browser').catch(() => undefined)
+      void import('jsqr').catch(() => undefined)
     }
     const aoVoltar = () => {
       enviar()

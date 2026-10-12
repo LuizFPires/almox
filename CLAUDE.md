@@ -27,7 +27,7 @@ Sistema de controle de ferramentas do almoxarifado de obra. Cada trabalhador é 
 | Banco, auth, realtime, arquivos | Supabase (Postgres + RLS, Auth, Realtime, Storage) |
 | Funções agendadas | Supabase Edge Functions / cron (encerramento automático 23:59) |
 | Mobile | PWA instalável (service worker, IndexedDB para fila offline) |
-| Leitura de QR | Câmera via biblioteca de leitura no navegador (ex.: `@zxing/browser`) |
+| Leitura de QR | Câmera (`getUserMedia`) + `jsqr` no navegador (o zxing-js falhava em ~7% dos códigos) |
 | Notificações | Web Push (VAPID) + e-mail transacional (Resend ou SMTP) |
 | Impressão | Agente Node local (`agente-impressao/`) → impressora ZPL/TSPL na porta 9100 |
 | Testes | Vitest (unidade), Playwright (e2e) |

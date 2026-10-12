@@ -2,6 +2,52 @@
 
 Registro do que foi entregue em cada milestone (ver `PLAN.md`).
 
+## M8 — Painel da TV (concluído em 12/10/2026)
+
+### Adicionado
+- **Painel em loop (F-13)** na rota `/tv`:
+  - páginas de cartões por pessoa, em ordem alfabética, depois as colunas por empresa rolando para a esquerda, e recomeça;
+  - cabeçalho fino com marca, obra, título, "Pessoas 13–24 de 30", pontos de página e hora, mais a barra de progresso;
+  - tema escuro do Design System, montado em 1920×1080 e escalado para qualquer TV.
+- **Cartão:**
+  - nome, função e empresa (cor e nome);
+  - ferramentas com ícone e nome, agrupadas com ×N; quando passa de 3 tipos, "+N mais";
+  - "Retirou às 07:05" ou faixa vermelha "Não devolvido · desde ontem 16:40", com borda vermelha.
+- **Colunas por empresa:** uma subcoluna a mais sempre que alguém não cabe na altura (medida na tela). **Sem contagens na TV.**
+- **Conectar a TV sem login:**
+  - em Cadastros › Impressora, "Conectar uma TV" gera um código que vale 10 minutos e uma vez;
+  - a TV troca o código por uma credencial própria, que só lê o painel e nunca a fila de impressão;
+  - revogar o mini PC desliga TV e agente.
+- **Atualização a cada 2 s:**
+  - quando nada mudou, o servidor responde só a hora;
+  - dados novos entram sem reiniciar a animação;
+  - "Sem conexão desde HH:MM" mantendo o último estado, e a TV se recupera sozinha.
+- **Cadastros › Painel da TV:** tempo por página (3–30 s), cartões por página (8, 12 ou 16), velocidade (15–150 px/s) e pausas, só o engenheiro, com log de alterações.
+- **Para rodar dias seguidos:**
+  - tela sem descanso (Wake Lock) e recarga diária às 04:00;
+  - animação por `requestAnimationFrame` e `transform`;
+  - pendência que vira à meia-noite sem lançamento novo.
+- `scripts/soak-tv.mjs`: teste de resistência de memória.
+
+### Revisão e comparação com o protótipo
+- **Segurança:** o token do agente de impressão, que lê a fila com o QR dos capacetes, não abre mais o painel nem passa por URL.
+- **Recuperação:** só "dispositivo não autorizado" (AL008) desliga a TV; falha de permissão ou de rede é passageira.
+- **Sinal da TV separado do sinal do agente:** a impressora não parece mais online por causa da TV.
+- **Igual ao protótipo:**
+  - escala para 1920×1080;
+  - colunas medidas;
+  - borda vermelha forte;
+  - nomes longos com hífen;
+  - relógio na hora do servidor.
+- **Seed:** retiradas "de hoje" nunca no futuro. Antes das 07:45 elas escondiam lançamentos novos.
+- **e2e mais robustos:**
+  - conferem pelas ferramentas criadas no próprio teste, não pela "última retirada da pessoa";
+  - espera de 30 s para a câmera falsa ler o QR.
+- **Testes:**
+  - 40 pgTAP do painel (264 no total), 167 unitários e 71 e2e;
+  - inclui os critérios: loop 12/12/6 → colunas → página 1 e retirada na TV em até 3 s;
+  - soak de 12 min com dados mudando a cada 20 s: memória estável em 3,6–4,2 MB e listeners fixos.
+
 ## M7 — Lista, estoque e busca (concluído em 11/10/2026)
 
 ### Adicionado

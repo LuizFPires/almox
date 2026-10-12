@@ -4,6 +4,8 @@ import { Suspense, type ReactNode } from 'react'
 import { Marca } from '@/components/Marca'
 import { Relogio } from '@/components/Relogio'
 import { COOKIE_TV, lerPainel } from '@/lib/dados/tv'
+import { PainelTv } from './PainelTv'
+import { TentarDeNovo } from './TentarDeNovo'
 
 export const metadata: Metadata = { title: 'Painel · Almox' }
 
@@ -33,9 +35,14 @@ async function Conteudo() {
     )
   }
   if (resultado.tipo === 'erro') {
-    return <Moldura obra="">Sem conexão com o servidor. Tentando de novo…</Moldura>
+    return (
+      <Moldura obra="">
+        <TentarDeNovo />
+        Sem conexão com o servidor. Tentando de novo…
+      </Moldura>
+    )
   }
-  return <Moldura obra={resultado.painel.obra}>Aguardando dados do almoxarifado</Moldura>
+  return <PainelTv inicial={resultado.painel} />
 }
 
 function Moldura({ obra, children }: { obra: string; children: ReactNode }) {

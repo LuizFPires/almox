@@ -7,12 +7,15 @@ import { SeloFimDoDia } from '@/components/SeloFimDoDia'
 import { resumoFechamento } from '@/lib/dados/fechamento'
 import { destinatariosAviso, subtituloEncerrado } from '@/lib/dominio/fechamento'
 import { formatarBRL } from '@/lib/formatos/moeda'
+import { obterSessao } from '@/lib/sessao'
 
 export const metadata: Metadata = { title: 'Dia encerrado · Almox' }
 
 /** Resultado do encerramento: avisos por empreiteira e pendências próprias (protótipo). */
 export default async function PaginaDiaEncerrado({ params }: PageProps<'/fechamento/[id]'>) {
   const { id } = await params
+  // A sessão primeiro (lê cookies): a página é dinâmica e só abre para quem está logado.
+  await obterSessao()
   const r = await resumoFechamento(id)
   if (!r) notFound()
   const n = r.avisos.length

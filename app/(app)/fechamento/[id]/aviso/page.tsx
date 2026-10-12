@@ -16,7 +16,9 @@ export default async function PaginaAvisoEnviado({
 }: PageProps<'/fechamento/[id]/aviso'>) {
   const { id } = await params
   const { e } = (await searchParams) as { e?: string }
-  const [{ obraAtual }, r] = await Promise.all([obterSessao(), resumoFechamento(id)])
+  // A sessão primeiro (lê cookies): a página é dinâmica e só abre para quem está logado.
+  const { obraAtual } = await obterSessao()
+  const r = await resumoFechamento(id)
   if (!r || r.avisos.length === 0) notFound()
   const indice = Math.min(Math.max(Number(e) || 0, 0), r.avisos.length - 1)
   const a = r.avisos[indice]!

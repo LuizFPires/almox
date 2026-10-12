@@ -23,6 +23,11 @@ process.on('uncaughtException', (erro) => {
   log(`Erro inesperado: ${erro.message}`)
   void alertar(`Erro inesperado: ${erro.message}`).finally(() => process.exit(1))
 })
+process.on('unhandledRejection', (motivo) => {
+  const texto = motivo instanceof Error ? motivo.message : String(motivo)
+  log(`Erro inesperado: ${texto}`)
+  void alertar(`Erro inesperado: ${texto}`)
+})
 
 let config
 try {

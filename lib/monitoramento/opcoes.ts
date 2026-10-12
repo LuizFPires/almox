@@ -14,6 +14,6 @@ export function opcoesSentry() {
     tracesSampleRate: 0,
     beforeSend: <T>(evento: T) => limparEvento(evento),
     beforeBreadcrumb: <T>(migalha: T) =>
-      limparEvento({ breadcrumbs: [migalha] }).breadcrumbs[0] ?? null,
+      (limparEvento({ breadcrumbs: [migalha] }).breadcrumbs[0] as T | undefined) ?? null,
   }
 }

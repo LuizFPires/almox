@@ -57,6 +57,8 @@ export type ItemFila = {
   quando: string
   situacao: 'aguardando' | 'recusado'
   erro?: string
+  /** Respostas de erro do servidor (5xx) já recebidas; depois de 5, o item é recusado. */
+  tentativas?: number
 }
 
 /** Livres de cada tipo agora, descontando as retiradas da fila ainda não enviadas. */
@@ -119,19 +121,45 @@ export function normalizarToken(texto: string): string {
   return texto.trim().toLowerCase()
 }
 
-export type RespostaEnvio = { ok: true } | { ok: false; codigo?: string; mensagem?: string }
+export type RespostaEnvio =
+  { ok: true } | { ok: false; status?: number; codigo?: string; mensagem?: string }
+
+export const MAX_TENTATIVAS_SERVIDOR = 5
 
 /**
- * Depois de tentar enviar um item: `enviado`, `tentarDepois` (sem rede, servidor fora, sessão
- * vencida: fica na fila) ou `recusado` (regra de negócio: o almoxarife vê o motivo e descarta).
+ * Depois de tentar enviar um item:
+ * - `enviado`;
+ * - `tentarDepois` (sem rede, sessão vencida, servidor ocupado ou fora): fica na fila; `contar`
+ *   diz se foi erro do servidor (5xx), que depois de 5 vezes vira recusa (não trava a fila);
+ * - `recusado` (o Almox respondeu que este lançamento não vale): o almoxarife vê o motivo.
  */
 export function destinoDoEnvio(
   r: RespostaEnvio,
-): { acao: 'enviado' } | { acao: 'tentarDepois' } | { acao: 'recusado'; erro: string } {
+  tentativas = 0,
+):
+  | { acao: 'enviado' }
+  | { acao: 'tentarDepois'; contar: boolean }
+  | { acao: 'recusado'; erro: string } {
   if (r.ok) return { acao: 'enviado' }
   const codigo = r.codigo ?? ''
-  const negocio = /^(AL\d{3}|22023|P0002|42501)$/.test(codigo)
-  if (!negocio) return { acao: 'tentarDepois' }
+  if (/^(AL\d{3}|22023|P0002|42501)$/.test(codigo)) {
+    return { acao: 'recusado', erro: mensagemRecusa(codigo, r.mensagem) }
+  }
+  const status = r.status ?? 0
+  // Sem resposta, sessão vencida, tempo esgotado, limite de pedidos: espera a rede/sessão.
+  if (status === 0 || status === 401 || status === 408 || status === 429) {
+    return { acao: 'tentarDepois', contar: false }
+  }
+  if (status >= 500 || ['40001', '40P01', '55P03', '57014'].includes(codigo)) {
+    if (tentativas + 1 >= MAX_TENTATIVAS_SERVIDOR) {
+      return {
+        acao: 'recusado',
+        erro: 'O Almox não conseguiu gravar este lançamento depois de várias tentativas. Nada foi registrado: lance de novo.',
+      }
+    }
+    return { acao: 'tentarDepois', contar: true }
+  }
+  // Outra resposta 4xx: este pedido não vale (não trava os seguintes).
   return { acao: 'recusado', erro: mensagemRecusa(codigo, r.mensagem) }
 }
 

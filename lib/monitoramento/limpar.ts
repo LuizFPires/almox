@@ -30,6 +30,7 @@ export function limparEvento<T>(evento: T): T {
   const e: Registro = evento
   delete e.user
   delete e.server_name
+  delete e.extra
   if (ehRegistro(e.request)) {
     const r = e.request
     delete r.cookies
@@ -47,8 +48,11 @@ export function limparEvento<T>(evento: T): T {
     }
   }
   if (Array.isArray(e.breadcrumbs)) {
-    for (const b of e.breadcrumbs) {
+    // Migalhas do console levam os argumentos crus (podem ter qualquer dado): saem.
+    e.breadcrumbs = e.breadcrumbs.filter((b) => !(ehRegistro(b) && b.category === 'console'))
+    for (const b of e.breadcrumbs as unknown[]) {
       if (!ehRegistro(b)) continue
+      if (ehRegistro(b.data)) delete b.data.arguments
       if (typeof b.message === 'string') b.message = mascarar(b.message)
       if (ehRegistro(b.data)) {
         for (const chave of ['url', 'from', 'to']) {

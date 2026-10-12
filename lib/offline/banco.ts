@@ -61,12 +61,22 @@ export async function guardarDados(dados: DadosGuardados): Promise<void> {
   await transacao('dados', 'readwrite', (s) => s.put(dados))
 }
 
-export async function lerDados(obra?: string): Promise<DadosGuardados | null> {
-  if (obra)
-    return (await transacao<DadosGuardados>('dados', 'readonly', (s) => s.get(obra))) ?? null
-  // Sem obra (tela sem internet): a guardada mais recente.
+/** Dados guardados deste login (de uma obra, ou o mais recente). Os de outro login não servem. */
+export async function lerDados(usuario: string, obra?: string): Promise<DadosGuardados | null> {
   const todas = (await transacao<DadosGuardados[]>('dados', 'readonly', (s) => s.getAll())) ?? []
-  return todas.sort((a, b) => b.guardadoEm.localeCompare(a.guardadoEm))[0] ?? null
+  return (
+    todas
+      .filter((d) => d.usuario === usuario && (!obra || d.obra === obra))
+      .sort((a, b) => b.guardadoEm.localeCompare(a.guardadoEm))[0] ?? null
+  )
+}
+
+/** Outro login entrou neste celular: os dados guardados do anterior saem. */
+export async function apagarDadosDeOutros(usuario: string): Promise<void> {
+  const todas = (await transacao<DadosGuardados[]>('dados', 'readonly', (s) => s.getAll())) ?? []
+  for (const d of todas.filter((x) => x.usuario !== usuario)) {
+    await transacao('dados', 'readwrite', (s) => s.delete(d.obra))
+  }
 }
 
 export async function listarFila(): Promise<ItemFila[]> {

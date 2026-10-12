@@ -87,10 +87,33 @@ describe('destinoDoEnvio', () => {
     expect(destinoDoEnvio({ ok: true })).toEqual({ acao: 'enviado' })
   })
 
-  it('sem rede ou erro do servidor: tenta depois', () => {
-    expect(destinoDoEnvio({ ok: false })).toEqual({ acao: 'tentarDepois' })
-    expect(destinoDoEnvio({ ok: false, codigo: 'PGRST301' })).toEqual({ acao: 'tentarDepois' })
-    expect(destinoDoEnvio({ ok: false, codigo: '500' })).toEqual({ acao: 'tentarDepois' })
+  it('sem rede, sessão vencida ou limite: espera sem contar', () => {
+    expect(destinoDoEnvio({ ok: false })).toEqual({ acao: 'tentarDepois', contar: false })
+    expect(destinoDoEnvio({ ok: false, status: 401, codigo: 'PGRST301' })).toEqual({
+      acao: 'tentarDepois',
+      contar: false,
+    })
+    expect(destinoDoEnvio({ ok: false, status: 429 })).toEqual({
+      acao: 'tentarDepois',
+      contar: false,
+    })
+  })
+
+  it('erro do servidor conta e, na 5ª vez, vira recusa (não trava a fila)', () => {
+    expect(destinoDoEnvio({ ok: false, status: 500 }, 0)).toEqual({
+      acao: 'tentarDepois',
+      contar: true,
+    })
+    expect(destinoDoEnvio({ ok: false, status: 503 }, 4)).toMatchObject({ acao: 'recusado' })
+  })
+
+  it('outra resposta 4xx do item (ex.: erro de trigger, valor inválido): recusado', () => {
+    expect(
+      destinoDoEnvio({ ok: false, status: 400, codigo: 'P0001', mensagem: 'Regra X.' }),
+    ).toEqual({ acao: 'recusado', erro: 'Regra X. Nada foi registrado.' })
+    expect(destinoDoEnvio({ ok: false, status: 400, codigo: '22P02' })).toMatchObject({
+      acao: 'recusado',
+    })
   })
 
   it('regra de negócio: recusado com motivo claro', () => {

@@ -91,7 +91,10 @@ const SITUACAO: Record<LinhaDesconto['status'], string> = {
 }
 
 /** Uma linha por peça cobrada (aviso de não devolução), com o total a descontar no fim. */
-export async function planilhaDescontos(linhas: LinhaDesconto[]): Promise<Buffer> {
+export async function planilhaDescontos(
+  linhas: LinhaDesconto[],
+  opcoes: { aDescontar?: number; limite?: number } = {},
+): Promise<Buffer> {
   const livro = new ExcelJS.Workbook()
   livro.creator = 'Almox'
   const aba = novaAba(livro, 'Avisos e descontos', [
@@ -116,8 +119,16 @@ export async function planilhaDescontos(linhas: LinhaDesconto[]): Promise<Buffer
       cancelado: d.cancelado_em ? dataDaObra(d.cancelado_em) : null,
     })
   }
-  const aDescontar = linhas.filter((d) => d.status === 'aberto').reduce((s, d) => s + d.valor, 0)
+  // Total de todos os descontos em aberto (mesmo os que passaram do limite de linhas).
+  const aDescontar =
+    opcoes.aDescontar ??
+    linhas.filter((d) => d.status === 'aberto').reduce((s, d) => s + d.valor, 0)
   const total = aba.addRow({ situacao: 'Total a descontar', valor: celulaReais(aDescontar) })
   total.font = { bold: true }
+  if (opcoes.limite && linhas.length >= opcoes.limite) {
+    aba.addRow({
+      empresa: `Só as ${opcoes.limite} peças mais recentes estão listadas; o total considera todas.`,
+    })
+  }
   return paraBuffer(livro)
 }

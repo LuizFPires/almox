@@ -1,5 +1,6 @@
 'use client'
 
+import jsQR from 'jsqr'
 import { useEffect, useRef, useState } from 'react'
 import { mensagemCamera } from '@/lib/dominio/leitura'
 
@@ -15,7 +16,8 @@ const LARGURA_MAX = 720
 /**
  * Câmera traseira com leitura automática do QR (sem botão), moldura amarela e lanterna
  * quando o aparelho permite. Para a câmera ao ler, ao sair da tela e ao desmontar.
- * Decodifica com o jsQR (M10): o zxing-js deixava de ler cerca de 7% dos códigos.
+ * Decodifica com o jsQR (M10): o zxing-js deixava de ler cerca de 7% dos códigos. Importado
+ * junto com a tela (não sob demanda): a tela sem internet já leva o leitor no cache.
  */
 export function LeitorQr({ aoLer }: Props) {
   const video = useRef<HTMLVideoElement>(null)
@@ -38,6 +40,7 @@ export function LeitorQr({ aoLer }: Props) {
       window.clearTimeout(relogio)
       fluxo?.getTracks().forEach((t) => t.stop())
       fluxo = null
+      if (video.current) video.current.srcObject = null
       trilha.current = null
     }
 
@@ -47,13 +50,10 @@ export function LeitorQr({ aoLer }: Props) {
         return
       }
       try {
-        const [{ default: jsQR }, s] = await Promise.all([
-          import('jsqr'),
-          navigator.mediaDevices.getUserMedia({
-            audio: false,
-            video: { facingMode: { ideal: 'environment' } },
-          }),
-        ])
+        const s = await navigator.mediaDevices.getUserMedia({
+          audio: false,
+          video: { facingMode: { ideal: 'environment' } },
+        })
         // StrictMode (dev) monta, desmonta e monta de novo: não deixa a câmera aberta.
         if (cancelado) {
           s.getTracks().forEach((t) => t.stop())

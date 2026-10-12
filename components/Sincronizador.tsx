@@ -1,8 +1,8 @@
 'use client'
 
 import { useEffect } from 'react'
-import { CANAL_FILA } from '@/lib/offline/banco'
-import { atualizarDados, enviarFila } from '@/lib/offline/sincronizar'
+import { apagarDadosDeOutros, CANAL_FILA } from '@/lib/offline/banco'
+import { atualizarDados, enviarFila, usuarioAtual } from '@/lib/offline/sincronizar'
 
 const ENVIAR_MS = 30_000
 const DADOS_MS = 5 * 60_000
@@ -21,14 +21,17 @@ export function Sincronizador({ obra, lanca }: { obra: string; lanca: boolean })
     const baixar = () => {
       if (vivo && lanca && navigator.onLine) void atualizarDados(obra).catch(() => undefined)
     }
+    // Outro login neste celular: os dados guardados do anterior saem (não abrem no /campo).
+    void usuarioAtual()
+      .then((u) => (u ? apagarDadosDeOutros(u) : undefined))
+      .catch(() => undefined)
     enviar()
     baixar()
     if (lanca) {
-      // A tela sem internet e o leitor de QR ficam guardados para quando a rede cair.
+      // A tela sem internet (com o leitor de QR) fica guardada para quando a rede cair.
       void navigator.serviceWorker?.ready
         .then((r) => r.active?.postMessage({ tipo: 'guardar-campo' }))
         .catch(() => undefined)
-      void import('jsqr').catch(() => undefined)
     }
     const aoVoltar = () => {
       enviar()

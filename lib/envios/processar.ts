@@ -179,6 +179,9 @@ export async function apagarFotosVencidas(): Promise<number> {
   if (error || !nomes?.length) return 0
   const { error: erroRemover } = await admin.storage.from('avarias').remove(nomes)
   if (erroRemover) return 0
-  await admin.rpc('marcar_fotos_apagadas', { p_caminhos: nomes })
-  return nomes.length
+  // O banco marca só as que de fato saíram do Storage (remoção parcial não fica marcada).
+  const { data: marcadas, error: erroMarcar } = await admin.rpc('marcar_fotos_apagadas', {
+    p_caminhos: nomes,
+  })
+  return erroMarcar ? 0 : (marcadas ?? 0)
 }

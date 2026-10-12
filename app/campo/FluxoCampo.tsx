@@ -37,6 +37,7 @@ import {
   tirarDaFila,
   type DadosGuardados,
 } from '@/lib/offline/banco'
+import { usuarioDoCookie } from '@/lib/offline/sessao'
 import { enviarFila } from '@/lib/offline/sincronizar'
 
 type Escolhida = { pessoa: PessoaOffline; token: string | null }
@@ -62,18 +63,26 @@ export function FluxoCampo() {
   const [etapa, setEtapa] = useState<Etapa>({ tipo: 'inicio' })
   const [online, setOnline] = useState(true)
   const [enviando, setEnviando] = useState(false)
+  const [semLogin, setSemLogin] = useState(false)
 
-  const recarregar = useCallback(
-    () =>
-      Promise.all([lerDados(), listarFila()]).then(
-        ([d, f]) => {
-          setDados(d)
-          setFila(f)
-        },
-        () => setDados(null),
-      ),
-    [],
-  )
+  // Só os dados e a fila de quem está logado neste celular (sem sessão, a tela não abre).
+  const recarregar = useCallback(() => {
+    const usuario = usuarioDoCookie(document.cookie)
+    if (!usuario) {
+      setSemLogin(true)
+      setDados(null)
+      setFila([])
+      return Promise.resolve()
+    }
+    return Promise.all([lerDados(usuario), listarFila()]).then(
+      ([d, f]) => {
+        setSemLogin(false)
+        setDados(d)
+        setFila(f.filter((i) => i.usuario === usuario))
+      },
+      () => setDados(null),
+    )
+  }, [])
 
   useEffect(() => {
     const rede = () => setOnline(navigator.onLine)
@@ -154,6 +163,23 @@ export function FluxoCampo() {
       <p role="status" className="flex flex-1 items-center justify-center text-texto-2">
         Carregando…
       </p>
+    )
+  }
+
+  if (semLogin) {
+    return (
+      <>
+        <Cabecalho titulo="Lançar sem internet" />
+        <main className="flex flex-1 flex-col gap-4 px-5 pt-2 pb-6">
+          <p className="rounded-cartao bg-aviso-claro px-4 py-3.5 text-[15px] text-aviso">
+            Ninguém está logado neste celular. Entre no Almox com internet, com o login do
+            almoxarife, para lançar sem internet depois.
+          </p>
+          <Link href="/login" className="text-center font-bold underline">
+            Entrar
+          </Link>
+        </main>
+      </>
     )
   }
 

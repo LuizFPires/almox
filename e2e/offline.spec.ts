@@ -69,6 +69,7 @@ test.describe('lançar sem internet', () => {
     request,
     baseURL,
   }) => {
+    const inicio = new Date().toISOString()
     const eng = await apiEngenheiro(request)
     const sufixo = `${Date.now() % 100000}`
     const nome = `Pá offline ${sufixo}`
@@ -140,13 +141,18 @@ test.describe('lançar sem internet', () => {
         await retirar(pagina, nome, 1)
       }
 
+      // "Não é ele" sem internet: vai para a fila e não registra nada.
+      const antesDaRede = new Date().toISOString()
+      await pagina.getByRole('button', { name: /Ler QR do capacete/ }).click()
+      const naoEhEle = pagina.getByRole('button', { name: 'Não é ele' })
+      await aguardarLeitura(pagina, naoEhEle)
+      await naoEhEle.click()
+      await expect(pagina.getByRole('heading', { name: 'Nada foi registrado' })).toBeVisible()
+      await pagina.getByRole('button', { name: 'Voltar' }).last().click()
+
       const fila = pagina.getByRole('region', { name: 'Fila do celular' })
-      await expect(fila.getByText('aguardando envio', { exact: true })).toHaveCount(3)
-      expect(
-        await eng.get<unknown[]>(
-          `movimento?select=id&chave_cliente=not.is.null&recebido_em=not.is.null&obra_id=eq.${OBRA}&criado_em=gte.${new Date(Date.now() - 60_000).toISOString()}`,
-        ),
-      ).toHaveLength(0)
+      await expect(fila.getByText('aguardando envio', { exact: true })).toHaveCount(4)
+      // Nada chegou ao servidor: as 5 peças da ferramenta do teste continuam livres.
       const livresAntes = await eng.get<unknown[]>(
         `unidade?select=id&tipo_id=eq.${tipoId}&status=eq.livre`,
       )
@@ -162,6 +168,17 @@ test.describe('lançar sem internet', () => {
       expect(posses).toHaveLength(4)
       expect(posses.filter((p) => p.pessoa_id === diego).map((p) => p.via)).toEqual(['qr', 'qr'])
       expect(posses.filter((p) => p.via === 'manual')).toHaveLength(2)
+      // Hora do celular (antes de a rede voltar) e hora de chegada guardadas.
+      const movs = await eng.get<{ criado_em: string; recebido_em: string | null }[]>(
+        `movimento?select=criado_em,recebido_em&pessoa_id=eq.${diego}&tipo=eq.retirada&order=criado_em.desc&limit=1`,
+      )
+      expect(Date.parse(movs[0]?.criado_em ?? '')).toBeLessThanOrEqual(Date.parse(antesDaRede))
+      expect(movs[0]?.recebido_em).toBeTruthy()
+      // A ocorrência chegou uma vez, com a hora do celular.
+      const ocorrencias = await eng.get<unknown[]>(
+        `ocorrencia?select=id&pessoa_id=eq.${diego}&criado_em=gte.${inicio}`,
+      )
+      expect(ocorrencias).toHaveLength(1)
 
       // E na TV (dados do painel).
       await expect
@@ -172,6 +189,15 @@ test.describe('lançar sem internet', () => {
     } finally {
       await navegador.close()
     }
+  })
+
+  test('sem login, a tela sem internet não abre (nem com dados de outro login no celular)', async ({
+    page,
+  }) => {
+    await page.goto('/campo')
+    // Sem sessão o servidor manda para o login; e a tela, se vier do cache, também bloqueia.
+    await expect(page.getByText(/Ninguém está logado neste celular|Entrar/).first()).toBeVisible()
+    await expect(page.getByRole('button', { name: /Ler QR do capacete/ })).toHaveCount(0)
   })
 })
 

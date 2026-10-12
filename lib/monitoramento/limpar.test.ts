@@ -42,6 +42,17 @@ describe('limparEvento', () => {
     })
   })
 
+  it('tira migalhas do console e o "extra"', () => {
+    const evento = limparEvento({
+      extra: { pedido: { email: 'x@y.com' } },
+      breadcrumbs: [
+        { category: 'console', message: 'log', data: { arguments: ['segredo'] } },
+        { category: 'fetch', data: { url: '/api/x?y=1', arguments: ['z'] } },
+      ],
+    })
+    expect(evento).toEqual({ breadcrumbs: [{ category: 'fetch', data: { url: '/api/x' } }] })
+  })
+
   it('semQuery', () => {
     expect(semQuery('/campo#x')).toBe('/campo')
   })

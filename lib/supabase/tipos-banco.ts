@@ -915,6 +915,7 @@ export type Database = {
       }
       ocorrencia: {
         Row: {
+          chave_cliente: string | null
           criado_em: string
           id: string
           obra_id: string
@@ -924,6 +925,7 @@ export type Database = {
         }
         ComputedFields: never
         Insert: {
+          chave_cliente?: string | null
           criado_em?: string
           id?: string
           obra_id: string
@@ -932,6 +934,7 @@ export type Database = {
           usuario_id: string
         }
         Update: {
+          chave_cliente?: string | null
           criado_em?: string
           id?: string
           obra_id?: string
@@ -1421,7 +1424,7 @@ export type Database = {
           usuario_id: string
         }[]
       }
-      marcar_fotos_apagadas: { Args: { p_caminhos: string[] }; Returns: undefined }
+      marcar_fotos_apagadas: { Args: { p_caminhos: string[] }; Returns: number }
       painel_tv: { Args: { p_token: string; p_versao?: string }; Returns: Json }
       pegar_envios: {
         Args: { p_canais?: Database['public']['Enums']['canal_envio'][]; p_limite?: number }
@@ -1460,7 +1463,10 @@ export type Database = {
         }
         Returns: string
       }
-      registrar_ocorrencia: { Args: { p_obra: string; p_token: string }; Returns: string }
+      registrar_ocorrencia: {
+        Args: { p_chave?: string; p_obra: string; p_quando?: string; p_token: string }
+        Returns: string
+      }
       registrar_retirada: {
         Args: {
           p_chave?: string

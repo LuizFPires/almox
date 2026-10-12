@@ -2,7 +2,7 @@
 // navegação falha, recebe as notificações dos avisos (Web Push, M9) e guarda a tela de lançar
 // sem internet (/campo, M10) com os arquivos dela.
 // Troque a versão sempre que offline.html ou este arquivo mudarem, para o SW reinstalar.
-const VERSAO = 'almox-v6'
+const VERSAO = 'almox-v7'
 const ESTATICOS = 'almox-estaticos-v1'
 const OFFLINE = '/offline.html'
 const CAMPO = '/campo'
@@ -37,6 +37,16 @@ function ehEstatico(url) {
     !DESENVOLVIMENTO &&
     url.origin === self.location.origin &&
     url.pathname.startsWith('/_next/static/')
+  )
+}
+
+/** O cache de arquivos não cresce sem fim (TV e celulares ficam dias abertos entre deploys). */
+const MAX_ESTATICOS = 300
+async function aparar(cache) {
+  const chaves = await cache.keys()
+  // Ordem de inserção: os mais antigos saem primeiro.
+  await Promise.all(
+    chaves.slice(0, Math.max(0, chaves.length - MAX_ESTATICOS)).map((c) => cache.delete(c)),
   )
 }
 
@@ -85,7 +95,7 @@ self.addEventListener('fetch', (evento) => {
         const guardado = await cache.match(request)
         if (guardado) return guardado
         const resposta = await fetch(request)
-        if (resposta.ok) cache.put(request, resposta.clone())
+        if (resposta.ok) cache.put(request, resposta.clone()).then(() => aparar(cache))
         return resposta
       }),
     )

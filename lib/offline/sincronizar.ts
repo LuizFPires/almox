@@ -27,8 +27,9 @@ export async function atualizarDados(obra: string, cliente: Cliente = criarClien
 }
 
 /**
- * Manda a fila em ordem. Sem rede (ou servidor fora, sessão vencida): para e tenta depois.
- * Recusa de regra de negócio: o item fica marcado com o motivo para o almoxarife ver.
+ * Manda a fila em ordem. Sem rede, sessão vencida ou servidor fora: para e tenta depois (erro
+ * do servidor conta; depois de 5, o item é recusado para não travar a fila). Resposta de que o
+ * lançamento não vale: o item fica marcado com o motivo para o almoxarife ver e descartar.
  * Só manda o que este login lançou. Devolve quantos foram enviados.
  */
 export async function enviarFila(cliente: Cliente = criarClienteNavegador()): Promise<number> {
@@ -41,7 +42,7 @@ export async function enviarFila(cliente: Cliente = criarClienteNavegador()): Pr
       if (item.situacao !== 'aguardando' || item.usuario !== usuario) continue
       let resposta: RespostaEnvio
       try {
-        const { error } =
+        const { error, status } =
           item.tipo === 'retirada'
             ? await cliente.rpc('registrar_retirada', {
                 p_obra: item.obra,
@@ -66,13 +67,20 @@ export async function enviarFila(cliente: Cliente = criarClienteNavegador()): Pr
               : await cliente.rpc('registrar_ocorrencia', {
                   p_obra: item.obra,
                   p_token: item.token ?? '',
+                  p_chave: item.chave,
+                  p_quando: item.quando,
                 })
-        resposta = error ? { ok: false, codigo: error.code, mensagem: error.message } : { ok: true }
+        resposta = error
+          ? { ok: false, status, codigo: error.code, mensagem: error.message }
+          : { ok: true }
       } catch {
         resposta = { ok: false }
       }
-      const destino = destinoDoEnvio(resposta)
-      if (destino.acao === 'tentarDepois') break
+      const destino = destinoDoEnvio(resposta, item.tentativas ?? 0)
+      if (destino.acao === 'tentarDepois') {
+        if (destino.contar) await guardarNaFila({ ...item, tentativas: (item.tentativas ?? 0) + 1 })
+        break
+      }
       if (destino.acao === 'enviado') {
         await tirarDaFila(item.chave)
         enviados++

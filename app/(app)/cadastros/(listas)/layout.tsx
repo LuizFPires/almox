@@ -20,6 +20,13 @@ export default async function LayoutListas({ children }: LayoutProps<'/cadastros
         selo={<SeloPerfil perfil={obraAtual.perfil} empresa={obraAtual.empresa?.nome} />}
       />
       <div className="flex flex-col gap-3 px-5 pt-1 pb-3">
+        <Link
+          href="/cadastros/ajuda"
+          className="flex min-h-toque items-center gap-2 self-start rounded-botao px-1 text-[15px] font-semibold text-engenheiro"
+        >
+          <IconeInterface nome="info" tamanho={22} />
+          Passo a passo: impressora e TV
+        </Link>
         <CartaoImpressora impressora={impressora} agente={agente} href="/cadastros/impressora" />
         <Link
           href="/cadastros/painel-tv"

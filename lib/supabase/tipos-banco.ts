@@ -1403,6 +1403,7 @@ export type Database = {
           pessoa_id: string
         }[]
       }
+      importar_cadastro: { Args: { p_dados: Json; p_obra: string }; Returns: Json }
       ler_capacete: {
         Args: { p_obra: string; p_token: string }
         Returns: {

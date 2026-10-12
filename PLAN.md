@@ -289,7 +289,7 @@ Legenda: ⬜ A fazer · 🟨 Em andamento · ✅ Concluído · ⛔ Bloqueado
 
 **Entregas**
 - [ ] Checklist de implantação: TV + mini PC, agente de impressão como serviço, impressora configurada, Wi-Fi testado no almoxarifado
-- [ ] Cadastro inicial de empresas, pessoas e ferramentas; impressão e colagem dos adesivos
+- [ ] Cadastro inicial de empresas, pessoas e ferramentas; impressão e colagem dos adesivos (importação por planilha e adesivos em lote prontos; cadastro real e colagem na obra)
 - [ ] Treinamento de 30 min: almoxarife, engenheiro, encarregados
 - [ ] Termo de responsabilidade assinado pelos trabalhadores e cláusula de desconto nos contratos das empreiteiras (jurídico)
 - [x] Coleta das métricas do PRD §3 (tempo de lançamento, % manual, pendências/semana)

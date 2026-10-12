@@ -64,6 +64,7 @@ export default async function PaginaManutencao({ searchParams }: PageProps<'/man
                 {p.motivo && (
                   <span className="text-sm font-semibold text-erro">{rotuloMotivo(p.motivo)}</span>
                 )}
+                {p.detalhes && <span className="text-sm">{p.detalhes}</span>}
                 {p.quando && (
                   <span className="text-[13px] text-texto-2">
                     {p.devolvidaPor ? `devolvida por ${p.devolvidaPor} · ` : ''}

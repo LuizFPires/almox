@@ -163,7 +163,7 @@ export function FluxoDevolucao(props: Props) {
               tipo: g.tipoId,
               quantidade: dev[g.tipoId] ?? 0,
               avarias: (avarias[g.tipoId] ?? []).flatMap((a) =>
-                a ? [{ motivo: a.motivo, foto: a.foto }] : [],
+                a ? [{ motivo: a.motivo, foto: a.foto, detalhes: a.detalhes }] : [],
               ),
             })),
         })
@@ -285,6 +285,7 @@ export function FluxoDevolucao(props: Props) {
                       <span>
                         {rotuloMotivo(a.motivo)} · foto {formatarHora(a.hora)}
                       </span>
+                      {a.detalhes && <span className="text-texto-2">{a.detalhes}</span>}
                     </span>
                     <button
                       type="button"

@@ -81,6 +81,7 @@ export type Database = {
       avaria: {
         Row: {
           criado_em: string
+          detalhes: string | null
           foto_apagada_em: string | null
           foto_path: string
           id: string
@@ -92,6 +93,7 @@ export type Database = {
         ComputedFields: never
         Insert: {
           criado_em?: string
+          detalhes?: string | null
           foto_apagada_em?: string | null
           foto_path: string
           id?: string
@@ -102,6 +104,7 @@ export type Database = {
         }
         Update: {
           criado_em?: string
+          detalhes?: string | null
           foto_apagada_em?: string | null
           foto_path?: string
           id?: string

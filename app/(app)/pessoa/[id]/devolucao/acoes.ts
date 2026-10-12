@@ -11,7 +11,11 @@ export type PedidoDevolucao = {
   pessoaId: string
   /** Id da conferência do capacete (M4); sem ele, só voltam itens que saíram sem QR. */
   identificacao: string | null
-  itens: { tipo: string; quantidade: number; avarias: { motivo: string; foto: string }[] }[]
+  itens: {
+    tipo: string
+    quantidade: number
+    avarias: { motivo: string; foto: string; detalhes?: string }[]
+  }[]
   /** Gerada ao abrir a devolução: repetir o pedido (resposta perdida) não duplica. */
   chave: string
 }

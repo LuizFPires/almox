@@ -8,7 +8,14 @@ import { MOTIVOS, rotuloMotivo, textoCarimbo, type Motivo } from '@/lib/dominio/
 import { comprimirFoto } from '@/lib/imagem'
 import { criarClienteNavegador } from '@/lib/supabase/navegador'
 
-export type FotoFeita = { motivo: Motivo; foto: string; previa: string; hora: string }
+export type FotoFeita = {
+  motivo: Motivo
+  foto: string
+  previa: string
+  hora: string
+  /** Texto livre opcional (até 300 caracteres). */
+  detalhes?: string
+}
 
 type Props = {
   obraId: string
@@ -30,6 +37,7 @@ export function FotoAvaria({ obraId, tipo, autor, qual, aoVoltar, aoUsar, selo }
   const entrada = useRef<HTMLInputElement>(null)
   const [foto, setFoto] = useState<{ blob: Blob; previa: string; hora: string } | null>(null)
   const [motivo, setMotivo] = useState<Motivo | null>(null)
+  const [detalhes, setDetalhes] = useState('')
   const [enviando, setEnviando] = useState(false)
   const [erro, setErro] = useState<string | null>(null)
 
@@ -62,7 +70,13 @@ export function FotoAvaria({ obraId, tipo, autor, qual, aoVoltar, aoUsar, selo }
       return
     }
     // A prévia segue viva com a tela de devolução (que a libera ao refazer ou concluir).
-    aoUsar({ motivo, foto: caminho, previa: URL.createObjectURL(foto.blob), hora: foto.hora })
+    aoUsar({
+      motivo,
+      foto: caminho,
+      previa: URL.createObjectURL(foto.blob),
+      hora: foto.hora,
+      detalhes: detalhes.trim() || undefined,
+    })
   }
 
   const textoBotao = !foto ? 'Tire a foto' : !motivo ? 'Escolha o problema' : 'Usar esta foto'
@@ -144,6 +158,22 @@ export function FotoAvaria({ obraId, tipo, autor, qual, aoVoltar, aoUsar, selo }
               ))}
             </div>
           </fieldset>
+        )}
+        {foto && (
+          <label className="flex flex-col gap-1.5 text-[13px] font-bold tracking-[1.2px] text-texto-2">
+            DETALHES (OPCIONAL)
+            <textarea
+              value={detalhes}
+              onChange={(e) => setDetalhes(e.target.value.slice(0, 300))}
+              maxLength={300}
+              rows={3}
+              placeholder="Ex.: disco trincado perto do eixo"
+              className="rounded-botao border border-borda bg-cartao px-3 py-2.5 text-base font-normal tracking-normal text-texto"
+            />
+            <span className="self-end text-xs font-normal tracking-normal">
+              {detalhes.length}/300
+            </span>
+          </label>
         )}
         {erro && (
           <p role="alert" className="rounded-cartao bg-erro-claro px-4 py-3 text-erro">

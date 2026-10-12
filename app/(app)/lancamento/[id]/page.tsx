@@ -95,6 +95,7 @@ export default async function PaginaLancamento({ params }: PageProps<'/lancament
                 <span className="flex flex-col">
                   <span className="font-mono font-semibold">{codigoDe.get(f.unidade_id)}</span>
                   <span className="text-sm text-erro">{rotuloMotivo(f.motivo)}</span>
+                  {f.detalhes && <span className="text-sm">{f.detalhes}</span>}
                   {f.apagada && (
                     <span className="text-[13px] text-texto-2">
                       Foto apagada pela política de dados (12 meses após o conserto)

@@ -103,6 +103,9 @@ test.describe('devolução e avaria', () => {
       await cartao.getByRole('button', { name: 'Fotografar a avaria' }).click()
       await pagina.getByLabel(/Fotografar a avaria da/).setInputFiles(FOTO)
       await pagina.getByText('Cabo rompido', { exact: true }).click()
+      await pagina
+        .getByRole('textbox', { name: /DETALHES/ })
+        .fill('Cabo descascado perto do plugue')
       await pagina.getByRole('button', { name: 'Usar esta foto' }).click()
       await expect(cartao.getByText('Foto anexada')).toBeVisible({ timeout: 15_000 })
       await expect(pagina.getByText(`${nome} ×1`)).toBeVisible() // "Fica com ele"
@@ -117,10 +120,11 @@ test.describe('devolução e avaria', () => {
     expect(unidades.map((u) => u.status).sort()).toEqual(['em_uso', 'manutencao'])
     const posses = await eng.get<unknown[]>(`posse?select=unidade_id&pessoa_id=eq.${pessoa}`)
     expect(posses.length).toBeGreaterThanOrEqual(1)
-    const avarias = await eng.get<{ motivo: string; foto_path: string }[]>(
-      `avaria?select=motivo,foto_path&obra_id=eq.${OBRA}&order=criado_em.desc&limit=1`,
+    const avarias = await eng.get<{ motivo: string; foto_path: string; detalhes: string }[]>(
+      `avaria?select=motivo,foto_path,detalhes&obra_id=eq.${OBRA}&order=criado_em.desc&limit=1`,
     )
     expect(avarias[0]?.motivo).toBe('cabo_rompido')
+    expect(avarias[0]?.detalhes).toBe('Cabo descascado perto do plugue')
     expect(avarias[0]?.foto_path).toMatch(new RegExp(`^${OBRA}/[0-9a-f-]{36}\\.jpg$`))
 
     // Item retirado com QR, pedido pela lista (sem QR): a API bloqueia, não só a tela.

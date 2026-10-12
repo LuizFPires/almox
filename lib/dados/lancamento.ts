@@ -27,6 +27,8 @@ export type Estorno = {
 export type FotoAvaria = {
   unidade_id: string
   motivo: string
+  /** Texto livre da avaria (opcional). */
+  detalhes: string | null
   url: string | null
   /** Foto apagada pela retenção de dados (LGPD, M10). */
   apagada: boolean
@@ -56,7 +58,7 @@ export async function buscarLancamento(obraId: string, id: string) {
       .overrideTypes<Estorno[], { merge: false }>(),
     supabase
       .from('avaria')
-      .select('unidade_id, motivo, foto_path, foto_apagada_em')
+      .select('unidade_id, motivo, detalhes, foto_path, foto_apagada_em')
       .eq('obra_id', obraId)
       .eq('movimento_id', id),
   ])
@@ -75,6 +77,7 @@ export async function buscarLancamento(obraId: string, id: string) {
     fotos = avarias.data.map((a) => ({
       unidade_id: a.unidade_id,
       motivo: a.motivo,
+      detalhes: a.detalhes,
       url: porCaminho.get(a.foto_path) ?? null,
       apagada: Boolean(a.foto_apagada_em),
     }))
@@ -87,6 +90,7 @@ export type PecaEmManutencao = {
   codigo: string
   tipo: string
   motivo: string | null
+  detalhes: string | null
   quando: string | null
   devolvidaPor: string | null
   foto: string | null
@@ -98,6 +102,7 @@ type UnidadeManut = {
   tipo: { nome: string } | null
   avarias: {
     motivo: string
+    detalhes: string | null
     foto_path: string
     criado_em: string
     movimento: { pessoa: { nome: string } | null } | null
@@ -111,7 +116,7 @@ export async function pecasEmManutencao(obraId: string): Promise<PecaEmManutenca
     .from('unidade')
     .select(
       'id, codigo, tipo:tipo_ferramenta!unidade_tipo_id_obra_id_fkey (nome), ' +
-        'avarias:avaria!avaria_unidade_id_obra_id_fkey (motivo, foto_path, criado_em, ' +
+        'avarias:avaria!avaria_unidade_id_obra_id_fkey (motivo, detalhes, foto_path, criado_em, ' +
         'movimento:movimento!avaria_movimento_id_obra_id_fkey (pessoa:pessoa!movimento_pessoa_id_obra_id_fkey (nome)))',
     )
     .eq('obra_id', obraId)
@@ -133,6 +138,7 @@ export async function pecasEmManutencao(obraId: string): Promise<PecaEmManutenca
     codigo: u.codigo,
     tipo: u.tipo?.nome ?? '',
     motivo: a?.motivo ?? null,
+    detalhes: a?.detalhes ?? null,
     quando: a?.criado_em ?? null,
     devolvidaPor: a?.movimento?.pessoa?.nome ?? null,
     foto: a ? (porCaminho.get(a.foto_path) ?? null) : null,

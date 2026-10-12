@@ -2,7 +2,14 @@ import { contemTexto } from '@/lib/formatos/texto'
 import { compararCodigos } from './cadastros'
 import { ehPendencia } from './ficha'
 
-export type ItemPessoa = { codigo: string; tipo: string; icone: string; desde: string }
+export type ItemPessoa = {
+  codigo: string
+  tipo: string
+  icone: string
+  desde: string
+  /** Valor de reposição, em centavos. */
+  valor: number
+}
 
 export type PessoaLista = {
   id: string
@@ -11,7 +18,7 @@ export type PessoaLista = {
   funcao: string
   /** Inativa com ferramenta ainda aparece: a peça continua com ela. */
   ativa: boolean
-  empresa: { id: string; nome: string; cor: string }
+  empresa: { id: string; nome: string; cor: string; tipo: 'propria' | 'empreiteira' }
   itens: ItemPessoa[]
 }
 
@@ -83,4 +90,71 @@ export function resumoGrupo(itens: number, pessoas: number): string {
 /** "+ 4 pessoas sem ferramenta". */
 export function textoSemFerramenta(n: number): string {
   return `+ ${n} ${n === 1 ? 'pessoa sem ferramenta' : 'pessoas sem ferramenta'}`
+}
+
+export type PendenciaPessoa = {
+  pessoa: PessoaLista
+  /** Peças com a pessoa desde antes de hoje, em ordem de código. */
+  itens: ItemPessoa[]
+  /** A peça mais antiga. */
+  desde: string
+  /** Soma do valor de reposição (centavos); só é descontado de empreiteira. */
+  valor: number
+  descontavel: boolean
+}
+
+/**
+ * Aba "Não devolvidas": por pessoa (ordem alfabética), só as peças que ficaram de um dia para
+ * o outro, com o total e quanto pode virar desconto (empreiteiras).
+ */
+export function pendenciasPorPessoa(pessoas: PessoaLista[], agora: Date) {
+  const lista: PendenciaPessoa[] = pessoas
+    .map((pessoa) => {
+      const itens = pessoa.itens
+        .filter((i) => ehPendencia(i.desde, agora))
+        .sort((a, b) => compararCodigos(a.codigo, b.codigo))
+      return {
+        pessoa,
+        itens,
+        desde: itens.reduce((m, i) => (i.desde < m ? i.desde : m), itens[0]?.desde ?? ''),
+        valor: itens.reduce((s, i) => s + i.valor, 0),
+        descontavel: pessoa.empresa.tipo === 'empreiteira',
+      }
+    })
+    .filter((p) => p.itens.length > 0)
+    .sort((a, b) => a.pessoa.nome.localeCompare(b.pessoa.nome, 'pt-BR'))
+  return {
+    lista,
+    pecas: lista.reduce((s, p) => s + p.itens.length, 0),
+    aDescontar: lista.filter((p) => p.descontavel).reduce((s, p) => s + p.valor, 0),
+  }
+}
+
+export type AvariaLista = {
+  id: string
+  codigo: string
+  tipo: string
+  motivo: string | null
+  detalhes: string | null
+  quando: string | null
+  devolvidaPor: string | null
+  foto: string | null
+}
+
+/**
+ * Aba "Avarias": peças em manutenção agrupadas por quem devolveu (ordem alfabética), a mais
+ * recente primeiro. Peça sem avaria visível (outra empresa, para a consulta) fica de fora.
+ */
+export function avariasPorPessoa(pecas: AvariaLista[]) {
+  const grupos = new Map<string, AvariaLista[]>()
+  for (const p of pecas) {
+    if (!p.devolvidaPor) continue
+    grupos.set(p.devolvidaPor, [...(grupos.get(p.devolvidaPor) ?? []), p])
+  }
+  return [...grupos]
+    .map(([pessoa, itens]) => ({
+      pessoa,
+      itens: itens.sort((a, b) => (b.quando ?? '').localeCompare(a.quando ?? '')),
+    }))
+    .sort((a, b) => a.pessoa.localeCompare(b.pessoa, 'pt-BR'))
 }

@@ -11,10 +11,13 @@ type PessoaComPosses = {
   nome_capacete: string
   funcao: string
   ativa: boolean
-  empresa: { id: string; nome: string; cor: string } | null
+  empresa: { id: string; nome: string; cor: string; tipo: 'propria' | 'empreiteira' } | null
   posses: {
     desde: string
-    unidade: { codigo: string; tipo: { nome: string; icone: string } | null } | null
+    unidade: {
+      codigo: string
+      tipo: { nome: string; icone: string; valor_reposicao: number } | null
+    } | null
   }[]
 }
 
@@ -27,9 +30,9 @@ export async function pessoasComItens(obraId: string): Promise<PessoaLista[]> {
   const { data, error } = await supabase
     .from('pessoa')
     .select(
-      'id, nome, nome_capacete, funcao, ativa, empresa:empresa!pessoa_empresa_id_obra_id_fkey (id, nome, cor), ' +
+      'id, nome, nome_capacete, funcao, ativa, empresa:empresa!pessoa_empresa_id_obra_id_fkey (id, nome, cor, tipo), ' +
         'posses:posse!posse_pessoa_id_obra_id_fkey (desde, ' +
-        'unidade:unidade!posse_unidade_id_obra_id_fkey (codigo, tipo:tipo_ferramenta!unidade_tipo_id_obra_id_fkey (nome, icone)))',
+        'unidade:unidade!posse_unidade_id_obra_id_fkey (codigo, tipo:tipo_ferramenta!unidade_tipo_id_obra_id_fkey (nome, icone, valor_reposicao)))',
     )
     .eq('obra_id', obraId)
     .overrideTypes<PessoaComPosses[], { merge: false }>()
@@ -51,6 +54,7 @@ export async function pessoasComItens(obraId: string): Promise<PessoaLista[]> {
                 tipo: x.unidade.tipo?.nome ?? '',
                 icone: x.unidade.tipo?.icone ?? '',
                 desde: x.desde,
+                valor: x.unidade.tipo?.valor_reposicao ?? 0,
               },
             ]
           : [],

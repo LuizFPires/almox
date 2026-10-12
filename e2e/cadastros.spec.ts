@@ -77,6 +77,21 @@ test.describe('cadastros do engenheiro', () => {
     expect(await resposta.json()).toEqual([{ valor_reposicao: 289000 }])
   })
 
+  test('ícone de ajuda abre o passo a passo da impressora e da TV', async ({ page }) => {
+    await entrarComo(page, 'engenheiro', '/inicio')
+    await page.goto('/cadastros/pessoas')
+    await page.getByRole('link', { name: 'Passo a passo: impressora e TV' }).click()
+    await expect(page.getByRole('heading', { name: 'Impressora e TV' })).toBeVisible()
+    for (const secao of [
+      '1. Impressora de etiquetas',
+      '2. Agente de impressão no mini PC',
+      '3. Painel na TV',
+    ]) {
+      await expect(page.getByRole('region', { name: secao })).toBeVisible()
+    }
+    await expect(page.getByText('em até 10 minutos')).toBeVisible()
+  })
+
   test('almoxarife não cadastra: nem pela tela, nem pela API', async ({ page }) => {
     await entrarComo(page, 'almoxarife', '/inicio')
     await page.goto('/cadastros/ferramenta/nova')

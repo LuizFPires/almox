@@ -146,6 +146,68 @@ test.describe('lista e estoque', () => {
     }
   })
 
+  test('abas Não devolvidas e Avarias: a avaria aparece por quem devolveu, com os detalhes', async ({
+    page,
+    request,
+  }, info) => {
+    const nome = `Esquadro aba ${info.project.name}-${Date.now() % 100000}`
+    const { tipo, prefixo } = await criarFerramenta(request, nome, 1)
+    const eng = await api(request, 'engenheiro')
+    const [pessoa] = await eng.get<{ id: string }[]>(
+      `pessoa?select=id&obra_id=eq.${OBRA}&nome=eq.${encodeURIComponent('Gilberto Alves')}`,
+    )
+    // Retirada sem QR e devolução avariada, com foto enviada pelo almoxarife (API).
+    const { url, chave } = ambiente()
+    const login = await request.post(`${url}/auth/v1/token?grant_type=password`, {
+      headers: { apikey: chave },
+      data: { email: USUARIOS.almoxarife, password: SENHA_SEED },
+    })
+    const jwt = ((await login.json()) as { access_token: string }).access_token
+    const alm = await api(request, 'almoxarife')
+    await alm.post('rpc/registrar_retirada', {
+      p_obra: OBRA,
+      p_pessoa: pessoa?.id,
+      p_identificacao: null,
+      p_itens: [{ tipo, quantidade: 1 }],
+      p_confirmado: true,
+    })
+    const foto = `${OBRA}/${crypto.randomUUID()}.jpg`
+    const envio = await request.post(`${url}/storage/v1/object/avarias/${foto}`, {
+      headers: { apikey: chave, Authorization: `Bearer ${jwt}`, 'Content-Type': 'image/jpeg' },
+      data: Buffer.from([0xff, 0xd8, 0xff, 0xd9]),
+    })
+    expect(envio.ok(), await envio.text()).toBeTruthy()
+    await alm.post('rpc/registrar_devolucao', {
+      p_obra: OBRA,
+      p_pessoa: pessoa?.id,
+      p_identificacao: null,
+      p_itens: [
+        {
+          tipo,
+          quantidade: 1,
+          avarias: [{ motivo: 'quebrada', foto, detalhes: `Empenado na ponta (${nome})` }],
+        },
+      ],
+    })
+
+    await entrarComo(page, 'engenheiro', '/inicio')
+    await page.goto('/lista')
+    const abas = page.getByRole('navigation', { name: 'Seções da lista' })
+    await expect(abas.getByRole('link', { name: /^Agora/ })).toHaveAttribute('aria-current', 'page')
+
+    await abas.getByRole('link', { name: /^Não devolvidas/ }).click()
+    await expect(page).toHaveURL(/aba=nao-devolvidas/)
+    await expect(
+      page.getByText(/peças? com \d+ pessoas?|Nenhuma ferramenta pendente de outro dia\./).first(),
+    ).toBeVisible()
+
+    await abas.getByRole('link', { name: /^Avarias/ }).click()
+    await expect(page).toHaveURL(/aba=avarias/)
+    const grupo = page.getByRole('region', { name: 'Gilberto Alves' })
+    await expect(grupo.getByText(`${prefixo}-01`)).toBeVisible()
+    await expect(grupo.getByText(`“Empenado na ponta (${nome})”`)).toBeVisible()
+  })
+
   test('consulta da empreiteira vê só a própria empresa na lista', async ({ page }) => {
     await entrarComo(page, 'formas', '/lista')
     await expect(page.getByRole('region', { name: 'Fôrmas Ribeiro' })).toBeVisible()

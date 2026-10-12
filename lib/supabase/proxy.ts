@@ -3,8 +3,11 @@ import { NextResponse, type NextRequest } from 'next/server'
 import { lerAmbientePublico } from './ambiente'
 import type { Database } from './tipos-banco'
 
-/** Rotas abertas: login, retorno do link mágico e a TV (que entra por token de dispositivo no M8). */
-const ROTAS_PUBLICAS = ['/login', '/auth', '/tv']
+/**
+ * Rotas abertas: login, retorno do link mágico, a TV (credencial própria, M8) e o processador
+ * de envios (chamado pelo agendamento do Supabase com segredo, M9).
+ */
+const ROTAS_PUBLICAS = ['/login', '/auth', '/tv', '/api/envios']
 
 export function ehRotaPublica(caminho: string): boolean {
   return ROTAS_PUBLICAS.some((rota) => caminho === rota || caminho.startsWith(`${rota}/`))

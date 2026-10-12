@@ -1323,6 +1323,7 @@ export type Database = {
           token: string
         }[]
       }
+      dados_envio: { Args: { p_envio: string }; Returns: Json }
       encerrar_dia: { Args: { p_obra: string }; Returns: string }
       enfileirar_impressao: {
         Args: {
@@ -1423,6 +1424,7 @@ export type Database = {
         }
         Returns: string
       }
+      remover_inscricao_push: { Args: { p_endpoint: string }; Returns: undefined }
       revogar_dispositivo: { Args: { p_dispositivo: string }; Returns: undefined }
       salvar_config_tv: {
         Args: {

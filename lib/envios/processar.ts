@@ -168,3 +168,17 @@ export async function limparFotosOrfas(): Promise<number> {
   const { error: erroRemover } = await admin.storage.from('avarias').remove(nomes)
   return erroRemover ? 0 : nomes.length
 }
+
+/**
+ * Retenção (LGPD, M10): apaga as fotos de avaria de peças consertadas ou baixadas há mais do
+ * prazo (12 meses) e marca a avaria como "sem foto". A avaria em si fica no histórico.
+ */
+export async function apagarFotosVencidas(): Promise<number> {
+  const admin = criarClienteAdmin()
+  const { data: nomes, error } = await admin.rpc('fotos_vencidas', { p_limite: 100 })
+  if (error || !nomes?.length) return 0
+  const { error: erroRemover } = await admin.storage.from('avarias').remove(nomes)
+  if (erroRemover) return 0
+  await admin.rpc('marcar_fotos_apagadas', { p_caminhos: nomes })
+  return nomes.length
+}

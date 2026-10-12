@@ -81,6 +81,7 @@ export type Database = {
       avaria: {
         Row: {
           criado_em: string
+          foto_apagada_em: string | null
           foto_path: string
           id: string
           motivo: Database['public']['Enums']['motivo_avaria']
@@ -91,6 +92,7 @@ export type Database = {
         ComputedFields: never
         Insert: {
           criado_em?: string
+          foto_apagada_em?: string | null
           foto_path: string
           id?: string
           motivo: Database['public']['Enums']['motivo_avaria']
@@ -100,6 +102,7 @@ export type Database = {
         }
         Update: {
           criado_em?: string
+          foto_apagada_em?: string | null
           foto_path?: string
           id?: string
           motivo?: Database['public']['Enums']['motivo_avaria']
@@ -886,6 +889,7 @@ export type Database = {
         Row: {
           ativa: boolean
           criado_em: string
+          encerrada_em: string | null
           endereco: string | null
           id: string
           nome: string
@@ -894,6 +898,7 @@ export type Database = {
         Insert: {
           ativa?: boolean
           criado_em?: string
+          encerrada_em?: string | null
           endereco?: string | null
           id?: string
           nome: string
@@ -901,6 +906,7 @@ export type Database = {
         Update: {
           ativa?: boolean
           criado_em?: string
+          encerrada_em?: string | null
           endereco?: string | null
           id?: string
           nome?: string
@@ -952,6 +958,7 @@ export type Database = {
       }
       pessoa: {
         Row: {
+          anonimizada_em: string | null
           ativa: boolean
           criado_em: string
           empresa_id: string
@@ -965,6 +972,7 @@ export type Database = {
         }
         ComputedFields: never
         Insert: {
+          anonimizada_em?: string | null
           ativa?: boolean
           criado_em?: string
           empresa_id: string
@@ -977,6 +985,7 @@ export type Database = {
           qr_token?: string
         }
         Update: {
+          anonimizada_em?: string | null
           ativa?: boolean
           criado_em?: string
           empresa_id?: string
@@ -1366,6 +1375,7 @@ export type Database = {
         Returns: string
       }
       fotos_orfas: { Args: { p_limite?: number }; Returns: string[] }
+      fotos_vencidas: { Args: { p_limite?: number }; Returns: string[] }
       gerar_codigo_tv: { Args: { p_dispositivo: string }; Returns: string }
       historico: {
         Args: {
@@ -1411,6 +1421,7 @@ export type Database = {
           usuario_id: string
         }[]
       }
+      marcar_fotos_apagadas: { Args: { p_caminhos: string[] }; Returns: undefined }
       painel_tv: { Args: { p_token: string; p_versao?: string }; Returns: Json }
       pegar_envios: {
         Args: { p_canais?: Database['public']['Enums']['canal_envio'][]; p_limite?: number }

@@ -22,7 +22,7 @@ Fonte da verdade do produto: `PRD.md`. Regras para quem codifica: `CLAUDE.md`.
 | M5 | Retirada | ✅ Concluído | 11/10/2026 |
 | M6 | Devolução e avaria | ✅ Concluído | 11/10/2026 |
 | M7 | Lista, estoque e busca | ✅ Concluído | 11/10/2026 |
-| M8 | Painel da TV | ⬜ A fazer | |
+| M8 | Painel da TV | 🟨 Em andamento | |
 | M9 | Fechamento do dia e avisos às empreiteiras | ⬜ A fazer | |
 | M10 | Offline, auditoria e endurecimento | ⬜ A fazer | |
 | M11 | Piloto em obra | ⬜ A fazer | |
@@ -403,3 +403,7 @@ Legenda: ⬜ A fazer · 🟨 Em andamento · ✅ Concluído · ⛔ Bloqueado
 | 11/10/2026 | M7: no Estoque, a consulta de empreiteira vê os totais da obra (PRD §5) e os nomes só da própria empresa; o resto aparece como "N com outras empresas". Unidades com baixa não contam. O detalhe mostra o código de cada peça com quem está ("MT-01 · Raimundo · desde ontem"). |
 | 11/10/2026 | M7 (revisão): inativar pessoa que ainda está com ferramenta **continua permitido**; ela segue na lista "quem está com o quê" (e como pendência) até devolver. "+ N pessoas sem ferramenta" conta só as ativas e não aparece durante a busca. O estoque também atualiza ao vivo quando uma unidade muda (empreiteira não recebe movimentos de outras empresas; conserto e baixa não geram movimento). |
 | 11/10/2026 | M7 (comparação com o protótipo): chips da lista e linhas do estoque usam o **ícone com o nome escrito ao lado** (pílula do protótipo), exceção à regra "nome embaixo" onde o nome já está na mesma linha (`CirculoFerramenta`). Tipos do estoque e pessoas da lista em ordem alfabética; empresa sem ninguém com ferramenta não aparece. Barra do estoque com um bloco por peça (até 40; acima, proporcional). Barra inferior também na Lista e no Estoque (PRD F-01). |
+| 11/10/2026 | M8: a TV **pergunta ao servidor a cada 2 s** (RPC só de leitura com o token do dispositivo, sem login) em vez de Realtime: atende ao ≤ 3 s, reconecta sozinha e é o mais robusto para rodar dias seguidos. |
+| 11/10/2026 | M8: a TV é conectada pelo link **"Abrir painel nesta TV"** (`/tv/entrar?t=…`), mostrado uma vez ao criar o dispositivo; o token vai para um cookie httpOnly e sai da URL. |
+| 11/10/2026 | M8: configuração do painel por obra em **Cadastros › "Painel da TV"**, nos limites do PRD (página 3–30 s, velocidade 15–150 px/s, pausas, cartões por página 8, 12 ou 16). |
+| 11/10/2026 | M8: recarga automática diária da TV às **04:00** (fuso da obra). |

@@ -63,6 +63,13 @@ node src/agente.ts             # em outro (com o .env preenchido)
 
 No app, cadastre a impressora com IP `127.0.0.1` e porta `9101`.
 
+## Logs e monitoramento
+
+- Cada linha do agente vai para a tela e para `logs/agente-AAAA-MM-DD.log`, na pasta do agente.
+  Os arquivos com mais de 14 dias são apagados sozinhos.
+- Com `SENTRY_DSN` no `.env`, cada problema novo (impressora fora, token recusado, sem
+  internet) também vai para o Sentry. E-mails, tokens e JWT são mascarados antes de sair.
+
 ## Desenvolvimento
 
 Código em TypeScript rodado direto pelo Node (sem build, sem dependências). Os testes

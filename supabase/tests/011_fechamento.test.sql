@@ -8,9 +8,9 @@ grant all on t_ctx to authenticated, anon;
 -- Parte do zero mesmo num banco local já usado (tudo volta no rollback).
 delete from public.envio;
 delete from public.aviso_desconto;
-delete from public.aviso;
 delete from public.desconto;
 delete from public.medicao;
+delete from public.aviso;
 delete from public.fechamento_dia;
 
 -- Empreiteiras com peça fora agora (o que o encerramento tem que cobrar).

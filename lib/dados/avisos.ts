@@ -18,7 +18,12 @@ type AvisoLinha = {
     encarregado: { nome: string } | null
   } | null
   descontos: {
-    desconto: { codigo: string; status: 'aberto' | 'cancelado' | 'confirmado' } | null
+    desconto: {
+      codigo: string
+      valor: number
+      status: 'aberto' | 'cancelado' | 'confirmado'
+      primeiro_aviso_id: string | null
+    } | null
   }[]
 }
 
@@ -26,7 +31,7 @@ const CAMPOS =
   'id, total, status, enviado_em, itens, ' +
   'empresa:empresa!aviso_empresa_id_obra_id_fkey (id, nome, cor, dono_nome, dono_email, encarregado_email, ' +
   'encarregado:pessoa!empresa_encarregado_fk (nome)), ' +
-  'descontos:aviso_desconto!aviso_desconto_aviso_id_obra_id_fkey (desconto:desconto!aviso_desconto_desconto_id_obra_id_fkey (codigo, status))'
+  'descontos:aviso_desconto!aviso_desconto_aviso_id_obra_id_fkey (desconto:desconto!aviso_desconto_desconto_id_obra_id_fkey (codigo, valor, status, primeiro_aviso_id))'
 
 /** Avisos que o login pode ver (RLS: engenheiro e a própria empreiteira), do mais novo. */
 export async function listarAvisos(obraId: string, limite = 60) {
@@ -64,6 +69,13 @@ type DescontoLinha = {
   criado_em: string
   empresa_id: string
   pessoa: { nome: string } | null
+}
+
+/** Envios que não chegaram (5 falhas) ou sem notificação ativada, para o engenheiro. */
+export async function enviosComProblema(obraId: string) {
+  const supabase = await criarClienteServidor()
+  const { data } = await supabase.rpc('envios_com_problema', { p_obra: obraId })
+  return (data as { erro: number; semDestino: number } | null) ?? null
 }
 
 /** Para a medição: empreiteiras, descontos em aberto e o histórico de medições. */

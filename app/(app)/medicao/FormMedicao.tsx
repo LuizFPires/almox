@@ -25,7 +25,9 @@ export function FormMedicao({
         name="proxima"
         type="date"
         required
-        defaultValue={proximaAtual ?? ''}
+        defaultValue={
+          proximaAtual && proximaAtual > new Date().toISOString().slice(0, 10) ? proximaAtual : ''
+        }
         ajuda="Os descontos em aberto entram nesta medição; os próximos, na seguinte."
       />
       <ErroFormulario mensagem={estado.erro} />

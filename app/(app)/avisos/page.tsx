@@ -5,8 +5,8 @@ import { Cabecalho } from '@/components/Cabecalho'
 import { Cartao } from '@/components/Cartao'
 import { IconeInterface } from '@/components/IconeInterface'
 import { SeloPerfil } from '@/components/SeloPerfil'
-import { listarAvisos } from '@/lib/dados/avisos'
-import { rotuloStatusAviso, totalEmAberto } from '@/lib/dominio/avisos'
+import { enviosComProblema, listarAvisos } from '@/lib/dados/avisos'
+import { rotuloStatusAviso, valorDoAviso } from '@/lib/dominio/avisos'
 import { podeLancar } from '@/lib/dominio/permissoes'
 import { formatarData } from '@/lib/formatos/datas'
 import { formatarBRL } from '@/lib/formatos/moeda'
@@ -23,7 +23,10 @@ const TONS = {
 /** Avisos de não devolução (RLS: engenheiro e a própria empreiteira; almoxarife não recebe). */
 export default async function PaginaAvisos() {
   const { obraAtual } = await obterSessao()
-  const avisos = await listarAvisos(obraAtual.id)
+  const [avisos, problemas] = await Promise.all([
+    listarAvisos(obraAtual.id),
+    obraAtual.perfil === 'engenheiro' ? enviosComProblema(obraAtual.id) : Promise.resolve(null),
+  ])
 
   return (
     <>
@@ -34,6 +37,14 @@ export default async function PaginaAvisos() {
         selo={<SeloPerfil perfil={obraAtual.perfil} empresa={obraAtual.empresa?.nome} />}
       />
       <main className="flex flex-1 flex-col gap-2 px-4 pt-2 pb-6">
+        {problemas && (problemas.erro > 0 || problemas.semDestino > 0) && (
+          <p className="rounded-cartao bg-aviso-claro px-4 py-3 text-[15px] text-aviso">
+            {problemas.erro > 0 &&
+              `${problemas.erro} ${problemas.erro === 1 ? 'e-mail não chegou' : 'e-mails não chegaram'} depois de 5 tentativas. `}
+            {problemas.semDestino > 0 &&
+              `${problemas.semDestino} ${problemas.semDestino === 1 ? 'notificação ficou' : 'notificações ficaram'} sem destino nos últimos 7 dias: o dono ou o encarregado ainda não ativou as notificações no celular.`}
+          </p>
+        )}
         {avisos.length === 0 && (
           <Cartao className="py-6 text-center text-[15px] text-texto-2">
             {obraAtual.perfil === 'almoxarife'
@@ -43,9 +54,12 @@ export default async function PaginaAvisos() {
         )}
         {avisos.map((a) => {
           const status = rotuloStatusAviso(a.status)
-          const emAberto = totalEmAberto(
-            a.itens,
-            a.descontos.flatMap((d) => (d.desconto ? [d.desconto] : [])),
+          const { lembrete, valor } = valorDoAviso(
+            a.id,
+            a.status,
+            a.descontos.flatMap((d) =>
+              d.desconto ? [{ ...d.desconto, primeiroAvisoId: d.desconto.primeiro_aviso_id }] : [],
+            ),
           )
           return (
             <Link
@@ -64,7 +78,7 @@ export default async function PaginaAvisos() {
                 </span>
                 <span className="text-sm">
                   {a.itens.length} {a.itens.length === 1 ? 'ferramenta' : 'ferramentas'} ·{' '}
-                  {formatarBRL(a.status === 'enviado' ? emAberto : a.total)}
+                  {lembrete ? 'lembrete, sem valor novo' : formatarBRL(valor)}
                 </span>
                 <span
                   className={`self-start rounded-full px-2.5 py-0.5 text-[12px] font-semibold ${TONS[status.tom]}`}

@@ -103,6 +103,9 @@ export type AvisoResumo = {
 export type ResumoFechamento = {
   id: string
   data: string
+  /** Encerramento de hoje (os números de pendência são de agora). */
+  hoje: boolean
+  obra: string
   encerradoEm: string
   automatico: boolean
   avisos: AvisoResumo[]

@@ -30,6 +30,8 @@ export type DadosCancelamento = {
   devolvidas: { pessoa: string; tipo: string; codigo: string; valor: number }[]
   /** O que continua em aberto para a empresa depois do cancelamento. */
   emAberto: number
+  /** Devolução de verdade ou lançamento corrigido pelo engenheiro (estorno). */
+  motivo?: 'devolucao' | 'corrigido'
 }
 
 export type Email = { assunto: string; html: string; texto: string }
@@ -139,7 +141,10 @@ export function emailCancelamento(d: DadosCancelamento): Email {
   const linhas = porPessoa(d.devolvidas)
   const cancelado = d.devolvidas.reduce((s, x) => s + x.valor, 0)
   const assunto = `Desconto cancelado · ${d.empresa} · ${ddmm(d.quando)}`
-  const abertura = `Estas ferramentas foram devolvidas em ${ddmm(d.quando)} às ${formatarHora(d.quando)}, antes do fechamento da medição. O desconto delas foi cancelado:`
+  const abertura =
+    d.motivo === 'corrigido'
+      ? `Em ${ddmm(d.quando)} às ${formatarHora(d.quando)} o engenheiro corrigiu um lançamento: estas ferramentas saem do desconto:`
+      : `Estas ferramentas foram devolvidas em ${ddmm(d.quando)} às ${formatarHora(d.quando)}, antes do fechamento da medição. O desconto delas foi cancelado:`
   const restante =
     d.emAberto > 0
       ? `Continua em aberto para a próxima medição: ${formatarBRL(d.emAberto)}.`
@@ -164,6 +169,43 @@ ${tabela(linhas, 'Desconto cancelado', cancelado)}
     `Almox · ${d.obra} · mensagem automática`,
   ].join('\n')
   return { assunto, html, texto }
+}
+
+/** Estorno de uma devolução lançada por engano: o desconto volta a valer (com aviso). */
+export function emailReaberto(d: DadosCancelamento): Email {
+  const linhas = porPessoa(d.devolvidas)
+  const reaberto = d.devolvidas.reduce((s, x) => s + x.valor, 0)
+  const assunto = `Desconto corrigido · ${d.empresa} · ${ddmm(d.quando)}`
+  const abertura = `O engenheiro corrigiu em ${ddmm(d.quando)} uma devolução lançada por engano: estas ferramentas não voltaram ao almoxarifado e o desconto delas volta a valer:`
+  const restante = `Em aberto para a próxima medição: ${formatarBRL(d.emAberto)}. Se as ferramentas forem devolvidas antes do fechamento da medição, o desconto é cancelado.`
+  const html = moldura(
+    `<p style="margin:0 0 12px">${escapar(saudacao(d.dono, d.encarregado))}</p>
+<p style="margin:0 0 16px">${escapar(abertura)}</p>
+${tabela(linhas, 'Volta a valer', reaberto)}
+<p style="margin:16px 0 0;background:#FEF3C7;color:#854D0E;border-radius:10px;padding:12px">${escapar(restante)}</p>`,
+    d.obra,
+  )
+  const texto = [
+    saudacao(d.dono, d.encarregado),
+    '',
+    abertura,
+    '',
+    ...linhas.map((l) => `- ${l.pessoa}: ${l.itens} · ${formatarBRL(l.valor)}`),
+    '',
+    `Volta a valer: ${formatarBRL(reaberto)}`,
+    restante,
+    '',
+    `Almox · ${d.obra} · mensagem automática`,
+  ].join('\n')
+  return { assunto, html, texto }
+}
+
+export function notificacaoReaberto(empresa: string, valor: number): Notificacao {
+  return {
+    titulo: 'Almox · desconto corrigido',
+    corpo: `${empresa}: uma devolução lançada por engano foi corrigida; ${formatarBRL(valor)} voltam a valer na próxima medição.`,
+    url: '/avisos',
+  }
 }
 
 export function notificacaoAviso(empresa: string, total: number, aviso: string): Notificacao {

@@ -1,14 +1,13 @@
 import type { Metadata } from 'next'
 import Link from 'next/link'
-import { Botao } from '@/components/Botao'
 import { Cabecalho } from '@/components/Cabecalho'
 import { Cartao } from '@/components/Cartao'
 import { rotuloPerfil } from '@/lib/dominio/permissoes'
 import { chavePublicaVapid } from '@/lib/envios/push'
 import { obterSessao } from '@/lib/sessao'
-import { sair } from '../../login/acoes'
 import { escolherObra } from './acoes'
 import { AtivarNotificacoes } from './AtivarNotificacoes'
+import { BotaoSair } from './BotaoSair'
 
 export const metadata: Metadata = { title: 'Conta · Almox' }
 
@@ -65,11 +64,7 @@ export default async function PaginaConta() {
           Trocar senha
         </Link>
 
-        <form action={sair} className="mt-auto">
-          <Botao type="submit" variante="secundaria" tamanho="g" larguraTotal>
-            Sair
-          </Botao>
-        </form>
+        <BotaoSair />
       </main>
     </>
   )

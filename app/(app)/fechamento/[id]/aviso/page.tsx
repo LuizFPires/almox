@@ -17,7 +17,7 @@ export default async function PaginaAvisoEnviado({
   const { id } = await params
   const { e } = (await searchParams) as { e?: string }
   // A sessão primeiro (lê cookies): a página é dinâmica e só abre para quem está logado.
-  const { obraAtual } = await obterSessao()
+  await obterSessao()
   const r = await resumoFechamento(id)
   if (!r || r.avisos.length === 0) notFound()
   const indice = Math.min(Math.max(Number(e) || 0, 0), r.avisos.length - 1)
@@ -48,7 +48,7 @@ export default async function PaginaAvisoEnviado({
         </nav>
         <PreviaAviso
           avisoId={a.id}
-          obra={obraAtual.nome}
+          obra={r.obra}
           empresa={a.empresa}
           dono={a.dono}
           donoEmail={a.donoEmail}

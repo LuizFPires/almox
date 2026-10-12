@@ -41,6 +41,9 @@ export default async function PaginaFechamento() {
   const agora = new Date()
   const { pecas, devolucoes, fechamentoHoje } = await dadosFechamento(obraAtual.id, agora)
   const f = montarFechamento(pecas, devolucoes, agora)
+  const deEmpreiteira = f.pendentes.filter((p) => !p.empresa.propria)
+  const empreiteiras = new Set(deEmpreiteira.map((p) => p.empresa.nome)).size
+  const totalEmpreiteiras = deEmpreiteira.reduce((s, p) => s + p.valor, 0)
 
   return (
     <>
@@ -163,7 +166,7 @@ export default async function PaginaFechamento() {
             Dia encerrado às {formatarHora(fechamentoHoje.encerrado_em)} · ver resultado
           </Link>
         ) : (
-          <BotaoEncerrar />
+          <BotaoEncerrar empreiteiras={empreiteiras} total={totalEmpreiteiras} />
         )}
       </div>
       <BarraInferior ativa="fechamento" podeLancar />

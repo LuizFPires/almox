@@ -6,7 +6,7 @@ import type { Email } from './mensagens'
  * construtora confirmado). Local e CI: caixa de teste do Supabase (Mailpit, MAILPIT_URL).
  * Sem nenhum dos dois, falha (o envio fica na fila para nova tentativa).
  */
-export async function enviarEmail(para: string, email: Email): Promise<void> {
+export async function enviarEmail(para: string, email: Email, chave?: string): Promise<void> {
   const remetente = process.env.EMAIL_REMETENTE ?? 'Almox <avisos@almox.local>'
   if (process.env.RESEND_API_KEY) {
     const r = await fetch('https://api.resend.com/emails', {
@@ -14,6 +14,7 @@ export async function enviarEmail(para: string, email: Email): Promise<void> {
       headers: {
         Authorization: `Bearer ${process.env.RESEND_API_KEY}`,
         'Content-Type': 'application/json',
+        ...(chave ? { 'Idempotency-Key': chave } : {}),
       },
       body: JSON.stringify({
         from: remetente,

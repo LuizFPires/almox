@@ -6,6 +6,7 @@ import { IconeInterface } from '@/components/IconeInterface'
 import { SeloFimDoDia } from '@/components/SeloFimDoDia'
 import { resumoFechamento } from '@/lib/dados/fechamento'
 import { destinatariosAviso, subtituloEncerrado } from '@/lib/dominio/fechamento'
+import { formatarData } from '@/lib/formatos/datas'
 import { formatarBRL } from '@/lib/formatos/moeda'
 import { obterSessao } from '@/lib/sessao'
 
@@ -32,13 +33,17 @@ export default async function PaginaDiaEncerrado({ params }: PageProps<'/fechame
         </span>
         <div className="flex flex-col items-center gap-1 text-center">
           <h1 className="text-2xl font-bold">Dia encerrado</h1>
-          <p className="text-texto-2">{subtituloEncerrado(r.pessoasPendentes)}</p>
+          <p className="text-texto-2">
+            {r.hoje
+              ? subtituloEncerrado(r.pessoasPendentes)
+              : `Dia ${formatarData(`${r.data}T12:00:00Z`)}`}
+          </p>
           {r.automatico && (
             <p className="text-[13px] text-texto-2">Encerrado automaticamente às 23:59.</p>
           )}
         </div>
 
-        {(n > 0 || r.proprios.length > 0) && (
+        {(n > 0 || (r.hoje && r.proprios.length > 0)) && (
           <ul className="w-full rounded-cartao bg-cartao px-4 py-1">
             {r.avisos.map((a) => (
               <li
@@ -49,12 +54,16 @@ export default async function PaginaDiaEncerrado({ params }: PageProps<'/fechame
                 <span className="flex min-w-0 flex-col">
                   <span className="font-bold">{a.empresa}</span>
                   <span className="text-sm text-erro">
-                    {destinatariosAviso(a.dono, a.encarregado)} · {formatarBRL(a.total)} a descontar
+                    {destinatariosAviso(
+                      a.donoEmail ? a.dono : null,
+                      a.encarregadoEmail ? a.encarregado : null,
+                    )}{' '}
+                    · {formatarBRL(a.total)} a descontar
                   </span>
                 </span>
               </li>
             ))}
-            {r.proprios.map((p) => (
+            {(r.hoje ? r.proprios : []).map((p) => (
               <li
                 key={p.nome}
                 className="flex items-center gap-3 border-b border-borda py-3 last:border-b-0"

@@ -62,5 +62,6 @@ describe('prévia do adesivo', () => {
     const fonte = new PlanarYUVLuminanceSource(luz, lado, lado, 0, 0, lado, lado, false)
     const lido = new QRCodeReader().decode(new BinaryBitmap(new HybridBinarizer(fonte)))
     expect(lido.getText()).toBe(token)
-  })
+    // A primeira importação do zxing passa dos 5 s com a suíte inteira rodando junto.
+  }, 20_000)
 })

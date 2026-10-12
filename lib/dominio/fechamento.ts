@@ -89,9 +89,13 @@ export function subtituloEncerrado(pendentes: number): string {
     : `${pendentes} pendências passam para amanhã`
 }
 
-/** "Aviso a Luciana e Carlos" (primeiro nome; sem nome cadastrado, o papel). */
+/**
+ * "Aviso a Luciana e Carlos": só quem tem e-mail cadastrado (passe null para quem não tem).
+ * Ninguém com e-mail: o aviso fica só no app.
+ */
 export function destinatariosAviso(dono: string | null, encarregado: string | null): string {
   const primeiro = (n: string | null) => n?.trim().split(/\s+/)[0] ?? null
-  const nomes = [primeiro(dono) ?? 'dono', primeiro(encarregado) ?? 'encarregado']
+  const nomes = [primeiro(dono), primeiro(encarregado)].filter((n): n is string => Boolean(n))
+  if (nomes.length === 0) return 'Sem e-mail cadastrado: aviso só no app'
   return `Aviso a ${[...new Set(nomes)].join(' e ')}`
 }

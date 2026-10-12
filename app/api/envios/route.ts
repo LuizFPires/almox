@@ -9,7 +9,8 @@ import { limparFotosOrfas, processarEnvios } from '@/lib/envios/processar'
 export async function POST(request: NextRequest) {
   const segredo = process.env.ENVIOS_SEGREDO
   const recebido = request.headers.get('authorization')?.replace(/^Bearer\s+/i, '') ?? ''
-  if (!segredo || !iguais(recebido, segredo)) {
+  // Segredo curto demais não vale (configuração errada não pode abrir o processador).
+  if (!segredo || segredo.length < 32 || !iguais(recebido, segredo)) {
     return NextResponse.json({ erro: 'não autorizado' }, { status: 401 })
   }
   const corpo = (await request.json().catch(() => ({}))) as { tarefa?: string }

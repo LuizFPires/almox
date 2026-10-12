@@ -2,7 +2,7 @@
 // navegação falha e recebe as notificações dos avisos (Web Push, M9). A fila offline de
 // lançamentos vem no M10.
 // Troque a versão sempre que offline.html mudar, para o SW reinstalar.
-const VERSAO = 'almox-v4'
+const VERSAO = 'almox-v5'
 const OFFLINE = '/offline.html'
 
 self.addEventListener('install', (evento) => {
@@ -57,14 +57,21 @@ self.addEventListener('push', (evento) => {
 self.addEventListener('notificationclick', (evento) => {
   evento.notification.close()
   const url = evento.notification.data && evento.notification.data.url
-  const destino =
-    typeof url === 'string' && url.startsWith('/') && !url.startsWith('//') ? url : '/inicio'
+  let destino = '/inicio'
+  try {
+    const alvo = new URL(typeof url === 'string' ? url : '/inicio', self.location.origin)
+    if (alvo.origin === self.location.origin) destino = alvo.pathname + alvo.search
+  } catch {
+    destino = '/inicio'
+  }
   evento.waitUntil(
-    self.clients.matchAll({ type: 'window', includeUncontrolled: true }).then((janelas) => {
+    self.clients.matchAll({ type: 'window' }).then(async (janelas) => {
       for (const janela of janelas) {
-        if ('focus' in janela) {
-          janela.navigate(destino)
+        try {
+          await janela.navigate(destino)
           return janela.focus()
+        } catch {
+          // janela que não aceita navegar: tenta a próxima ou abre outra
         }
       }
       return self.clients.openWindow(destino)

@@ -6,6 +6,8 @@ import {
   emailCancelamento,
   notificacaoAviso,
   notificacaoCancelamento,
+  notificacaoReaberto,
+  emailReaberto,
   notificacaoOcorrencia,
   notificacaoResumoProprios,
   type Email,
@@ -15,7 +17,7 @@ import {
 import { enviarPush, type Inscricao } from './push'
 
 type Dados = {
-  tipo: 'aviso' | 'desconto_cancelado' | 'resumo_proprios' | 'ocorrencia'
+  tipo: 'aviso' | 'desconto_cancelado' | 'desconto_reaberto' | 'resumo_proprios' | 'ocorrencia'
   canal: 'email' | 'push'
   destino: string
   obra: string
@@ -30,6 +32,7 @@ type Dados = {
   total?: number
   // cancelamento
   quando?: string
+  motivo?: 'devolucao' | 'corrigido'
   devolvidas?: { pessoa: string; tipo: string; codigo: string; valor: number }[]
   emAberto?: number
   // resumo / ocorrência
@@ -66,12 +69,33 @@ export function montar(d: Dados): { email?: Email; notificacao?: Notificacao } {
               quando: d.quando ?? new Date().toISOString(),
               devolvidas,
               emAberto: d.emAberto ?? 0,
+              motivo: d.motivo,
             }),
           }
         : {
             notificacao: notificacaoCancelamento(
               d.empresa ?? '',
               devolvidas.length,
+              devolvidas.reduce((s, x) => s + x.valor, 0),
+            ),
+          }
+    }
+    case 'desconto_reaberto': {
+      const devolvidas = d.devolvidas ?? []
+      const dados = {
+        obra: d.obra,
+        empresa: d.empresa ?? '',
+        dono: d.dono ?? null,
+        encarregado: d.encarregado ?? null,
+        quando: d.quando ?? new Date().toISOString(),
+        devolvidas,
+        emAberto: d.emAberto ?? 0,
+      }
+      return d.canal === 'email'
+        ? { email: emailReaberto(dados) }
+        : {
+            notificacao: notificacaoReaberto(
+              dados.empresa,
               devolvidas.reduce((s, x) => s + x.valor, 0),
             ),
           }
@@ -101,15 +125,24 @@ export async function processarEnvios(limite = 50): Promise<{ enviados: number; 
       if (!data) throw new Error('dados do envio não encontrados')
       const d = data as unknown as Dados
       const { email, notificacao } = montar(d)
+      let semDestino = false
       if (d.canal === 'email' && email) {
-        await enviarEmail(d.destino, email)
+        // A mesma chave em nova tentativa: o Resend não manda duas vezes.
+        await enviarEmail(d.destino, email, `envio-${envio.id}`)
       } else if (d.canal === 'push' && notificacao) {
+        // Ninguém ativou notificação neste login: fica registrado como "sem destino".
+        semDestino = (d.inscricoes ?? []).length === 0
         const { removidas } = await enviarPush(d.inscricoes ?? [], notificacao)
         for (const endpoint of removidas) {
           await admin.rpc('remover_inscricao_push', { p_endpoint: endpoint })
         }
       }
-      await admin.rpc('concluir_envio', { p_envio: envio.id, p_ok: true })
+      const { error: erroConcluir } = await admin.rpc('concluir_envio', {
+        p_envio: envio.id,
+        p_ok: true,
+        p_sem_destino: semDestino,
+      })
+      if (erroConcluir) throw new Error('não foi possível marcar o envio')
       enviados++
     } catch (e) {
       erros++

@@ -297,6 +297,7 @@ export type Database = {
           movimento_retirada_id: string
           obra_id: string
           pessoa_id: string
+          primeiro_aviso_id: string | null
           status: Database['public']['Enums']['status_desconto']
           tipo_nome: string
           unidade_id: string
@@ -313,6 +314,7 @@ export type Database = {
           movimento_retirada_id: string
           obra_id: string
           pessoa_id: string
+          primeiro_aviso_id?: string | null
           status?: Database['public']['Enums']['status_desconto']
           tipo_nome: string
           unidade_id: string
@@ -328,6 +330,7 @@ export type Database = {
           movimento_retirada_id?: string
           obra_id?: string
           pessoa_id?: string
+          primeiro_aviso_id?: string | null
           status?: Database['public']['Enums']['status_desconto']
           tipo_nome?: string
           unidade_id?: string
@@ -354,6 +357,13 @@ export type Database = {
             isOneToOne: false
             referencedRelation: 'pessoa'
             referencedColumns: ['id', 'obra_id']
+          },
+          {
+            foreignKeyName: 'desconto_primeiro_aviso_id_fkey'
+            columns: ['primeiro_aviso_id']
+            isOneToOne: false
+            referencedRelation: 'aviso'
+            referencedColumns: ['id']
           },
           {
             foreignKeyName: 'desconto_unidade_id_obra_id_fkey'
@@ -485,6 +495,7 @@ export type Database = {
           id: string
           obra_id: string
           pego_em: string | null
+          proxima_tentativa_em: string
           referencia: string
           status: Database['public']['Enums']['status_envio']
           tentativas: number
@@ -501,6 +512,7 @@ export type Database = {
           id?: string
           obra_id: string
           pego_em?: string | null
+          proxima_tentativa_em?: string
           referencia: string
           status?: Database['public']['Enums']['status_envio']
           tentativas?: number
@@ -516,6 +528,7 @@ export type Database = {
           id?: string
           obra_id?: string
           pego_em?: string | null
+          proxima_tentativa_em?: string
           referencia?: string
           status?: Database['public']['Enums']['status_envio']
           tentativas?: number
@@ -1296,7 +1309,7 @@ export type Database = {
         }[]
       }
       concluir_envio: {
-        Args: { p_envio: string; p_erro?: string; p_ok: boolean }
+        Args: { p_envio: string; p_erro?: string; p_ok: boolean; p_sem_destino?: boolean }
         Returns: undefined
       }
       concluir_manutencao: {
@@ -1336,6 +1349,7 @@ export type Database = {
         }
         Returns: string
       }
+      envios_com_problema: { Args: { p_obra: string }; Returns: Json }
       estornar_movimento: {
         Args: { p_motivo: string; p_movimento: string; p_obra: string }
         Returns: string
@@ -1390,6 +1404,7 @@ export type Database = {
           id: string
           obra_id: string
           pego_em: string | null
+          proxima_tentativa_em: string
           referencia: string
           status: Database['public']['Enums']['status_envio']
           tentativas: number
@@ -1447,11 +1462,12 @@ export type Database = {
       perfil: 'engenheiro' | 'almoxarife' | 'consulta'
       status_aviso: 'enviado' | 'cancelado' | 'confirmado'
       status_desconto: 'aberto' | 'cancelado' | 'confirmado'
-      status_envio: 'pendente' | 'enviado' | 'erro'
+      status_envio: 'pendente' | 'enviado' | 'erro' | 'sem_destino'
       status_impressao: 'pendente' | 'enviando' | 'enviado' | 'erro'
       status_unidade: 'livre' | 'em_uso' | 'manutencao' | 'baixada'
       tipo_empresa: 'propria' | 'empreiteira'
-      tipo_envio: 'aviso' | 'desconto_cancelado' | 'resumo_proprios' | 'ocorrencia'
+      tipo_envio:
+        'aviso' | 'desconto_cancelado' | 'resumo_proprios' | 'ocorrencia' | 'desconto_reaberto'
       tipo_movimento: 'retirada' | 'devolucao' | 'estorno'
       tipo_ocorrencia: 'capacete_trocado'
       via_movimento: 'qr' | 'manual'
@@ -1575,11 +1591,17 @@ export const Constants = {
       perfil: ['engenheiro', 'almoxarife', 'consulta'],
       status_aviso: ['enviado', 'cancelado', 'confirmado'],
       status_desconto: ['aberto', 'cancelado', 'confirmado'],
-      status_envio: ['pendente', 'enviado', 'erro'],
+      status_envio: ['pendente', 'enviado', 'erro', 'sem_destino'],
       status_impressao: ['pendente', 'enviando', 'enviado', 'erro'],
       status_unidade: ['livre', 'em_uso', 'manutencao', 'baixada'],
       tipo_empresa: ['propria', 'empreiteira'],
-      tipo_envio: ['aviso', 'desconto_cancelado', 'resumo_proprios', 'ocorrencia'],
+      tipo_envio: [
+        'aviso',
+        'desconto_cancelado',
+        'resumo_proprios',
+        'ocorrencia',
+        'desconto_reaberto',
+      ],
       tipo_movimento: ['retirada', 'devolucao', 'estorno'],
       tipo_ocorrencia: ['capacete_trocado'],
       via_movimento: ['qr', 'manual'],

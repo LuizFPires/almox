@@ -87,6 +87,7 @@ describe('fechamento do dia', () => {
     expect(subtituloEncerrado(1)).toBe('1 pendência passa para amanhã')
     expect(subtituloEncerrado(2)).toBe('2 pendências passam para amanhã')
     expect(destinatariosAviso('Luciana Prado', 'Carlos Mendes')).toBe('Aviso a Luciana e Carlos')
-    expect(destinatariosAviso('Bruno Teixeira', null)).toBe('Aviso a Bruno e encarregado')
+    expect(destinatariosAviso('Bruno Teixeira', null)).toBe('Aviso a Bruno')
+    expect(destinatariosAviso(null, null)).toBe('Sem e-mail cadastrado: aviso só no app')
   })
 })

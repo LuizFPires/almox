@@ -150,6 +150,9 @@ test.describe('fechamento do dia e avisos', () => {
       await page.goto('/fechamento')
       await expect(page.getByText(`Trabalhador A ${sufixo}`)).toBeVisible()
       await page.getByRole('button', { name: 'Encerrar o dia e enviar relatório' }).click()
+      // Confirmação: quantas empreiteiras serão avisadas (irreversível).
+      await expect(page.getByText(/Vai mandar aviso a/)).toBeVisible()
+      await page.getByRole('button', { name: 'Sim, encerrar' }).click()
       await expect(page.getByRole('heading', { name: 'Dia encerrado' })).toBeVisible()
       // Uma linha por empreiteira do teste, com o total a descontar. O Next deixa a tela anterior
       // escondida no DOM: só o que está visível.

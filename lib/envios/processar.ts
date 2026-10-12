@@ -1,6 +1,6 @@
 import 'server-only'
 import { criarClienteAdmin } from '@/lib/supabase/admin'
-import { enviarEmail } from './email'
+import { emailConfigurado, enviarEmail } from './email'
 import {
   emailAviso,
   emailCancelamento,
@@ -111,11 +111,15 @@ export function montar(d: Dados): { email?: Email; notificacao?: Notificacao } {
 
 /**
  * Processa a fila de envios: pega um lote (sem pegar o que outro processador pegou), manda e
- * marca. Falha fica na fila para nova tentativa (até 5). Nada de e-mail ou token em log.
+ * marca. Falha fica na fila para nova tentativa (até 5). Sem provedor de e-mail, só as
+ * notificações saem; os e-mails esperam. Nada de e-mail ou token em log.
  */
 export async function processarEnvios(limite = 50): Promise<{ enviados: number; erros: number }> {
   const admin = criarClienteAdmin()
-  const { data: lote, error } = await admin.rpc('pegar_envios', { p_limite: limite })
+  const { data: lote, error } = await admin.rpc('pegar_envios', {
+    p_limite: limite,
+    ...(emailConfigurado() ? {} : { p_canais: ['push' as const] }),
+  })
   if (error) throw new Error('Não foi possível ler a fila de envios.')
   let enviados = 0
   let erros = 0
@@ -163,4 +167,21 @@ export async function limparFotosOrfas(): Promise<number> {
   if (error || !nomes?.length) return 0
   const { error: erroRemover } = await admin.storage.from('avarias').remove(nomes)
   return erroRemover ? 0 : nomes.length
+}
+
+/**
+ * Retenção (LGPD, M10): apaga as fotos de avaria de peças consertadas ou baixadas há mais do
+ * prazo (12 meses) e marca a avaria como "sem foto". A avaria em si fica no histórico.
+ */
+export async function apagarFotosVencidas(): Promise<number> {
+  const admin = criarClienteAdmin()
+  const { data: nomes, error } = await admin.rpc('fotos_vencidas', { p_limite: 100 })
+  if (error || !nomes?.length) return 0
+  const { error: erroRemover } = await admin.storage.from('avarias').remove(nomes)
+  if (erroRemover) return 0
+  // O banco marca só as que de fato saíram do Storage (remoção parcial não fica marcada).
+  const { data: marcadas, error: erroMarcar } = await admin.rpc('marcar_fotos_apagadas', {
+    p_caminhos: nomes,
+  })
+  return erroMarcar ? 0 : (marcadas ?? 0)
 }

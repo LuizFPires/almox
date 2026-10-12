@@ -1,6 +1,6 @@
 'use client'
 
-import type { IScannerControls } from '@zxing/browser'
+import jsQR from 'jsqr'
 import { useEffect, useRef, useState } from 'react'
 import { mensagemCamera } from '@/lib/dominio/leitura'
 
@@ -9,13 +9,19 @@ type Props = {
   aoLer: (texto: string) => void
 }
 
+/** Intervalo entre leituras de quadro e largura máxima analisada (velocidade no celular). */
+const INTERVALO_MS = 120
+const LARGURA_MAX = 720
+
 /**
  * Câmera traseira com leitura automática do QR (sem botão), moldura amarela e lanterna
  * quando o aparelho permite. Para a câmera ao ler, ao sair da tela e ao desmontar.
+ * Decodifica com o jsQR (M10): o zxing-js deixava de ler cerca de 7% dos códigos. Importado
+ * junto com a tela (não sob demanda): a tela sem internet já leva o leitor no cache.
  */
 export function LeitorQr({ aoLer }: Props) {
   const video = useRef<HTMLVideoElement>(null)
-  const controles = useRef<IScannerControls | null>(null)
+  const trilha = useRef<MediaStreamTrack | null>(null)
   const aoLerRef = useRef(aoLer)
   const [erro, setErro] = useState<string | null>(null)
   const [temLanterna, setTemLanterna] = useState(false)
@@ -28,48 +34,83 @@ export function LeitorQr({ aoLer }: Props) {
   useEffect(() => {
     let cancelado = false
     let lido = false
+    let relogio = 0
+    let fluxo: MediaStream | null = null
+    const parar = () => {
+      window.clearTimeout(relogio)
+      fluxo?.getTracks().forEach((t) => t.stop())
+      fluxo = null
+      if (video.current) video.current.srcObject = null
+      trilha.current = null
+    }
+
     async function iniciar() {
       if (!navigator.mediaDevices?.getUserMedia) {
         setErro('Este navegador não abre a câmera aqui. Use o app instalado (HTTPS).')
         return
       }
       try {
-        const { BrowserQRCodeReader } = await import('@zxing/browser')
-        // StrictMode (dev) monta, desmonta e monta de novo: não abre a câmera duas vezes.
-        if (cancelado) return
-        const leitor = new BrowserQRCodeReader(undefined, { delayBetweenScanAttempts: 120 })
-        const c = await leitor.decodeFromConstraints(
-          { audio: false, video: { facingMode: { ideal: 'environment' } } },
-          video.current ?? undefined,
-          (resultado, _erro, ctrl) => {
-            if (!resultado || lido) return
-            lido = true
-            ctrl.stop()
-            aoLerRef.current(resultado.getText())
-          },
-        )
+        const s = await navigator.mediaDevices.getUserMedia({
+          audio: false,
+          video: { facingMode: { ideal: 'environment' } },
+        })
+        // StrictMode (dev) monta, desmonta e monta de novo: não deixa a câmera aberta.
         if (cancelado) {
-          c.stop()
+          s.getTracks().forEach((t) => t.stop())
           return
         }
-        controles.current = c
-        setTemLanterna(typeof c.switchTorch === 'function')
+        fluxo = s
+        const v = video.current
+        if (!v) return parar()
+        v.srcObject = s
+        await v.play().catch(() => undefined)
+        const t = s.getVideoTracks()[0] ?? null
+        trilha.current = t
+        const capacidades = (t?.getCapabilities?.() ?? {}) as Record<string, unknown>
+        setTemLanterna('torch' in capacidades)
+
+        const tela = document.createElement('canvas')
+        const ctx = tela.getContext('2d', { willReadFrequently: true })
+        const ler = () => {
+          if (cancelado || lido) return
+          if (ctx && v.readyState >= 2 && v.videoWidth > 0) {
+            const escala = Math.min(1, LARGURA_MAX / v.videoWidth)
+            const w = Math.round(v.videoWidth * escala)
+            const h = Math.round(v.videoHeight * escala)
+            if (tela.width !== w) tela.width = w
+            if (tela.height !== h) tela.height = h
+            ctx.drawImage(v, 0, 0, w, h)
+            const r = jsQR(ctx.getImageData(0, 0, w, h).data, w, h, {
+              inversionAttempts: 'dontInvert',
+            })
+            if (r?.data) {
+              lido = true
+              parar()
+              aoLerRef.current(r.data)
+              return
+            }
+          }
+          relogio = window.setTimeout(ler, INTERVALO_MS)
+        }
+        ler()
       } catch (e) {
         if (!cancelado) setErro(mensagemCamera(e))
+        parar()
       }
     }
     void iniciar()
     return () => {
       cancelado = true
-      controles.current?.stop()
-      controles.current = null
+      parar()
     }
   }, [])
 
   async function alternarLanterna() {
     const ligar = !lanterna
     try {
-      await controles.current?.switchTorch?.(ligar)
+      await trilha.current?.applyConstraints({
+        advanced: [{ torch: ligar } as MediaTrackConstraintSet],
+      })
       setLanterna(ligar)
     } catch {
       setTemLanterna(false)

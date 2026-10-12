@@ -24,7 +24,13 @@ export type Estorno = {
   usuario: { nome: string } | null
 }
 
-export type FotoAvaria = { unidade_id: string; motivo: string; url: string | null }
+export type FotoAvaria = {
+  unidade_id: string
+  motivo: string
+  url: string | null
+  /** Foto apagada pela retenção de dados (LGPD, M10). */
+  apagada: boolean
+}
 
 /** Um lançamento com itens, quem lançou, estorno (se houver) e as fotos das avarias. */
 export async function buscarLancamento(obraId: string, id: string) {
@@ -50,7 +56,7 @@ export async function buscarLancamento(obraId: string, id: string) {
       .overrideTypes<Estorno[], { merge: false }>(),
     supabase
       .from('avaria')
-      .select('unidade_id, motivo, foto_path')
+      .select('unidade_id, motivo, foto_path, foto_apagada_em')
       .eq('obra_id', obraId)
       .eq('movimento_id', id),
   ])
@@ -61,14 +67,16 @@ export async function buscarLancamento(obraId: string, id: string) {
   // Fotos privadas: URL assinada por 10 minutos (a política do Storage só deixa quem lança).
   let fotos: FotoAvaria[] = []
   if (avarias.data.length > 0) {
-    const { data: urls } = await supabase.storage.from('avarias').createSignedUrls(
-      avarias.data.map((a) => a.foto_path),
-      600,
-    )
-    fotos = avarias.data.map((a, i) => ({
+    const existentes = avarias.data.filter((a) => !a.foto_apagada_em).map((a) => a.foto_path)
+    const { data: urls } = existentes.length
+      ? await supabase.storage.from('avarias').createSignedUrls(existentes, 600)
+      : { data: [] }
+    const porCaminho = new Map((urls ?? []).map((x) => [x.path, x.signedUrl]))
+    fotos = avarias.data.map((a) => ({
       unidade_id: a.unidade_id,
       motivo: a.motivo,
-      url: urls?.[i]?.signedUrl ?? null,
+      url: porCaminho.get(a.foto_path) ?? null,
+      apagada: Boolean(a.foto_apagada_em),
     }))
   }
   return { lancamento: mov.data, estorno: estornos.data[0] ?? null, fotos }

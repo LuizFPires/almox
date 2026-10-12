@@ -41,27 +41,52 @@ describe('prévia do adesivo', () => {
     expect(ligados).toBe(total)
   })
 
-  it('token que começa com dígitos continua legível pelo leitor do app (zxing)', async () => {
-    const { BinaryBitmap, HybridBinarizer, PlanarYUVLuminanceSource, QRCodeReader } =
-      await import('@zxing/library')
+  it('token que começa com dígitos continua legível pelo leitor do app (jsQR)', async () => {
+    const { default: jsQR } = await import('jsqr')
     // Este token falhava com o modo automático (segmento numérico + bytes).
     const token = '254859b71a71de7c990ca1c29d78d5b66121'
     const { container } = render(<AdesivoCapacete {...dados} token={token} />)
     const caminho = container.querySelector('svg path')?.getAttribute('d') ?? ''
     const tamanho = Number(/viewBox="0 0 (\d+)/.exec(container.innerHTML)?.[1])
-    const escala = 8
-    const lado = (tamanho + 8) * escala
-    const luz = new Uint8ClampedArray(lado * lado).fill(235)
-    for (const [, x, y] of caminho.matchAll(/M(\d+) (\d+)/g)) {
-      for (let dy = 0; dy < escala; dy++) {
-        for (let dx = 0; dx < escala; dx++) {
-          luz[((Number(y) + 4) * escala + dy) * lado + (Number(x) + 4) * escala + dx] = 16
-        }
-      }
+    const ligados = new Set([...caminho.matchAll(/M(\d+) (\d+)/g)].map(([, x, y]) => `${y},${x}`))
+    const { dados: imagem, lado } = imagemDoQr(tamanho, (l, c) => ligados.has(`${l},${c}`))
+    expect(jsQR(imagem, lado, lado)?.data).toBe(token)
+  })
+
+  it('o leitor do app lê qualquer token do capacete (100 aleatórios)', async () => {
+    // O zxing-js deixava de ler ~7% dos códigos (M10); o leitor tem que ler todos.
+    const { default: jsQR } = await import('jsqr')
+    const falhas: string[] = []
+    for (let n = 0; n < 100; n++) {
+      const token = Array.from(crypto.getRandomValues(new Uint8Array(18)), (b) =>
+        b.toString(16).padStart(2, '0'),
+      ).join('')
+      const qr = QRCode.create([{ data: new TextEncoder().encode(token), mode: 'byte' }], {
+        errorCorrectionLevel: 'M',
+      })
+      const { dados: imagem, lado } = imagemDoQr(qr.modules.size, (l, c) =>
+        Boolean(qr.modules.get(l, c)),
+      )
+      if (jsQR(imagem, lado, lado)?.data !== token) falhas.push(token)
     }
-    const fonte = new PlanarYUVLuminanceSource(luz, lado, lado, 0, 0, lado, lado, false)
-    const lido = new QRCodeReader().decode(new BinaryBitmap(new HybridBinarizer(fonte)))
-    expect(lido.getText()).toBe(token)
-    // A primeira importação do zxing passa dos 5 s com a suíte inteira rodando junto.
+    expect(falhas).toEqual([])
   }, 20_000)
 })
+
+/** Imagem RGBA do QR (8 px por módulo, 4 módulos de margem), como a câmera veria o adesivo. */
+function imagemDoQr(tamanho: number, ligado: (linha: number, coluna: number) => boolean) {
+  const escala = 8
+  const lado = (tamanho + 8) * escala
+  const dados = new Uint8ClampedArray(lado * lado * 4)
+  for (let py = 0; py < lado; py++) {
+    for (let px = 0; px < lado; px++) {
+      const l = Math.floor(py / escala) - 4
+      const c = Math.floor(px / escala) - 4
+      const escuro = l >= 0 && c >= 0 && l < tamanho && c < tamanho && ligado(l, c)
+      const i = (py * lado + px) * 4
+      dados[i] = dados[i + 1] = dados[i + 2] = escuro ? 16 : 235
+      dados[i + 3] = 255
+    }
+  }
+  return { dados, lado }
+}

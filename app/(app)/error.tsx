@@ -1,9 +1,14 @@
 'use client'
 
+import * as Sentry from '@sentry/nextjs'
 import Link from 'next/link'
+import { useEffect } from 'react'
 
 /** Falha inesperada numa tela do celular (ex.: sem internet no canteiro). */
-export default function ErroApp({ reset }: { error: Error; reset: () => void }) {
+export default function ErroApp({ error, reset }: { error: Error; reset: () => void }) {
+  useEffect(() => {
+    Sentry.captureException(error)
+  }, [error])
   return (
     <main className="flex flex-1 flex-col items-center justify-center gap-4 px-6 text-center">
       <h1 className="text-2xl font-bold">Algo deu errado</h1>

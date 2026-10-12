@@ -24,7 +24,7 @@ Fonte da verdade do produto: `PRD.md`. Regras para quem codifica: `CLAUDE.md`.
 | M7 | Lista, estoque e busca | ✅ Concluído | 11/10/2026 |
 | M8 | Painel da TV | ✅ Concluído (soak acelerado no build de produção; falta conferir 60 fps e 72 h no mini PC real) | 12/10/2026 |
 | M9 | Fechamento do dia e avisos às empreiteiras | ✅ Concluído (e-mail real depende da conta no Resend; notificação conferida até a inscrição) | 12/10/2026 |
-| M10 | Offline, auditoria e endurecimento | ⬜ A fazer | |
+| M10 | Offline, auditoria e endurecimento | ✅ Concluído (Sentry liga com o DSN; leitor jsQR e política de dados a validar no piloto e com o jurídico) | 12/10/2026 |
 | M11 | Piloto em obra | ⬜ A fazer | |
 | M12 | Conector ioo | ⬜ A fazer | |
 
@@ -264,15 +264,16 @@ Legenda: ⬜ A fazer · 🟨 Em andamento · ✅ Concluído · ⛔ Bloqueado
 **Objetivo:** aguentar a internet ruim da obra e ficar pronto para produção.
 
 **Entregas**
-- [ ] Fila local (IndexedDB) para retiradas e devoluções sem conexão; envio automático ao reconectar; selo "aguardando envio"
-- [ ] Resolução de conflito: se a unidade não está mais livre ao sincronizar, o servidor aloca outra do mesmo tipo ou devolve erro claro ao almoxarife
-- [ ] Cache local de pessoas e tokens para ler QR offline
-- [ ] Tela de histórico/auditoria (engenheiro): filtros por pessoa, empresa, ferramenta, período, via, ocorrências
-- [ ] Exportação do histórico e dos avisos em planilha (.xlsx), com valores no padrão brasileiro
-- [ ] Revisão de RLS e testes de segurança (token da TV não escreve; QR não vaza dados)
-- [ ] Monitoramento de erros (Sentry ou similar) e logs do agente de impressão
-- [ ] Testes e2e do fluxo completo: cadastro → adesivo → retirada → devolução com avaria → fechamento → aviso
-- [ ] Política de dados (LGPD): retenção de fotos e histórico, texto do termo de responsabilidade (a validar com o jurídico)
+- [x] Fila local (IndexedDB) para retiradas e devoluções sem conexão; envio automático ao reconectar; selo "aguardando envio"
+- [x] Resolução de conflito: se a unidade não está mais livre ao sincronizar, o servidor aloca outra do mesmo tipo ou devolve erro claro ao almoxarife
+- [x] Cache local de pessoas e tokens para ler QR offline
+- [x] Tela de histórico/auditoria (engenheiro): filtros por pessoa, empresa, ferramenta, período, via, ocorrências
+- [x] Exportação do histórico e dos avisos em planilha (.xlsx), com valores no padrão brasileiro
+- [x] Revisão de RLS e testes de segurança (token da TV não escreve; QR não vaza dados)
+- [x] Monitoramento de erros (Sentry ou similar) e logs do agente de impressão
+- [x] Testes e2e do fluxo completo: cadastro → adesivo → retirada → devolução com avaria → fechamento → aviso
+- [x] Política de dados (LGPD): retenção de fotos e histórico, texto do termo de responsabilidade (a validar com o jurídico)
+- [x] Pendências do M9: e-mail sem provedor configurado não gasta tentativas (fica aguardando); e2e de câmera estável no CI
 
 **Critérios de aceite**
 - Celular em modo avião registra 3 retiradas; ao voltar a rede, as 3 aparecem no servidor e na TV.
@@ -421,3 +422,10 @@ Legenda: ⬜ A fazer · 🟨 Em andamento · ✅ Concluído · ⛔ Bloqueado
 | 12/10/2026 | M9 (revisão): **trocar a empresa da pessoa, ou o tipo da empresa, com desconto em aberto é recusado** (feche a medição ou espere a devolução); o desconto fica com a empresa em que a pessoa estava quando virou pendência. |
 | 12/10/2026 | M9 (revisão): o **almoxarife vê só o resultado do encerramento de hoje** (exceção à decisão do M1, só para o dia que acabou de encerrar); o histórico de avisos e valores é do engenheiro e da própria empreiteira. "Encerrar o dia" pede confirmação com o número de empreiteiras e o total. Na lista de avisos, cada peça conta no aviso que a cobrou primeiro; os dos dias seguintes aparecem como lembrete, sem valor novo. Relatórios do M9 não usam avarias (a pendência do M6 sobre avarias estornadas não se aplica). |
 | 12/10/2026 | M9 (comparação com o protótipo): o dia continua com **um encerramento**, mas se ele foi encerrado à mão o sistema faz um **complemento automático às 23:59**: avisa só as peças de empreiteira que saíram depois e não voltaram, uma vez. Saudação do e-mail com **nomes completos** (como no protótipo); itens sempre com "×n"; pendência com o "desde" real ("desde ontem 16:40", "desde 09/10"). |
+| 12/10/2026 | M10: QR offline com **impressão irreversível (hash) do token** guardada no celular, junto de nome, apelido, função e empresa das pessoas ativas da obra; o token em si continua sem sair do servidor. Ao sincronizar, o servidor confere o lançamento de novo (RN-02/RN-03 no servidor). O cache é apagado ao sair. |
+| 12/10/2026 | M10: lançamento offline vale pela **hora em que foi feito no celular**, com limite: o servidor recusa hora no futuro ou com mais de 24 h e guarda também a hora de chegada (auditoria). |
+| 12/10/2026 | M10: monitoramento de erros com **Sentry** (plano grátis, alerta por e-mail) no app e no agente de impressão, sem dado pessoal nos relatórios; sem a chave configurada, o app funciona sem ele. |
+| 12/10/2026 | M10: proposta de retenção (LGPD, a validar com o jurídico): **fotos de avaria apagadas 12 meses** após o conserto/baixa; movimentos e avisos guardados **até 5 anos após o fim da obra**; pessoas inativas sem movimento há 5 anos são anonimizadas. Prazos configuráveis. |
+| 12/10/2026 | M10: a tela **Lançar sem internet** (`/campo`) fica guardada no celular de quem lança; retirada e devolução vão para a fila e o servidor escolhe as unidades quando chegam (se não houver livres, o item fica "não enviado" com o motivo e o almoxarife descarta). **Avaria não é lançada sem internet** (a foto precisa subir): a peça é separada e devolvida quando a rede voltar. "Não é ele" sem internet entra no histórico com a hora em que chegou. Sair do app apaga os dados e a fila do celular (com aviso se houver item não enviado). |
+| 12/10/2026 | M10: leitor de QR trocado do zxing-js para o **jsQR**: o zxing-js 0.23 não lia ~7% dos QR (mesmo perfeitos, em qualquer nível de correção), e cerca de 1 capacete em 14 ficaria ilegível; era também a causa do e2e de câmera instável do M9. Teste unitário lê 100 tokens aleatórios. Lanterna pela restrição `torch` da câmera. |
+| 12/10/2026 | M10 (revisão): a **hora do celular** só vale com o QR lido sem internet ou na lista, nunca com a conferência do lançamento com internet; e **não fica antes** do último lançamento das peças escolhidas (retirada) nem da retirada delas (devolução). "Não é ele" sem internet com chave do celular e hora do celular. A tela sem internet só abre para quem está logado no celular (sessão lida do cookie) e com os dados desse login; outro login apaga os dados do anterior. Fila: resposta 4xx do item vira "não enviado" com o motivo; erro do servidor, depois de 5 vezes. Aceito sem mudar: lançamento com internet pode informar a hora até 24 h para trás (decisão do M10; `recebido_em` mostra a chegada); anonimização nos itens de aviso é pelo nome (homônimo na mesma obra também fica anônimo); sem CSP completa (exige nonce do Next; fica para o piloto). |

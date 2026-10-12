@@ -1,6 +1,6 @@
 import { expect, test, type APIRequestContext, type Page } from '@playwright/test'
 import { ambiente, entrarComo, SENHA_SEED, semSeed, USUARIOS } from './apoio'
-import { CELULAR, LEITURA_QR_MS, navegadorComQr } from './camera'
+import { aguardarLeitura, CELULAR, navegadorComQr } from './camera'
 
 const OBRA = 'a0000000-0000-4000-8000-000000000001'
 
@@ -111,9 +111,9 @@ test.describe('retirada', () => {
       const pagina = await navegador.newPage({ ...CELULAR, baseURL })
       await entrarComo(pagina, 'almoxarife', '/inicio')
       await pagina.goto('/leitura')
-      await pagina
-        .getByRole('button', { name: 'Sim, é o Wagner' })
-        .click({ timeout: LEITURA_QR_MS })
+      const sim = pagina.getByRole('button', { name: 'Sim, é o Wagner' })
+      await aguardarLeitura(pagina, sim)
+      await sim.click()
       await pagina.getByRole('link', { name: 'Retirada' }).click()
       await expect(pagina.getByText('CADA TOQUE NO ÍCONE SOMA 1')).toBeVisible()
       await tocar(pagina, `Pá ${sufixo}`, 2)

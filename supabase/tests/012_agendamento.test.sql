@@ -4,7 +4,7 @@ select plan(14);
 
 select is(
   (select array_agg(jobname order by jobname) from cron.job where jobname like 'almox-%'),
-  array['almox-encerrar-dia', 'almox-limpar-fotos', 'almox-processar-envios'],
+  array['almox-encerrar-dia', 'almox-limpar-fotos', 'almox-processar-envios', 'almox-retencao'],
   'jobs agendados'
 );
 select is(

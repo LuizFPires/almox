@@ -1,7 +1,7 @@
 import { readFileSync } from 'node:fs'
 import { expect, test, type APIRequestContext } from '@playwright/test'
 import { ambiente, entrarComo, SENHA_SEED, semSeed, USUARIOS } from './apoio'
-import { CELULAR, LEITURA_QR_MS, navegadorComQr } from './camera'
+import { aguardarLeitura, CELULAR, navegadorComQr } from './camera'
 
 const OBRA = 'a0000000-0000-4000-8000-000000000001'
 /** Foto da "avaria" (qualquer imagem serve: a tela comprime para JPEG antes de enviar). */
@@ -91,9 +91,9 @@ test.describe('devolução e avaria', () => {
       const pagina = await navegador.newPage({ ...CELULAR, baseURL })
       await entrarComo(pagina, 'almoxarife', '/inicio')
       await pagina.goto('/leitura')
-      await pagina
-        .getByRole('button', { name: 'Sim, é o Valter' })
-        .click({ timeout: LEITURA_QR_MS })
+      const sim = pagina.getByRole('button', { name: 'Sim, é o Valter' })
+      await aguardarLeitura(pagina, sim)
+      await sim.click()
       await pagina.getByRole('link', { name: 'Devolução' }).click()
       await expect(pagina.getByText('Marque o que voltou')).toBeVisible()
       const cartao = pagina.getByRole('region', { name: nome })
@@ -118,7 +118,7 @@ test.describe('devolução e avaria', () => {
     const posses = await eng.get<unknown[]>(`posse?select=unidade_id&pessoa_id=eq.${pessoa}`)
     expect(posses.length).toBeGreaterThanOrEqual(1)
     const avarias = await eng.get<{ motivo: string; foto_path: string }[]>(
-      `avaria?select=motivo,foto_path&order=criado_em.desc&limit=1`,
+      `avaria?select=motivo,foto_path&obra_id=eq.${OBRA}&order=criado_em.desc&limit=1`,
     )
     expect(avarias[0]?.motivo).toBe('cabo_rompido')
     expect(avarias[0]?.foto_path).toMatch(new RegExp(`^${OBRA}/[0-9a-f-]{36}\\.jpg$`))

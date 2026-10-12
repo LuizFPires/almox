@@ -94,6 +94,15 @@ test.describe('PWA', () => {
     }
   })
 
+  test('cabeçalhos de segurança: sem iframe, câmera só do app, HTTPS', async ({ request }) => {
+    const h = (await request.get('/login')).headers()
+    expect(h['x-frame-options']).toBe('DENY')
+    expect(h['x-content-type-options']).toBe('nosniff')
+    expect(h['permissions-policy']).toContain('camera=(self)')
+    expect(h['permissions-policy']).toContain('geolocation=()')
+    expect(h['strict-transport-security']).toContain('max-age=')
+  })
+
   test('tem ícone e meta tags para iPhone', async ({ page }) => {
     await page.goto('/login')
     await expect(page.locator('link[rel="apple-touch-icon"]')).toHaveCount(1)

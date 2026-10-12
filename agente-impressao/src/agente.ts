@@ -10,15 +10,24 @@ import { criarApi, ErroApi } from './api.ts'
 import { proximaEspera, rodarCiclo } from './ciclo.ts'
 import { ErroConfig, lerConfig } from './config.ts'
 import { enviarParaImpressora } from './impressora.ts'
+import { criarAlerta, criarLog } from './monitoramento.ts'
 
 const pasta = join(dirname(fileURLToPath(import.meta.url)), '..')
 const arquivoEnv = join(pasta, '.env')
 if (existsSync(arquivoEnv)) process.loadEnvFile(arquivoEnv)
 
-function log(mensagem: string) {
-  const hora = new Date().toLocaleString('pt-BR', { timeZone: 'America/Sao_Paulo' })
-  console.log(`[${hora}] ${mensagem}`)
-}
+// Tela + logs/agente-AAAA-MM-DD.log (14 dias); problemas também no Sentry, se configurado.
+const log = criarLog(join(pasta, 'logs'))
+const alertar = criarAlerta(process.env.SENTRY_DSN)
+process.on('uncaughtException', (erro) => {
+  log(`Erro inesperado: ${erro.message}`)
+  void alertar(`Erro inesperado: ${erro.message}`).finally(() => process.exit(1))
+})
+process.on('unhandledRejection', (motivo) => {
+  const texto = motivo instanceof Error ? motivo.message : String(motivo)
+  log(`Erro inesperado: ${texto}`)
+  void alertar(`Erro inesperado: ${texto}`)
+})
 
 let config
 try {
@@ -68,7 +77,10 @@ async function volta() {
         ? erro.message
         : 'erro desconhecido'
     // Só registra quando o problema muda, para o log não crescer a cada 2 s.
-    if (problema !== ultimoProblema) log(`Problema: ${problema}`)
+    if (problema !== ultimoProblema) {
+      log(`Problema: ${problema}`)
+      void alertar(`Problema: ${problema}`)
+    }
     ultimoProblema = problema
   }
   if (!parar) relogio = setTimeout(volta, proximaEspera(intervaloMs, falhasSeguidas, naoAutorizado))

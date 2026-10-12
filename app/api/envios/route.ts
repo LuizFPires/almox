@@ -1,10 +1,11 @@
 import { timingSafeEqual } from 'node:crypto'
 import { NextResponse, type NextRequest } from 'next/server'
-import { limparFotosOrfas, processarEnvios } from '@/lib/envios/processar'
+import { apagarFotosVencidas, limparFotosOrfas, processarEnvios } from '@/lib/envios/processar'
 
 /**
  * Processador da fila de envios, chamado pelo agendamento do Supabase (pg_cron + pg_net) com
- * o segredo ENVIOS_SEGREDO. `{"tarefa":"limpeza"}` apaga as fotos de avaria órfãs.
+ * o segredo ENVIOS_SEGREDO. `{"tarefa":"limpeza"}` apaga as fotos de avaria órfãs e as
+ * vencidas pela retenção (LGPD).
  */
 export async function POST(request: NextRequest) {
   const segredo = process.env.ENVIOS_SEGREDO
@@ -15,7 +16,10 @@ export async function POST(request: NextRequest) {
   }
   const corpo = (await request.json().catch(() => ({}))) as { tarefa?: string }
   if (corpo.tarefa === 'limpeza') {
-    return NextResponse.json({ fotosApagadas: await limparFotosOrfas() })
+    return NextResponse.json({
+      fotosApagadas: await limparFotosOrfas(),
+      fotosVencidas: await apagarFotosVencidas(),
+    })
   }
   return NextResponse.json(await processarEnvios())
 }

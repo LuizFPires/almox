@@ -81,6 +81,7 @@ export type Database = {
       avaria: {
         Row: {
           criado_em: string
+          foto_apagada_em: string | null
           foto_path: string
           id: string
           motivo: Database['public']['Enums']['motivo_avaria']
@@ -91,6 +92,7 @@ export type Database = {
         ComputedFields: never
         Insert: {
           criado_em?: string
+          foto_apagada_em?: string | null
           foto_path: string
           id?: string
           motivo: Database['public']['Enums']['motivo_avaria']
@@ -100,6 +102,7 @@ export type Database = {
         }
         Update: {
           criado_em?: string
+          foto_apagada_em?: string | null
           foto_path?: string
           id?: string
           motivo?: Database['public']['Enums']['motivo_avaria']
@@ -768,6 +771,7 @@ export type Database = {
           obs: string | null
           ordem: number
           pessoa_id: string
+          recebido_em: string | null
           tipo: Database['public']['Enums']['tipo_movimento']
           usuario_id: string
           via: Database['public']['Enums']['via_movimento']
@@ -783,6 +787,7 @@ export type Database = {
           obs?: string | null
           ordem?: never
           pessoa_id: string
+          recebido_em?: string | null
           tipo: Database['public']['Enums']['tipo_movimento']
           usuario_id: string
           via: Database['public']['Enums']['via_movimento']
@@ -797,6 +802,7 @@ export type Database = {
           obs?: string | null
           ordem?: never
           pessoa_id?: string
+          recebido_em?: string | null
           tipo?: Database['public']['Enums']['tipo_movimento']
           usuario_id?: string
           via?: Database['public']['Enums']['via_movimento']
@@ -883,6 +889,7 @@ export type Database = {
         Row: {
           ativa: boolean
           criado_em: string
+          encerrada_em: string | null
           endereco: string | null
           id: string
           nome: string
@@ -891,6 +898,7 @@ export type Database = {
         Insert: {
           ativa?: boolean
           criado_em?: string
+          encerrada_em?: string | null
           endereco?: string | null
           id?: string
           nome: string
@@ -898,6 +906,7 @@ export type Database = {
         Update: {
           ativa?: boolean
           criado_em?: string
+          encerrada_em?: string | null
           endereco?: string | null
           id?: string
           nome?: string
@@ -906,6 +915,7 @@ export type Database = {
       }
       ocorrencia: {
         Row: {
+          chave_cliente: string | null
           criado_em: string
           id: string
           obra_id: string
@@ -915,6 +925,7 @@ export type Database = {
         }
         ComputedFields: never
         Insert: {
+          chave_cliente?: string | null
           criado_em?: string
           id?: string
           obra_id: string
@@ -923,6 +934,7 @@ export type Database = {
           usuario_id: string
         }
         Update: {
+          chave_cliente?: string | null
           criado_em?: string
           id?: string
           obra_id?: string
@@ -949,6 +961,7 @@ export type Database = {
       }
       pessoa: {
         Row: {
+          anonimizada_em: string | null
           ativa: boolean
           criado_em: string
           empresa_id: string
@@ -962,6 +975,7 @@ export type Database = {
         }
         ComputedFields: never
         Insert: {
+          anonimizada_em?: string | null
           ativa?: boolean
           criado_em?: string
           empresa_id: string
@@ -974,6 +988,7 @@ export type Database = {
           qr_token?: string
         }
         Update: {
+          anonimizada_em?: string | null
           ativa?: boolean
           criado_em?: string
           empresa_id?: string
@@ -1340,6 +1355,7 @@ export type Database = {
         }[]
       }
       dados_envio: { Args: { p_envio: string }; Returns: Json }
+      dados_offline: { Args: { p_obra: string }; Returns: Json }
       encerrar_dia: { Args: { p_obra: string }; Returns: string }
       enfileirar_impressao: {
         Args: {
@@ -1362,7 +1378,21 @@ export type Database = {
         Returns: string
       }
       fotos_orfas: { Args: { p_limite?: number }; Returns: string[] }
+      fotos_vencidas: { Args: { p_limite?: number }; Returns: string[] }
       gerar_codigo_tv: { Args: { p_dispositivo: string }; Returns: string }
+      historico: {
+        Args: {
+          p_ate: string
+          p_categoria?: string
+          p_de: string
+          p_empresa?: string
+          p_obra: string
+          p_pessoa?: string
+          p_tipo?: string
+          p_via?: Database['public']['Enums']['via_movimento']
+        }
+        Returns: Json
+      }
       identificacao_valida: {
         Args: { p_identificacao: string; p_obra: string }
         Returns: {
@@ -1394,9 +1424,10 @@ export type Database = {
           usuario_id: string
         }[]
       }
+      marcar_fotos_apagadas: { Args: { p_caminhos: string[] }; Returns: number }
       painel_tv: { Args: { p_token: string; p_versao?: string }; Returns: Json }
       pegar_envios: {
-        Args: { p_limite?: number }
+        Args: { p_canais?: Database['public']['Enums']['canal_envio'][]; p_limite?: number }
         Returns: {
           canal: Database['public']['Enums']['canal_envio']
           criado_em: string
@@ -1427,10 +1458,15 @@ export type Database = {
           p_itens: Json
           p_obra: string
           p_pessoa: string
+          p_quando?: string
+          p_token?: string
         }
         Returns: string
       }
-      registrar_ocorrencia: { Args: { p_obra: string; p_token: string }; Returns: string }
+      registrar_ocorrencia: {
+        Args: { p_chave?: string; p_obra: string; p_quando?: string; p_token: string }
+        Returns: string
+      }
       registrar_retirada: {
         Args: {
           p_chave?: string
@@ -1439,6 +1475,8 @@ export type Database = {
           p_itens: Json
           p_obra: string
           p_pessoa: string
+          p_quando?: string
+          p_token?: string
         }
         Returns: string
       }

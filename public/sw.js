@@ -1,9 +1,11 @@
 // Service worker do Almox: torna o app instalável (M0), mostra uma tela offline quando a
-// navegação falha e recebe as notificações dos avisos (Web Push, M9). A fila offline de
-// lançamentos vem no M10.
-// Troque a versão sempre que offline.html mudar, para o SW reinstalar.
-const VERSAO = 'almox-v5'
+// navegação falha, recebe as notificações dos avisos (Web Push, M9) e guarda a tela de lançar
+// sem internet (/campo, M10) com os arquivos dela.
+// Troque a versão sempre que offline.html ou este arquivo mudarem, para o SW reinstalar.
+const VERSAO = 'almox-v7'
+const ESTATICOS = 'almox-estaticos-v1'
 const OFFLINE = '/offline.html'
+const CAMPO = '/campo'
 
 self.addEventListener('install', (evento) => {
   evento.waitUntil(
@@ -19,16 +21,110 @@ self.addEventListener('activate', (evento) => {
     caches
       .keys()
       .then((chaves) =>
-        Promise.all(chaves.filter((c) => c !== VERSAO).map((c) => caches.delete(c))),
+        Promise.all(
+          chaves.filter((c) => c !== VERSAO && c !== ESTATICOS).map((c) => caches.delete(c)),
+        ),
       )
       .then(() => self.clients.claim()),
   )
 })
 
+/** Arquivos do Next com hash no nome: nunca mudam, então servem do cache. */
+const DESENVOLVIMENTO = new URL(self.location.href).searchParams.has('dev')
+
+function ehEstatico(url) {
+  return (
+    !DESENVOLVIMENTO &&
+    url.origin === self.location.origin &&
+    url.pathname.startsWith('/_next/static/')
+  )
+}
+
+/** O cache de arquivos não cresce sem fim (TV e celulares ficam dias abertos entre deploys). */
+const MAX_ESTATICOS = 300
+async function aparar(cache) {
+  const chaves = await cache.keys()
+  // Ordem de inserção: os mais antigos saem primeiro.
+  await Promise.all(
+    chaves.slice(0, Math.max(0, chaves.length - MAX_ESTATICOS)).map((c) => cache.delete(c)),
+  )
+}
+
+/**
+ * Guarda /campo e os arquivos que a página pede (JS, CSS, fontes). Novo build: os arquivos
+ * antigos saem do cache. Só guarda resposta boa (sessão vencida redireciona para o login).
+ */
+async function guardarCampo() {
+  if (DESENVOLVIMENTO) return
+  const resposta = await fetch(CAMPO, { cache: 'no-store', credentials: 'same-origin' })
+  if (!resposta.ok || resposta.redirected) return
+  const html = await resposta.clone().text()
+  const arquivos = [...new Set(html.match(/\/_next\/static\/[^"'\s)\\]+/g) ?? [])]
+  const estaticos = await caches.open(ESTATICOS)
+  const guardados = await estaticos.keys()
+  const novos = new Set(arquivos.map((a) => new URL(a, self.location.origin).href))
+  // Build novo (arquivos da página mudaram): limpa o que não é mais usado.
+  if (arquivos.length && !guardados.some((r) => novos.has(r.url))) {
+    await Promise.all(guardados.map((r) => estaticos.delete(r)))
+  }
+  await Promise.all(
+    arquivos.map(async (a) => {
+      if (await estaticos.match(a)) return
+      const r = await fetch(a)
+      if (r.ok) await estaticos.put(a, r)
+    }),
+  )
+  await (await caches.open(VERSAO)).put(CAMPO, resposta)
+}
+
+self.addEventListener('message', (evento) => {
+  if (evento.data && evento.data.tipo === 'guardar-campo') {
+    evento.waitUntil(guardarCampo().catch(() => undefined))
+  }
+})
+
 self.addEventListener('fetch', (evento) => {
-  if (evento.request.mode !== 'navigate') return
+  const { request } = evento
+  if (request.method !== 'GET') return
+  const url = new URL(request.url)
+
+  if (ehEstatico(url)) {
+    // Do cache quando existe; senão da rede, guardando (ex.: o leitor de QR, carregado sob demanda).
+    evento.respondWith(
+      caches.open(ESTATICOS).then(async (cache) => {
+        const guardado = await cache.match(request)
+        if (guardado) return guardado
+        const resposta = await fetch(request)
+        if (resposta.ok) cache.put(request, resposta.clone()).then(() => aparar(cache))
+        return resposta
+      }),
+    )
+    return
+  }
+
+  if (request.mode !== 'navigate') return
+  if (url.pathname === CAMPO) {
+    // Com internet, a versão nova (e guarda); sem, a guardada.
+    evento.respondWith(
+      fetch(request)
+        .then((resposta) => {
+          if (resposta.ok && !resposta.redirected) {
+            const copia = resposta.clone()
+            caches.open(VERSAO).then((c) => c.put(CAMPO, copia))
+          }
+          return resposta
+        })
+        .catch(() =>
+          caches
+            .match(CAMPO)
+            .then((r) => r ?? caches.match(OFFLINE))
+            .then((r) => r ?? Response.error()),
+        ),
+    )
+    return
+  }
   evento.respondWith(
-    fetch(evento.request).catch(() =>
+    fetch(request).catch(() =>
       caches.match(OFFLINE).then((resposta) => resposta ?? Response.error()),
     ),
   )

@@ -9,6 +9,7 @@ import { buscarHistorico } from '@/lib/dados/historico'
 import { listarPessoas } from '@/lib/dados/pessoas'
 import {
   lerFiltros,
+  paraQuery,
   periodoValido,
   resumoItens,
   ROTULO_CATEGORIA,
@@ -145,6 +146,15 @@ export default async function PaginaHistorico({ searchParams }: PageProps<'/hist
               ? 'Nada lançado com esses filtros.'
               : `${linhas.length} ${linhas.length === 1 ? 'lançamento' : 'lançamentos'}${linhas.length >= 2000 ? ' (mostrando os 2000 mais recentes)' : ''}`}
           </p>
+        )}
+        {valido && linhas.length > 0 && (
+          <a
+            href={`/api/planilhas/historico?${paraQuery(filtros)}`}
+            download
+            className="flex min-h-toque items-center justify-center rounded-botao border border-borda bg-cartao font-bold"
+          >
+            Baixar planilha (.xlsx)
+          </a>
         )}
 
         {[...dias].map(([dia, doDia]) => (

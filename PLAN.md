@@ -268,7 +268,7 @@ Legenda: ⬜ A fazer · 🟨 Em andamento · ✅ Concluído · ⛔ Bloqueado
 - [x] Resolução de conflito: se a unidade não está mais livre ao sincronizar, o servidor aloca outra do mesmo tipo ou devolve erro claro ao almoxarife
 - [x] Cache local de pessoas e tokens para ler QR offline
 - [x] Tela de histórico/auditoria (engenheiro): filtros por pessoa, empresa, ferramenta, período, via, ocorrências
-- [ ] Exportação do histórico e dos avisos em planilha (.xlsx), com valores no padrão brasileiro
+- [x] Exportação do histórico e dos avisos em planilha (.xlsx), com valores no padrão brasileiro
 - [ ] Revisão de RLS e testes de segurança (token da TV não escreve; QR não vaza dados)
 - [ ] Monitoramento de erros (Sentry ou similar) e logs do agente de impressão
 - [ ] Testes e2e do fluxo completo: cadastro → adesivo → retirada → devolução com avaria → fechamento → aviso

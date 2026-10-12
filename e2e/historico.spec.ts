@@ -1,4 +1,5 @@
 import { expect, test, type APIRequestContext } from '@playwright/test'
+import ExcelJS from 'exceljs'
 import { ambiente, entrarComo, SENHA_SEED, semSeed, USUARIOS } from './apoio'
 
 const OBRA = 'a0000000-0000-4000-8000-000000000001'
@@ -68,6 +69,22 @@ test.describe('histórico e auditoria', () => {
     await expect(page.getByRole('status')).toHaveText('1 lançamento')
     await expect(page.getByText(`${nome} ${codigo}`)).toBeVisible()
     await expect(page.getByText(/manual · sem QR · por Sebastião Nunes/)).toBeVisible()
+
+    // A mesma consulta em planilha.
+    const baixando = page.waitForEvent('download')
+    await page.getByRole('link', { name: 'Baixar planilha (.xlsx)' }).click()
+    const arquivo = await baixando
+    expect(arquivo.suggestedFilename()).toMatch(/^almox-historico-\d{4}-\d{2}-\d{2}-a-/)
+    const livro = new ExcelJS.Workbook()
+    await livro.xlsx.readFile(await arquivo.path())
+    const aba = livro.getWorksheet('Histórico')
+    expect(aba?.rowCount).toBe(2)
+    expect(aba?.getRow(2).getCell(5).value).toBe(`${nome} ${codigo}`)
+    expect(aba?.getRow(2).getCell(8).value).toBe('Sebastião Nunes')
+
+    const descontos = await page.request.get('/api/planilhas/descontos')
+    expect(descontos.status()).toBe(200)
+    expect(descontos.headers()['content-type']).toContain('spreadsheetml')
   })
 
   test('almoxarife não abre o histórico', async ({ page }) => {
@@ -75,5 +92,7 @@ test.describe('histórico e auditoria', () => {
     await expect(page.getByRole('link', { name: 'Histórico e auditoria' })).toHaveCount(0)
     await page.goto('/historico')
     await page.waitForURL((u) => u.pathname === '/inicio')
+    expect((await page.request.get('/api/planilhas/historico')).status()).toBe(403)
+    expect((await page.request.get('/api/planilhas/descontos')).status()).toBe(403)
   })
 })

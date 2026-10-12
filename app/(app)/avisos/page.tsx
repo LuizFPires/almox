@@ -37,6 +37,15 @@ export default async function PaginaAvisos() {
         selo={<SeloPerfil perfil={obraAtual.perfil} empresa={obraAtual.empresa?.nome} />}
       />
       <main className="flex flex-1 flex-col gap-2 px-4 pt-2 pb-6">
+        {avisos.length > 0 && (
+          <a
+            href="/api/planilhas/descontos"
+            download
+            className="flex min-h-toque items-center justify-center rounded-botao border border-borda bg-cartao font-bold"
+          >
+            Baixar planilha dos descontos (.xlsx)
+          </a>
+        )}
         {problemas && (problemas.erro > 0 || problemas.semDestino > 0) && (
           <p className="rounded-cartao bg-aviso-claro px-4 py-3 text-[15px] text-aviso">
             {problemas.erro > 0 &&

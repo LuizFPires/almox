@@ -1,6 +1,11 @@
 import 'server-only'
 import type { Email } from './mensagens'
 
+/** Há provedor de e-mail? Sem ele, os e-mails esperam na fila (não gastam tentativas). */
+export function emailConfigurado(): boolean {
+  return Boolean(process.env.RESEND_API_KEY || process.env.MAILPIT_URL)
+}
+
 /**
  * Manda um e-mail. Produção: Resend (RESEND_API_KEY, remetente em EMAIL_REMETENTE, domínio da
  * construtora confirmado). Local e CI: caixa de teste do Supabase (Mailpit, MAILPIT_URL).

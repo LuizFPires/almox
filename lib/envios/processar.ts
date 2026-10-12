@@ -1,6 +1,6 @@
 import 'server-only'
 import { criarClienteAdmin } from '@/lib/supabase/admin'
-import { enviarEmail } from './email'
+import { emailConfigurado, enviarEmail } from './email'
 import {
   emailAviso,
   emailCancelamento,
@@ -111,11 +111,15 @@ export function montar(d: Dados): { email?: Email; notificacao?: Notificacao } {
 
 /**
  * Processa a fila de envios: pega um lote (sem pegar o que outro processador pegou), manda e
- * marca. Falha fica na fila para nova tentativa (até 5). Nada de e-mail ou token em log.
+ * marca. Falha fica na fila para nova tentativa (até 5). Sem provedor de e-mail, só as
+ * notificações saem; os e-mails esperam. Nada de e-mail ou token em log.
  */
 export async function processarEnvios(limite = 50): Promise<{ enviados: number; erros: number }> {
   const admin = criarClienteAdmin()
-  const { data: lote, error } = await admin.rpc('pegar_envios', { p_limite: limite })
+  const { data: lote, error } = await admin.rpc('pegar_envios', {
+    p_limite: limite,
+    ...(emailConfigurado() ? {} : { p_canais: ['push' as const] }),
+  })
   if (error) throw new Error('Não foi possível ler a fila de envios.')
   let enviados = 0
   let erros = 0

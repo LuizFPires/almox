@@ -1,7 +1,15 @@
 import { writeFileSync } from 'node:fs'
 import { tmpdir } from 'node:os'
 import { join } from 'node:path'
-import { chromium, devices, test, type Browser } from '@playwright/test'
+import {
+  chromium,
+  devices,
+  expect,
+  test,
+  type Browser,
+  type Locator,
+  type Page,
+} from '@playwright/test'
 import QRCode from 'qrcode'
 
 const LARGURA = 640
@@ -61,3 +69,23 @@ export const CELULAR = devices['Pixel 7']
  * CPU: no runner do CI (2 núcleos, outras suítes em paralelo) 15 s ficaram no limite.
  */
 export const LEITURA_QR_MS = 30_000
+
+/**
+ * Espera a leitura do QR chegar em `alvo`. Se a consulta do capacete falhar no caminho
+ * ("Não foi possível consultar"), lê de novo, como o almoxarife faria. Sem leitura no prazo,
+ * anexa a tela do celular ao relatório (o navegador da câmera falsa não grava trace).
+ */
+export async function aguardarLeitura(pagina: Page, alvo: Locator): Promise<void> {
+  const fim = Date.now() + LEITURA_QR_MS
+  const falhou = pagina.getByText('Não foi possível consultar')
+  while (Date.now() < fim) {
+    if (await alvo.isVisible()) return
+    if (await falhou.isVisible()) await pagina.getByRole('button', { name: 'Ler de novo' }).click()
+    await pagina.waitForTimeout(250)
+  }
+  await test.info().attach('tela do celular sem leitura', {
+    body: await pagina.screenshot({ fullPage: true }),
+    contentType: 'image/png',
+  })
+  await expect(alvo).toBeVisible({ timeout: 1_000 })
+}

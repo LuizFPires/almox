@@ -1396,7 +1396,7 @@ export type Database = {
       }
       painel_tv: { Args: { p_token: string; p_versao?: string }; Returns: Json }
       pegar_envios: {
-        Args: { p_limite?: number }
+        Args: { p_canais?: Database['public']['Enums']['canal_envio'][]; p_limite?: number }
         Returns: {
           canal: Database['public']['Enums']['canal_envio']
           criado_em: string

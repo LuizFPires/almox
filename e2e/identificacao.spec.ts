@@ -1,6 +1,6 @@
 import { expect, test, type APIRequestContext, type Browser } from '@playwright/test'
 import { ambiente, entrarComo, SENHA_SEED, semSeed, USUARIOS } from './apoio'
-import { CELULAR, LEITURA_QR_MS, navegadorComQr } from './camera'
+import { aguardarLeitura, CELULAR, navegadorComQr } from './camera'
 
 const OBRA = 'a0000000-0000-4000-8000-000000000001'
 
@@ -75,9 +75,7 @@ test.describe('identificação pelo QR do capacete', () => {
     const { navegador, pagina } = await celularLendo(joaquim.token, 'almoxarife', baseURL)
     try {
       await pagina.getByRole('link', { name: /Ler QR do capacete/ }).click()
-      await expect(pagina.getByText('QR lido · capacete cadastrado')).toBeVisible({
-        timeout: LEITURA_QR_MS,
-      })
+      await aguardarLeitura(pagina, pagina.getByText('QR lido · capacete cadastrado'))
       await expect(pagina.getByText('É o Joaquim que está na sua frente?')).toBeVisible()
       await pagina.getByRole('button', { name: 'Sim, é o Joaquim' }).click()
       await pagina.waitForURL((u) => u.pathname === `/pessoa/${joaquim.id}`)
@@ -103,7 +101,9 @@ test.describe('identificação pelo QR do capacete', () => {
     const { navegador, pagina } = await celularLendo(joaquim.token, 'almoxarife', baseURL)
     try {
       await pagina.goto('/leitura')
-      await pagina.getByRole('button', { name: 'Não é ele' }).click({ timeout: LEITURA_QR_MS })
+      const naoEhEle = pagina.getByRole('button', { name: 'Não é ele' })
+      await aguardarLeitura(pagina, naoEhEle)
+      await naoEhEle.click()
       await expect(pagina.getByRole('heading', { name: 'Nada foi registrado' })).toBeVisible()
       await expect(pagina.getByText(/A ocorrência ficou anotada no histórico/)).toBeVisible()
       expect(await joaquim.posses()).toBe(antes)
@@ -124,9 +124,7 @@ test.describe('identificação pelo QR do capacete', () => {
     const { navegador, pagina } = await celularLendo(joaquim.token, 'almoxarife', baseURL)
     try {
       await pagina.goto('/leitura')
-      await expect(pagina.getByText('É o Joaquim que está na sua frente?')).toBeVisible({
-        timeout: LEITURA_QR_MS,
-      })
+      await aguardarLeitura(pagina, pagina.getByText('É o Joaquim que está na sua frente?'))
       await pagina.context().setOffline(true)
       await pagina.getByRole('button', { name: 'Sim, é o Joaquim' }).click()
       await expect(pagina.getByText('Sem conexão com o Almox. Tente de novo.')).toBeVisible()
@@ -143,10 +141,8 @@ test.describe('identificação pelo QR do capacete', () => {
     const { navegador, pagina } = await celularLendo(joaquim.token, 'mestre', baseURL)
     try {
       await pagina.getByRole('link', { name: /Ler QR do capacete/ }).click()
-      await pagina.waitForURL((u) => u.pathname === `/pessoa/${joaquim.id}`, {
-        timeout: LEITURA_QR_MS,
-      })
-      await expect(pagina.getByText('QR do capacete lido')).toBeVisible()
+      await aguardarLeitura(pagina, pagina.getByText('QR do capacete lido'))
+      expect(new URL(pagina.url()).pathname).toBe(`/pessoa/${joaquim.id}`)
       await expect(
         pagina.getByText('Só consulta. Para retirar ou devolver, procure o almoxarifado.'),
       ).toBeVisible()
@@ -161,9 +157,7 @@ test.describe('identificação pelo QR do capacete', () => {
     const { navegador, pagina } = await celularLendo(joaquim.token, 'formas', baseURL)
     try {
       await pagina.goto('/leitura')
-      await expect(pagina.getByText('Pessoa de outra empresa')).toBeVisible({
-        timeout: LEITURA_QR_MS,
-      })
+      await aguardarLeitura(pagina, pagina.getByText('Pessoa de outra empresa'))
       await expect(pagina.getByText('Joaquim')).toHaveCount(0)
       // Início da empreiteira: só números da própria empresa.
       await pagina.goto('/inicio')
@@ -182,9 +176,7 @@ test.describe('identificação pelo QR do capacete', () => {
     )
     try {
       await pagina.goto('/leitura')
-      await expect(pagina.getByText('Capacete não cadastrado')).toBeVisible({
-        timeout: LEITURA_QR_MS,
-      })
+      await aguardarLeitura(pagina, pagina.getByText('Capacete não cadastrado'))
       await expect(pagina.getByRole('button', { name: 'Ler de novo' })).toBeVisible()
     } finally {
       await navegador.close()

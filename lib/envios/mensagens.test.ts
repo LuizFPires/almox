@@ -46,7 +46,7 @@ describe('e-mail do aviso', () => {
   it('assunto, saudação, tabela por pessoa, total e regra do desconto (RN-13/14)', () => {
     const e = emailAviso(aviso)
     expect(e.assunto).toBe('Ferramentas não devolvidas · Fôrmas Ribeiro · 12/10')
-    expect(e.texto).toContain('Olá, Roberto e Paulo.')
+    expect(e.texto).toContain('Olá, Roberto Ribeiro e Paulo Ribeiro.')
     expect(e.texto).toContain('- Hélio Moreira: Pá ×2 · R$ 178,00')
     expect(e.texto).toContain('Total para reposição: R$ 1.068,00')
     expect(e.texto).toContain('descontado na próxima medição da Fôrmas Ribeiro')
@@ -85,7 +85,7 @@ describe('e-mail de cancelamento', () => {
       emAberto: 97900,
     })
     expect(e.assunto).toBe('Desconto cancelado · Fôrmas Ribeiro · 13/10')
-    expect(e.texto).toContain('Olá, Roberto.')
+    expect(e.texto).toContain('Olá, Roberto Ribeiro.')
     expect(e.texto).toContain('às 08:20')
     expect(e.texto).toContain('Desconto cancelado: R$ 89,00')
     expect(e.texto).toContain('Continua em aberto para a próxima medição: R$ 979,00.')
@@ -122,8 +122,9 @@ describe('notificações e apoio', () => {
   it('agrupa por pessoa e saudação sem repetir', () => {
     expect(porPessoa(itens)).toEqual([
       { pessoa: 'Hélio Moreira', itens: 'Pá ×2', valor: 17800 },
-      { pessoa: 'Paulo Ribeiro', itens: 'Serra circular', valor: 89000 },
+      { pessoa: 'Paulo Ribeiro', itens: 'Serra circular ×1', valor: 89000 },
     ])
-    expect(saudacao('Paulo Ribeiro', 'Paulo Souza')).toBe('Olá, Paulo.')
+    expect(saudacao('Paulo Ribeiro', 'Paulo Ribeiro')).toBe('Olá, Paulo Ribeiro.')
+    expect(saudacao('Paulo Ribeiro', 'Paulo Souza')).toBe('Olá, Paulo Ribeiro e Paulo Souza.')
   })
 })

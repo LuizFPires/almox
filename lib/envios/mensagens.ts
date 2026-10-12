@@ -49,16 +49,17 @@ export function escapar(texto: string): string {
 
 const ddmm = (iso: string) => formatarData(iso).slice(0, 5)
 
-/** "Olá, Roberto e Paulo." / "Olá, Roberto." / "Olá." */
+/** "Olá, Roberto Ribeiro e Paulo Ribeiro." / "Olá, Roberto Ribeiro." / "Olá." */
 export function saudacao(dono: string | null, encarregado: string | null): string {
+  // Nomes completos, como no protótipo; a mesma pessoa não aparece duas vezes.
   const nomes = [dono, encarregado]
-    .map((n) => n?.trim().split(/\s+/)[0])
+    .map((n) => n?.trim().replace(/\s+/g, ' '))
     .filter((n): n is string => Boolean(n))
   const unicos = [...new Set(nomes)]
   return unicos.length ? `Olá, ${unicos.join(' e ')}.` : 'Olá.'
 }
 
-/** Agrupa as peças por pessoa: "Pá ×2, Martelete". */
+/** Agrupa as peças por pessoa: "Pá ×2, Martelete ×1". */
 export function porPessoa(itens: { pessoa: string; tipo: string; valor: number }[]) {
   const pessoas = new Map<string, { tipos: Map<string, number>; valor: number }>()
   for (const i of itens) {
@@ -69,7 +70,7 @@ export function porPessoa(itens: { pessoa: string; tipo: string; valor: number }
   }
   return [...pessoas.entries()].map(([pessoa, p]) => ({
     pessoa,
-    itens: [...p.tipos.entries()].map(([t, n]) => (n > 1 ? `${t} ×${n}` : t)).join(', '),
+    itens: [...p.tipos.entries()].map(([t, n]) => `${t} ×${n}`).join(', '),
     valor: p.valor,
   }))
 }

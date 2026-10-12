@@ -9,6 +9,7 @@ import { SeloFimDoDia } from '@/components/SeloFimDoDia'
 import { TelaEmBreve } from '@/components/TelaEmBreve'
 import { dadosFechamento } from '@/lib/dados/fechamento'
 import { montarFechamento, resumoFechamento } from '@/lib/dominio/fechamento'
+import { textoDesde } from '@/lib/dominio/ficha'
 import { podeLancar } from '@/lib/dominio/permissoes'
 import { formatarDiaCurto, formatarHora } from '@/lib/formatos/datas'
 import { formatarBRL } from '@/lib/formatos/moeda'
@@ -66,13 +67,13 @@ export default async function PaginaFechamento() {
 
         <div className="grid grid-cols-2 gap-3">
           <Cartao className="flex flex-col">
-            <span className="text-[28px] leading-none font-bold text-erro tabular-nums">
+            <span className="text-4xl leading-none font-bold text-erro tabular-nums">
               {f.pendentes.length}
             </span>
             <span className="text-[13px] text-texto-2">ainda com ferramenta</span>
           </Cartao>
           <Cartao className="flex flex-col">
-            <span className="text-[28px] leading-none font-bold text-sucesso tabular-nums">
+            <span className="text-4xl leading-none font-bold text-sucesso tabular-nums">
               {f.devolveramTudo.length}
             </span>
             <span className="text-[13px] text-texto-2">devolveram tudo hoje</span>
@@ -97,8 +98,11 @@ export default async function PaginaFechamento() {
                 <div className="flex min-w-0 flex-1 flex-col">
                   <span className="font-bold">
                     {p.nome}
-                    {p.desdeOntem && (
-                      <span className="font-semibold text-erro"> · desde ontem</span>
+                    {p.pendenteDesde && (
+                      <span className="font-semibold text-erro">
+                        {' '}
+                        · {textoDesde(p.pendenteDesde, agora)}
+                      </span>
                     )}
                   </span>
                   <span className="text-[13px] text-texto-2">{p.empresa.nome}</span>

@@ -23,6 +23,8 @@ function Rotulo({ children }: { children: string }) {
 export function PreviaAviso(p: Props) {
   const n = notificacaoAviso(p.empresa, p.total, p.avisoId)
   const dia = formatarData(p.data).slice(0, 5)
+  // Peça de dia anterior: o e-mail real avisa que é lembrete (mesmo valor).
+  const lembrete = p.itens.some((i) => formatarData(i.desde).slice(0, 5) !== dia)
   // Dono e encarregado podem ser a mesma pessoa: não repete (o e-mail sai uma vez por endereço).
   const mesmaPessoa = Boolean(p.dono && p.encarregado && p.dono === p.encarregado)
   const para = [
@@ -35,12 +37,15 @@ export function PreviaAviso(p: Props) {
     <div className="flex flex-col gap-3">
       <Rotulo>NOTIFICAÇÃO NO APP</Rotulo>
       <div className="flex gap-3 rounded-cartao bg-escuro px-4 py-3.5 text-white">
-        <span
-          aria-hidden="true"
-          className="flex size-9 shrink-0 items-center justify-center rounded-botao bg-amarelo text-xs font-bold text-escuro"
-        >
-          ALX
-        </span>
+        {/* Ícone do app, como a notificação aparece no celular. */}
+        {/* eslint-disable-next-line @next/next/no-img-element */}
+        <img
+          src="/icones/icone-192.png"
+          alt=""
+          width={36}
+          height={36}
+          className="size-9 shrink-0 rounded-botao"
+        />
         <span className="flex flex-col gap-0.5 text-sm">
           <span className="font-bold">{n.titulo}</span>
           <span className="text-white/80">{n.corpo}</span>
@@ -64,7 +69,8 @@ export function PreviaAviso(p: Props) {
         <p>{saudacao(p.dono, p.encarregado)}</p>
         <p>
           As ferramentas abaixo foram retiradas por funcionários da {p.empresa} e não foram
-          devolvidas ao almoxarifado até o fechamento do dia {dia}:
+          devolvidas ao almoxarifado até o fechamento do dia {dia}
+          {lembrete && ' (inclui peças de dias anteriores, que continuam pendentes)'}:
         </p>
         <ul className="rounded-botao bg-sutil px-3">
           {porPessoa(p.itens).map((l) => (

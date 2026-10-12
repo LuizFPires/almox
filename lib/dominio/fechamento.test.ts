@@ -37,7 +37,7 @@ describe('fechamento do dia', () => {
         empresa: construtora,
         itens: 'Martelete ×1',
         valor: 289000,
-        desdeOntem: true,
+        pendenteDesde: '2026-10-10T19:40:00Z',
       },
       {
         pessoaId: 'h',
@@ -45,7 +45,7 @@ describe('fechamento do dia', () => {
         empresa: formas,
         itens: 'Martelo ×1, Pá ×2',
         valor: 24300,
-        desdeOntem: false,
+        pendenteDesde: null,
       },
     ])
   })

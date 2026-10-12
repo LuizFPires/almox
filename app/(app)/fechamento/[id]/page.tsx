@@ -58,7 +58,12 @@ export default async function PaginaDiaEncerrado({ params }: PageProps<'/fechame
                       a.donoEmail ? a.dono : null,
                       a.encarregadoEmail ? a.encarregado : null,
                     )}{' '}
-                    · {formatarBRL(a.total)} a descontar
+                    ·{' '}
+                    {a.status === 'cancelado'
+                      ? 'cancelado: ferramentas devolvidas'
+                      : a.status === 'confirmado'
+                        ? `${formatarBRL(a.total)} descontado na medição`
+                        : `${formatarBRL(a.total)} a descontar`}
                   </span>
                 </span>
               </li>

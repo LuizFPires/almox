@@ -25,7 +25,8 @@ export type PendenteFechamento = {
   /** "Colher ×1, Régua ×1": por tipo, na ordem em que saíram. */
   itens: string
   valor: number
-  desdeOntem: boolean
+  /** A peça mais antiga, quando é de antes de hoje (pendência): "desde ontem 16:40". */
+  pendenteDesde: string | null
 }
 
 export type Fechamento = {
@@ -59,7 +60,7 @@ export function montarFechamento(
         empresa: primeira.empresa,
         itens: [...tipos.entries()].map(([t, n]) => `${t} ×${n}`).join(', '),
         valor: pecas.reduce((s, p) => s + p.valor, 0),
-        desdeOntem: pecas.some((p) => ehPendencia(p.desde, agora)),
+        pendenteDesde: ehPendencia(primeira.desde, agora) ? primeira.desde : null,
       }
     })
     .sort(

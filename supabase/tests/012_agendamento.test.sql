@@ -1,6 +1,6 @@
 -- M9 · Agendamento e fila de envios.
 begin;
-select plan(10);
+select plan(14);
 
 select is(
   (select array_agg(jobname order by jobname) from cron.job where jobname like 'almox-%'),
@@ -43,6 +43,28 @@ select is(
   (select count(*)::int from public.pegar_envios(10) where status = 'erro'), 0,
   'depois de 5 tentativas, desiste'
 );
+reset role;
+
+-- Inscrições de notificação: cada login só as próprias -----------------------------------------
+set local role authenticated;
+select set_config('request.jwt.claims', '{"sub":"b0000000-0000-4000-8000-000000000004","role":"authenticated"}', true);
+select lives_ok(
+  $$insert into public.inscricao_push (endpoint, usuario_id, p256dh, auth)
+    values ('https://push.exemplo/formas', 'b0000000-0000-4000-8000-000000000004', 'k', 'a')$$,
+  'login grava a própria inscrição'
+);
+select throws_ok(
+  $$insert into public.inscricao_push (endpoint, usuario_id, p256dh, auth)
+    values ('https://push.exemplo/outro', 'b0000000-0000-4000-8000-000000000001', 'k', 'a')$$,
+  '42501', null, 'não grava inscrição em nome de outro login'
+);
+select throws_ok(
+  $$insert into public.inscricao_push (endpoint, usuario_id, p256dh, auth)
+    values ('http://push.exemplo/x', 'b0000000-0000-4000-8000-000000000004', 'k', 'a')$$,
+  '23514', null, 'endereço de notificação só https'
+);
+select set_config('request.jwt.claims', '{"sub":"b0000000-0000-4000-8000-000000000001","role":"authenticated"}', true);
+select is((select count(*)::int from public.inscricao_push), 0, 'engenheiro não vê a inscrição de outro login');
 reset role;
 
 select * from finish();

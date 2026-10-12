@@ -4,9 +4,11 @@ import { Botao } from '@/components/Botao'
 import { Cabecalho } from '@/components/Cabecalho'
 import { Cartao } from '@/components/Cartao'
 import { rotuloPerfil } from '@/lib/dominio/permissoes'
+import { chavePublicaVapid } from '@/lib/envios/push'
 import { obterSessao } from '@/lib/sessao'
 import { sair } from '../../login/acoes'
 import { escolherObra } from './acoes'
+import { AtivarNotificacoes } from './AtivarNotificacoes'
 
 export const metadata: Metadata = { title: 'Conta · Almox' }
 
@@ -50,6 +52,11 @@ export default async function PaginaConta() {
             )
           })}
         </section>
+
+        {/* Quem recebe aviso: engenheiro e os logins de consulta (dono e encarregado). */}
+        {obraAtual.perfil !== 'almoxarife' && (
+          <AtivarNotificacoes chavePublica={chavePublicaVapid()} />
+        )}
 
         <Link
           href="/trocar-senha"

@@ -484,6 +484,7 @@ export type Database = {
           erro: string | null
           id: string
           obra_id: string
+          pego_em: string | null
           referencia: string
           status: Database['public']['Enums']['status_envio']
           tentativas: number
@@ -499,6 +500,7 @@ export type Database = {
           erro?: string | null
           id?: string
           obra_id: string
+          pego_em?: string | null
           referencia: string
           status?: Database['public']['Enums']['status_envio']
           tentativas?: number
@@ -513,6 +515,7 @@ export type Database = {
           erro?: string | null
           id?: string
           obra_id?: string
+          pego_em?: string | null
           referencia?: string
           status?: Database['public']['Enums']['status_envio']
           tentativas?: number
@@ -1292,6 +1295,10 @@ export type Database = {
           porta: number
         }[]
       }
+      concluir_envio: {
+        Args: { p_envio: string; p_erro?: string; p_ok: boolean }
+        Returns: undefined
+      }
       concluir_manutencao: {
         Args: { p_acao: string; p_obra: string; p_unidade: string }
         Returns: undefined
@@ -1336,6 +1343,7 @@ export type Database = {
         Args: { p_empresa: string; p_obra: string; p_proxima: string }
         Returns: string
       }
+      fotos_orfas: { Args: { p_limite?: number }; Returns: string[] }
       gerar_codigo_tv: { Args: { p_dispositivo: string }; Returns: string }
       identificacao_valida: {
         Args: { p_identificacao: string; p_obra: string }
@@ -1369,6 +1377,30 @@ export type Database = {
         }[]
       }
       painel_tv: { Args: { p_token: string; p_versao?: string }; Returns: Json }
+      pegar_envios: {
+        Args: { p_limite?: number }
+        Returns: {
+          canal: Database['public']['Enums']['canal_envio']
+          criado_em: string
+          dados: NonNullable<Json>
+          destino: string
+          enviado_em: string | null
+          erro: string | null
+          id: string
+          obra_id: string
+          pego_em: string | null
+          referencia: string
+          status: Database['public']['Enums']['status_envio']
+          tentativas: number
+          tipo: Database['public']['Enums']['tipo_envio']
+        }[]
+        SetofOptions: {
+          from: '*'
+          to: 'envio'
+          isOneToOne: false
+          isSetofReturn: true
+        }
+      }
       registrar_devolucao: {
         Args: {
           p_chave?: string

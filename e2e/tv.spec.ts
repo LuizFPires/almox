@@ -189,4 +189,28 @@ test.describe('painel da TV', () => {
       await eng.patch(`pessoa?id=eq.${pessoa?.id}&select=id`, { ativa: false })
     }
   })
+
+  test('sem conexão: mantém o último estado com aviso e volta sozinha', async ({
+    page,
+    request,
+  }, info) => {
+    const eng = await apiEngenheiro(request)
+    await configurar(eng, { ...PADRAO, tempo: 30 })
+    try {
+      await conectarTv(page, eng, `TV queda ${info.project.name}-${Date.now() % 100000}`)
+      await expect(page.locator('article').first()).toBeVisible()
+      const cartoes = await page.locator('article').count()
+
+      await page.route('**/tv/dados', (rota) => rota.abort('internetdisconnected'))
+      await expect(page.getByRole('status')).toContainText(/Sem conexão desde \d{2}:\d{2}/, {
+        timeout: 6_000,
+      })
+      await expect(page.locator('article')).toHaveCount(cartoes)
+
+      await page.unroute('**/tv/dados')
+      await expect(page.getByText(/Sem conexão desde/)).toHaveCount(0, { timeout: 6_000 })
+    } finally {
+      await configurar(eng, PADRAO)
+    }
+  })
 })

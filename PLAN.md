@@ -216,15 +216,15 @@ Legenda: ⬜ A fazer · 🟨 Em andamento · ✅ Concluído · ⛔ Bloqueado
 **Objetivo:** painel em loop na TV do almoxarifado, igual ao protótipo "versão escolhida".
 
 **Entregas**
-- [ ] Rota `/tv` em tela cheia, autenticada por **token de dispositivo** (cadastro do dispositivo pelo engenheiro, só leitura)
-- [ ] **Cartões por pessoa**: 12 por página (4 × 3), ordem alfabética, 8 s por página, esmaecimento 0,6 s
-- [ ] Cartão: nome, função, empresa (cor), ferramentas (ícone + nome, ×N), "Retirou às", faixa vermelha de pendência
-- [ ] **Colunas por empresa** rolando para a esquerda a 45 px/s, pausa 2,5 s antes e 3 s depois; coluna dupla se a empresa tiver mais de 6 pessoas
-- [ ] Loop infinito; cabeçalho fino (título, faixa "Pessoas 13–24 de 30", pontos de página, hora); barra de progresso
-- [ ] Parâmetros configuráveis pelo engenheiro (tempo por página, velocidade, pausas)
-- [ ] Realtime; reconexão automática; aviso "sem conexão desde HH:MM" mantendo o último estado
-- [ ] Animação suave a 60 fps no mini PC (usar `requestAnimationFrame` e `transform`)
-- [ ] Prevenção de suspensão de tela (Wake Lock) e recarga automática diária de madrugada
+- [x] Rota `/tv` em tela cheia, autenticada por **token de dispositivo** (cadastro do dispositivo pelo engenheiro, só leitura)
+- [x] **Cartões por pessoa**: 12 por página (4 × 3), ordem alfabética, 8 s por página, esmaecimento 0,6 s
+- [x] Cartão: nome, função, empresa (cor), ferramentas (ícone + nome, ×N), "Retirou às", faixa vermelha de pendência
+- [x] **Colunas por empresa** rolando para a esquerda a 45 px/s, pausa 2,5 s antes e 3 s depois; coluna dupla se a empresa tiver mais de 6 pessoas
+- [x] Loop infinito; cabeçalho fino (título, faixa "Pessoas 13–24 de 30", pontos de página, hora); barra de progresso
+- [x] Parâmetros configuráveis pelo engenheiro (tempo por página, velocidade, pausas)
+- [x] Realtime; reconexão automática; aviso "sem conexão desde HH:MM" mantendo o último estado
+- [x] Animação suave a 60 fps no mini PC (usar `requestAnimationFrame` e `transform`)
+- [x] Prevenção de suspensão de tela (Wake Lock) e recarga automática diária de madrugada
 
 **Critérios de aceite**
 - Com 30 pessoas com ferramenta: 3 páginas (12, 12, 6) → colunas por empresa → volta à página 1.

@@ -6,6 +6,7 @@ import { buscarTipo, historicoDoTipo, listarTipos } from '@/lib/dados/ferramenta
 import { formatarDataHora } from '@/lib/formatos/datas'
 import { formatarBRL } from '@/lib/formatos/moeda'
 import { obterSessao } from '@/lib/sessao'
+import { iconesProprios } from '@/lib/dados/ferramentas'
 import { FormFerramenta } from '../FormFerramenta'
 
 export const metadata: Metadata = { title: 'Editar ferramenta · Almox' }
@@ -42,7 +43,9 @@ export default async function PaginaEditarFerramenta({
       />
       <FormFerramenta
         tipo={{ ...tipo, codigos: tipo.unidades.map((u) => u.codigo) }}
+        obraId={obraAtual.id}
         prefixosUsados={tipos.map((t) => t.prefixo)}
+        iconesProprios={iconesProprios(tipos)}
       />
 
       <section className="flex flex-col gap-2 px-5 pb-4" aria-labelledby="titulo-unidades">

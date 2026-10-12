@@ -7,7 +7,7 @@ import { Botao } from '@/components/Botao'
 import { Cabecalho } from '@/components/Cabecalho'
 import { CartaoPessoaLancamento } from '@/components/CartaoPessoaLancamento'
 import { IconeFerramenta } from '@/components/IconeFerramenta'
-import { ehChaveIcone } from '@/components/icones-ferramenta'
+import { ehIcone } from '@/components/icones-ferramenta'
 import { RodapeAcao } from '@/components/RodapeAcao'
 import type { TextoIdentificacao } from '@/lib/dominio/ficha'
 import {
@@ -115,7 +115,7 @@ export function FluxoRetirada(props: Props) {
           <div className="flex flex-col divide-y divide-borda rounded-cartao bg-cartao px-4 py-1">
             {marcadas.map(({ tipo, quantidade }) => (
               <div key={tipo.id} className="flex items-center gap-3 py-3">
-                {ehChaveIcone(tipo.icone) && (
+                {ehIcone(tipo.icone) && (
                   <IconeFerramenta icone={tipo.icone} nome={tipo.nome} tamanho="p" />
                 )}
                 <span className="flex min-w-0 flex-1 flex-col">
@@ -226,7 +226,7 @@ export function FluxoRetirada(props: Props) {
                       {q}
                     </span>
                   )}
-                  {ehChaveIcone(tipo.icone) && (
+                  {ehIcone(tipo.icone) && (
                     <IconeFerramenta icone={tipo.icone} nome={tipo.nome} destaque={q > 0} />
                   )}
                   <span className="text-xs text-texto-2">

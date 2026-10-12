@@ -48,7 +48,7 @@ export default async function PaginaFerramentas() {
                 )}
               </span>
               <span className="truncate text-[13px] text-texto-2">
-                <span className="font-mono">{t.prefixo}-</span> · {t.unidades.length} un. · {livres}{' '}
+                {t.unidades.length} un. · {livres}{' '}
                 livres · {emUso} em uso{manutencao > 0 && ` · ${manutencao} manutenção`}
               </span>
             </span>

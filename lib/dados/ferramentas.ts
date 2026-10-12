@@ -1,12 +1,12 @@
 import 'server-only'
-import type { ChaveIcone } from '@/components/icones-ferramenta'
+import { ehIconeArquivo, type Icone, type IconeArquivo } from '@/components/icones-ferramenta'
 import { compararCodigos } from '@/lib/dominio/cadastros'
 import { criarClienteServidor } from '@/lib/supabase/servidor'
 
 export type TipoFerramenta = {
   id: string
   nome: string
-  icone: ChaveIcone
+  icone: Icone
   prefixo: string
   valor_reposicao: number
   alto_valor: boolean
@@ -62,4 +62,9 @@ export async function historicoDoTipo(obraId: string, id: string): Promise<Alter
     .overrideTypes<AlteracaoValor[], { merge: false }>()
   if (error) throw new Error('Não foi possível carregar o histórico.')
   return data
+}
+
+/** Ícones próprios já usados nos tipos da obra, sem repetir (para reusar no formulário). */
+export function iconesProprios(tipos: Pick<TipoFerramenta, 'icone'>[]): IconeArquivo[] {
+  return [...new Set(tipos.map((t) => t.icone).filter(ehIconeArquivo))]
 }

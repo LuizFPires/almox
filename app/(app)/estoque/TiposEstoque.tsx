@@ -2,7 +2,7 @@
 
 import { useState } from 'react'
 import { CirculoFerramenta } from '@/components/IconeFerramenta'
-import { ehChaveIcone } from '@/components/icones-ferramenta'
+import { ehIcone } from '@/components/icones-ferramenta'
 import { subtituloTipo, type ResumoTipo } from '@/lib/dominio/estoque'
 import { textoDesde } from '@/lib/dominio/ficha'
 
@@ -46,7 +46,7 @@ export function TiposEstoque({ tipos, agora }: Props) {
               className="flex min-h-11 w-full flex-col gap-2.5 px-4 py-3 text-left"
             >
               <span className="flex items-center gap-3">
-                {ehChaveIcone(t.icone) && (
+                {ehIcone(t.icone) && (
                   <CirculoFerramenta icone={t.icone} circulo="size-11" svg={26} />
                 )}
                 <span className="flex min-w-0 flex-1 flex-col">

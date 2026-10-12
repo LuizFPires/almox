@@ -3,7 +3,7 @@
 import Link from 'next/link'
 import { useState } from 'react'
 import { CirculoFerramenta } from '@/components/IconeFerramenta'
-import { ehChaveIcone } from '@/components/icones-ferramenta'
+import { ehIcone } from '@/components/icones-ferramenta'
 import { IconeInterface } from '@/components/IconeInterface'
 import { textoDesde } from '@/lib/dominio/ficha'
 import {
@@ -89,7 +89,7 @@ export function ListaQuemEsta({ pessoas, empresas, agora }: Props) {
                     key={i.codigo}
                     className="flex min-h-8 items-center gap-1.5 rounded-full bg-sutil py-[3px] pr-2.5 pl-[3px]"
                   >
-                    {ehChaveIcone(i.icone) && (
+                    {ehIcone(i.icone) && (
                       <CirculoFerramenta icone={i.icone} circulo="size-[26px]" svg={16} destaque />
                     )}
                     <span className="text-[13px] font-semibold">{i.tipo}</span>

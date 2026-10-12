@@ -6,7 +6,7 @@ import { Botao } from '@/components/Botao'
 import { Cabecalho } from '@/components/Cabecalho'
 import { CartaoPessoaLancamento, iniciais } from '@/components/CartaoPessoaLancamento'
 import { IconeFerramenta } from '@/components/IconeFerramenta'
-import { ehChaveIcone } from '@/components/icones-ferramenta'
+import { ehIcone } from '@/components/icones-ferramenta'
 import { LeitorQr } from '@/components/LeitorQr'
 import { RodapeAcao } from '@/components/RodapeAcao'
 import {
@@ -707,7 +707,7 @@ function RetiradaOffline({ dados, fila, escolhida, aoVoltar, aoConcluir }: Props
                       {q}
                     </span>
                   )}
-                  {ehChaveIcone(t.icone) ? (
+                  {ehIcone(t.icone) ? (
                     <IconeFerramenta icone={t.icone} nome={t.nome} destaque={q > 0} />
                   ) : (
                     <span className="font-bold">{t.nome}</span>

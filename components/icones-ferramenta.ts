@@ -37,3 +37,25 @@ export const CHAVES_ICONE = Object.keys(ICONES_FERRAMENTA) as ChaveIcone[]
 export function ehChaveIcone(valor: string): valor is ChaveIcone {
   return Object.hasOwn(ICONES_FERRAMENTA, valor)
 }
+
+/** Ícone enviado pelo engenheiro: "arquivo:{obra}/{uuid}.png" no bucket público "icones". */
+export type IconeArquivo = `arquivo:${string}`
+
+/** O que fica em `tipo_ferramenta.icone`: chave do Almox ou ícone próprio da obra. */
+export type Icone = ChaveIcone | IconeArquivo
+
+const ARQUIVO = /^arquivo:[0-9a-f-]{36}\/[0-9a-f-]{36}\.png$/
+
+export function ehIconeArquivo(valor: string): valor is IconeArquivo {
+  return ARQUIVO.test(valor)
+}
+
+export function ehIcone(valor: string): valor is Icone {
+  return ehChaveIcone(valor) || ehIconeArquivo(valor)
+}
+
+/** Endereço público da imagem de um ícone próprio. */
+export function urlIconeArquivo(icone: IconeArquivo): string {
+  const base = (process.env.NEXT_PUBLIC_SUPABASE_URL ?? '').trim().replace(/\/$/, '')
+  return `${base}/storage/v1/object/public/icones/${icone.slice('arquivo:'.length)}`
+}

@@ -2,7 +2,7 @@ import type { Metadata } from 'next'
 import Link from 'next/link'
 import { notFound } from 'next/navigation'
 import { IconeFerramenta } from '@/components/IconeFerramenta'
-import { ehChaveIcone } from '@/components/icones-ferramenta'
+import { ehIcone } from '@/components/icones-ferramenta'
 import { IconeInterface } from '@/components/IconeInterface'
 import { buscarDevolucao } from '@/lib/dados/devolucao'
 import { compararCodigos } from '@/lib/dominio/cadastros'
@@ -53,7 +53,7 @@ export default async function PaginaDevolucaoFeita({
       <ul className="flex flex-col divide-y divide-borda rounded-cartao bg-cartao px-4 py-1">
         {[...porTipo.entries()].map(([tipo, g]) => (
           <li key={tipo} className="flex items-center gap-3 py-3">
-            {ehChaveIcone(g.icone) && <IconeFerramenta icone={g.icone} nome={tipo} tamanho="p" />}
+            {ehIcone(g.icone) && <IconeFerramenta icone={g.icone} nome={tipo} tamanho="p" />}
             <span className="flex min-w-0 flex-col">
               <span className="font-bold">
                 ×{g.codigos.length}{' '}

@@ -1367,6 +1367,19 @@ export type Database = {
       }
       fotos_orfas: { Args: { p_limite?: number }; Returns: string[] }
       gerar_codigo_tv: { Args: { p_dispositivo: string }; Returns: string }
+      historico: {
+        Args: {
+          p_ate: string
+          p_categoria?: string
+          p_de: string
+          p_empresa?: string
+          p_obra: string
+          p_pessoa?: string
+          p_tipo?: string
+          p_via?: Database['public']['Enums']['via_movimento']
+        }
+        Returns: Json
+      }
       identificacao_valida: {
         Args: { p_identificacao: string; p_obra: string }
         Returns: {

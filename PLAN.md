@@ -267,7 +267,7 @@ Legenda: ⬜ A fazer · 🟨 Em andamento · ✅ Concluído · ⛔ Bloqueado
 - [x] Fila local (IndexedDB) para retiradas e devoluções sem conexão; envio automático ao reconectar; selo "aguardando envio"
 - [x] Resolução de conflito: se a unidade não está mais livre ao sincronizar, o servidor aloca outra do mesmo tipo ou devolve erro claro ao almoxarife
 - [x] Cache local de pessoas e tokens para ler QR offline
-- [ ] Tela de histórico/auditoria (engenheiro): filtros por pessoa, empresa, ferramenta, período, via, ocorrências
+- [x] Tela de histórico/auditoria (engenheiro): filtros por pessoa, empresa, ferramenta, período, via, ocorrências
 - [ ] Exportação do histórico e dos avisos em planilha (.xlsx), com valores no padrão brasileiro
 - [ ] Revisão de RLS e testes de segurança (token da TV não escreve; QR não vaza dados)
 - [ ] Monitoramento de erros (Sentry ou similar) e logs do agente de impressão

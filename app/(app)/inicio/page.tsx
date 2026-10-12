@@ -149,6 +149,12 @@ export default async function PaginaInicio() {
                 <IconeInterface nome="history" tamanho={20} />A descontar
               </Link>
             )}
+            {obraAtual.perfil === 'engenheiro' && (
+              <Link href="/historico" className={`${CLASSE_ATALHO} col-span-2`}>
+                <IconeInterface nome="history" tamanho={20} />
+                Histórico e auditoria
+              </Link>
+            )}
           </div>
         )}
 

@@ -198,6 +198,13 @@ begin
     ) as x (nome, dias_atras, hora, via, icones)
   loop
     quando := ((hoje - r.dias_atras) + r.hora::time) at time zone 'America/Sao_Paulo';
+    -- Antes das 07:45, as retiradas "de hoje" (07:00–07:40) ficariam no futuro e apareceriam
+    -- depois de qualquer lançamento novo. Comprime para entre a meia-noite e agora, na mesma ordem.
+    if r.dias_atras = 0 and now() < ((hoje + time '07:45') at time zone 'America/Sao_Paulo') then
+      quando := (hoje::timestamp at time zone 'America/Sao_Paulo')
+        + greatest(now() - interval '1 minute' - (hoje::timestamp at time zone 'America/Sao_Paulo'), interval '0')
+          * (extract(epoch from r.hora::time - time '07:00') / extract(epoch from interval '40 minutes'));
+    end if;
     insert into public.movimento (obra_id, tipo, pessoa_id, usuario_id, via, criado_em, conferido)
     select obra, 'retirada', p.id, almoxarife, r.via::public.via_movimento, quando, r.via = 'qr'
       from public.pessoa p where p.obra_id = obra and p.nome = r.nome

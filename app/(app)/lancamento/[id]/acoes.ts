@@ -2,6 +2,7 @@
 
 import { revalidatePath } from 'next/cache'
 import { exigirEngenheiro } from '@/lib/acesso'
+import { enviarDepois } from '@/lib/envios/depois'
 
 export type EstadoEstorno = { erro?: string; feito?: boolean }
 
@@ -20,6 +21,8 @@ export async function estornar(_: EstadoEstorno, form: FormData): Promise<Estado
     if (['AL006', 'AL007', '22023'].includes(error.code)) return { erro: error.message }
     return { erro: 'Não foi possível estornar. Tente de novo.' }
   }
+  // Estorno de retirada encerra a posse (desconto cancelado): avisa a empreiteira.
+  enviarDepois()
   revalidatePath(`/lancamento/${id}`)
   revalidatePath('/inicio')
   return { feito: true }

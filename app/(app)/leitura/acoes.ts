@@ -3,6 +3,7 @@
 import { redirect } from 'next/navigation'
 import type { SituacaoLeitura } from '@/lib/dominio/leitura'
 import { podeLancar } from '@/lib/dominio/permissoes'
+import { enviarDepois } from '@/lib/envios/depois'
 import { obterSessao } from '@/lib/sessao'
 import { criarClienteServidor } from '@/lib/supabase/servidor'
 
@@ -71,5 +72,7 @@ export async function naoEhEle(texto: string): Promise<{ ok: boolean }> {
     p_obra: obraAtual.id,
     p_token: tokenLido(texto),
   })
+  // "Não é ele" avisa o encarregado da empresa na hora (notificação).
+  if (!error) enviarDepois()
   return { ok: !error }
 }

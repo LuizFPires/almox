@@ -2,8 +2,7 @@
 
 import { revalidatePath } from 'next/cache'
 import { redirect } from 'next/navigation'
-import { after } from 'next/server'
-import { processarEnvios } from '@/lib/envios/processar'
+import { enviarDepois } from '@/lib/envios/depois'
 import { obterSessao } from '@/lib/sessao'
 import { criarClienteServidor } from '@/lib/supabase/servidor'
 
@@ -25,13 +24,7 @@ export async function encerrarDia(): Promise<EstadoEncerrar> {
           : 'Não foi possível encerrar o dia. Tente de novo.',
     }
   }
-  after(async () => {
-    try {
-      await processarEnvios()
-    } catch {
-      // Fica na fila: o agendamento tenta de novo em até 10 minutos.
-    }
-  })
+  enviarDepois()
   revalidatePath('/fechamento')
   redirect(`/fechamento/${data}`)
 }

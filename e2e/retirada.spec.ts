@@ -1,6 +1,6 @@
 import { expect, test, type APIRequestContext, type Page } from '@playwright/test'
 import { ambiente, entrarComo, SENHA_SEED, semSeed, USUARIOS } from './apoio'
-import { CELULAR, navegadorComQr } from './camera'
+import { CELULAR, LEITURA_QR_MS, navegadorComQr } from './camera'
 
 const OBRA = 'a0000000-0000-4000-8000-000000000001'
 
@@ -42,19 +42,28 @@ async function apiEngenheiro(request: APIRequestContext) {
     return { id: p?.id ?? '', token: d?.token ?? '' }
   }
 
-  async function ultimaRetirada(pessoaId: string) {
-    const [m] = await get<{ via: string; usuario_id: string; itens: { unidade_id: string }[] }[]>(
-      `movimento?select=via,usuario_id,itens:movimento_item!movimento_item_movimento_id_obra_id_fkey(unidade_id)` +
+  /**
+   * A retirada que levou as peças destes tipos (criados só por este teste). Não use "a última
+   * retirada da pessoa": os projetos do celular rodam juntos e lançam para as mesmas pessoas.
+   */
+  async function retiradaDosTipos(pessoaId: string, tipos: string[]) {
+    const itens = await get<{ movimento_id: string }[]>(
+      `movimento_item?select=movimento_id,unidade:unidade!movimento_item_unidade_id_obra_id_fkey!inner(tipo_id)` +
+        `&unidade.tipo_id=in.(${tipos.join(',')})`,
+    )
+    const ids = [...new Set(itens.map((i) => i.movimento_id))]
+    const [m] = await get<{ id: string; via: string; usuario_id: string }[]>(
+      `movimento?select=id,via,usuario_id&id=in.(${ids.join(',')})` +
         `&pessoa_id=eq.${pessoaId}&tipo=eq.retirada&order=criado_em.desc&limit=1`,
     )
-    return m
+    return m && { ...m, itens: itens.filter((i) => i.movimento_id === m.id) }
   }
 
   async function emUso(tipoId: string) {
     return (await get<unknown[]>(`unidade?select=id&tipo_id=eq.${tipoId}&status=eq.em_uso`)).length
   }
 
-  return { criarFerramenta, pessoa, ultimaRetirada, emUso }
+  return { criarFerramenta, pessoa, retiradaDosTipos, emUso }
 }
 
 /** Toca `vezes` no ícone da ferramenta na grade. */
@@ -92,13 +101,19 @@ test.describe('retirada', () => {
 
     // Outro celular (engenheiro) olhando o Início: a retirada tem que aparecer sozinha.
     await entrarComo(page, 'engenheiro', '/inicio')
+    const ultimos = page.getByRole('region', { name: 'ÚLTIMOS LANÇAMENTOS' })
+    const antes = await ultimos.innerText()
+    // Marca a página: se ela recarregar, a marca some.
+    await page.evaluate(() => Object.assign(window, { semRecarregar: true }))
 
     const navegador = await navegadorComQr(wagner.token)
     try {
       const pagina = await navegador.newPage({ ...CELULAR, baseURL })
       await entrarComo(pagina, 'almoxarife', '/inicio')
       await pagina.goto('/leitura')
-      await pagina.getByRole('button', { name: 'Sim, é o Wagner' }).click({ timeout: 15_000 })
+      await pagina
+        .getByRole('button', { name: 'Sim, é o Wagner' })
+        .click({ timeout: LEITURA_QR_MS })
       await pagina.getByRole('link', { name: 'Retirada' }).click()
       await expect(pagina.getByText('CADA TOQUE NO ÍCONE SOMA 1')).toBeVisible()
       await tocar(pagina, `Pá ${sufixo}`, 2)
@@ -111,13 +126,16 @@ test.describe('retirada', () => {
       await navegador.close()
     }
 
-    const mov = await api.ultimaRetirada(wagner.id)
+    const mov = await api.retiradaDosTipos(wagner.id, [pa, furadeira])
     expect(mov?.via).toBe('qr')
     expect(mov?.usuario_id).toBe('b0000000-0000-4000-8000-000000000002')
     expect(mov?.itens).toHaveLength(3)
     expect(await api.emUso(pa)).toBe(2)
     expect(await api.emUso(furadeira)).toBe(1)
-    await expect(page.getByText('retirou 3 itens').first()).toBeVisible({ timeout: 10_000 })
+    // Ao vivo: a lista mudou sem recarregar. Não dá para exigir a linha do Wagner: o Início
+    // mostra só os 5 últimos e os outros testes lançam ao mesmo tempo.
+    await expect.poll(() => ultimos.innerText(), { timeout: 10_000 }).not.toBe(antes)
+    expect(await page.evaluate(() => 'semRecarregar' in window)).toBe(true)
   })
 
   test('dois celulares na última furadeira: só um leva, o outro recebe "acabou de sair"', async ({
@@ -171,7 +189,7 @@ test.describe('retirada', () => {
   test('retirada pela lista (sem QR) grava via = manual', async ({ page, request }, info) => {
     const api = await apiEngenheiro(request)
     const nome = `Colher ${info.project.name}-${Date.now() % 100000}`
-    await api.criarFerramenta(nome, 'colher', 2)
+    const colher = await api.criarFerramenta(nome, 'colher', 2)
     const helio = await api.pessoa('Hélio Moreira')
 
     await entrarComo(page, 'almoxarife', '/inicio')
@@ -186,6 +204,6 @@ test.describe('retirada', () => {
     await page.getByRole('checkbox').click()
     await page.getByRole('button', { name: 'Concluir retirada' }).click()
     await expect(page.getByText('com Hélio · manual, sem QR')).toBeVisible()
-    expect((await api.ultimaRetirada(helio.id))?.via).toBe('manual')
+    expect((await api.retiradaDosTipos(helio.id, [colher]))?.via).toBe('manual')
   })
 })

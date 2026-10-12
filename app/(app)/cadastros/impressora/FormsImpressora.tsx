@@ -3,7 +3,14 @@
 import { useActionState, useState } from 'react'
 import { Botao } from '@/components/Botao'
 import { Campo, ErroFormulario } from '@/components/Formulario'
-import { criarDispositivo, imprimirTeste, salvarImpressora, type EstadoAcaoSimples } from './acoes'
+import {
+  conectarTv,
+  criarDispositivo,
+  imprimirTeste,
+  salvarImpressora,
+  type EstadoAcaoSimples,
+  type EstadoConectarTv,
+} from './acoes'
 
 function Aviso({ texto }: { texto?: string }) {
   if (!texto) return null
@@ -133,6 +140,7 @@ export function FormDispositivo({ url, chave }: { url: string; chave: string }) 
         >
           {`ALMOX_SUPABASE_URL=${url}\nALMOX_CHAVE_PUBLICA=${chave}\nALMOX_TOKEN_DISPOSITIVO=${estado.token}`}
         </pre>
+        <p className="text-sm">Para a TV, use “Conectar uma TV” no mini PC, na lista acima.</p>
       </div>
     )
   }
@@ -143,6 +151,39 @@ export function FormDispositivo({ url, chave }: { url: string; chave: string }) 
       <Botao type="submit" variante="secundaria" larguraTotal disabled={criando}>
         {criando ? 'Cadastrando…' : 'Cadastrar mini PC (gera o token)'}
       </Botao>
+    </form>
+  )
+}
+
+/**
+ * Gera o código de pareamento da TV (10 minutos, uma vez). Endereço só em texto, para abrir
+ * no navegador do mini PC: um link tocado no celular conectaria o celular, não a TV.
+ */
+export function BotaoConectarTv({ dispositivo }: { dispositivo: string }) {
+  const [estado, acao, gerando] = useActionState(
+    async (): Promise<EstadoConectarTv> => conectarTv(dispositivo),
+    {},
+  )
+  return (
+    <form action={acao} className="flex flex-col gap-2">
+      <Botao type="submit" variante="secundaria" larguraTotal disabled={gerando}>
+        {gerando ? 'Gerando…' : estado.codigo ? 'Gerar outro código' : 'Conectar uma TV'}
+      </Botao>
+      <ErroFormulario mensagem={estado.erro} />
+      {estado.codigo && (
+        <div className="flex flex-col gap-2">
+          <p className="text-sm">
+            No navegador da TV, <b>no mini PC</b>, abra este endereço. Vale 10 minutos e uma vez;
+            depois o painel abre sozinho em <code className="font-mono">/tv</code>.
+          </p>
+          <pre
+            aria-label="Endereço para conectar a TV"
+            className="overflow-x-auto rounded-botao bg-sutil p-3 font-mono text-xs leading-relaxed select-all"
+          >
+            {`${window.location.origin}/tv/entrar?c=${estado.codigo}`}
+          </pre>
+        </div>
+      )}
     </form>
   )
 }

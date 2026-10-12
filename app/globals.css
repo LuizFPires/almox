@@ -36,6 +36,7 @@
   --color-tv-texto-2: #b8c2d0; /* dark muted */
   --color-tv-alerta: #fca5a5; /* dark danger-fg */
   --color-tv-alerta-fundo: #4b2027; /* dark danger-bg */
+  --color-tv-alerta-borda: #e5484d; /* borda do cartão em pendência (protótipo da TV) */
 
   --font-sans: var(--font-inter), system-ui, -apple-system, 'Segoe UI', sans-serif;
   --font-mono: var(--font-jetbrains-mono), ui-monospace, monospace;

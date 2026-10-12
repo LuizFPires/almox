@@ -22,7 +22,7 @@ Fonte da verdade do produto: `PRD.md`. Regras para quem codifica: `CLAUDE.md`.
 | M5 | Retirada | ✅ Concluído | 11/10/2026 |
 | M6 | Devolução e avaria | ✅ Concluído | 11/10/2026 |
 | M7 | Lista, estoque e busca | ✅ Concluído | 11/10/2026 |
-| M8 | Painel da TV | ⬜ A fazer | |
+| M8 | Painel da TV | ✅ Concluído (soak acelerado no build de produção; falta conferir 60 fps e 72 h no mini PC real) | 12/10/2026 |
 | M9 | Fechamento do dia e avisos às empreiteiras | ⬜ A fazer | |
 | M10 | Offline, auditoria e endurecimento | ⬜ A fazer | |
 | M11 | Piloto em obra | ⬜ A fazer | |
@@ -216,15 +216,15 @@ Legenda: ⬜ A fazer · 🟨 Em andamento · ✅ Concluído · ⛔ Bloqueado
 **Objetivo:** painel em loop na TV do almoxarifado, igual ao protótipo "versão escolhida".
 
 **Entregas**
-- [ ] Rota `/tv` em tela cheia, autenticada por **token de dispositivo** (cadastro do dispositivo pelo engenheiro, só leitura)
-- [ ] **Cartões por pessoa**: 12 por página (4 × 3), ordem alfabética, 8 s por página, esmaecimento 0,6 s
-- [ ] Cartão: nome, função, empresa (cor), ferramentas (ícone + nome, ×N), "Retirou às", faixa vermelha de pendência
-- [ ] **Colunas por empresa** rolando para a esquerda a 45 px/s, pausa 2,5 s antes e 3 s depois; coluna dupla se a empresa tiver mais de 6 pessoas
-- [ ] Loop infinito; cabeçalho fino (título, faixa "Pessoas 13–24 de 30", pontos de página, hora); barra de progresso
-- [ ] Parâmetros configuráveis pelo engenheiro (tempo por página, velocidade, pausas)
-- [ ] Realtime; reconexão automática; aviso "sem conexão desde HH:MM" mantendo o último estado
-- [ ] Animação suave a 60 fps no mini PC (usar `requestAnimationFrame` e `transform`)
-- [ ] Prevenção de suspensão de tela (Wake Lock) e recarga automática diária de madrugada
+- [x] Rota `/tv` em tela cheia, autenticada por **token de dispositivo** (cadastro do dispositivo pelo engenheiro, só leitura)
+- [x] **Cartões por pessoa**: 12 por página (4 × 3), ordem alfabética, 8 s por página, esmaecimento 0,6 s
+- [x] Cartão: nome, função, empresa (cor), ferramentas (ícone + nome, ×N), "Retirou às", faixa vermelha de pendência
+- [x] **Colunas por empresa** rolando para a esquerda a 45 px/s, pausa 2,5 s antes e 3 s depois; coluna dupla se a empresa tiver mais de 6 pessoas
+- [x] Loop infinito; cabeçalho fino (título, faixa "Pessoas 13–24 de 30", pontos de página, hora); barra de progresso
+- [x] Parâmetros configuráveis pelo engenheiro (tempo por página, velocidade, pausas)
+- [x] Realtime; reconexão automática; aviso "sem conexão desde HH:MM" mantendo o último estado
+- [x] Animação suave a 60 fps no mini PC (usar `requestAnimationFrame` e `transform`)
+- [x] Prevenção de suspensão de tela (Wake Lock) e recarga automática diária de madrugada
 
 **Critérios de aceite**
 - Com 30 pessoas com ferramenta: 3 páginas (12, 12, 6) → colunas por empresa → volta à página 1.
@@ -403,3 +403,12 @@ Legenda: ⬜ A fazer · 🟨 Em andamento · ✅ Concluído · ⛔ Bloqueado
 | 11/10/2026 | M7: no Estoque, a consulta de empreiteira vê os totais da obra (PRD §5) e os nomes só da própria empresa; o resto aparece como "N com outras empresas". Unidades com baixa não contam. O detalhe mostra o código de cada peça com quem está ("MT-01 · Raimundo · desde ontem"). |
 | 11/10/2026 | M7 (revisão): inativar pessoa que ainda está com ferramenta **continua permitido**; ela segue na lista "quem está com o quê" (e como pendência) até devolver. "+ N pessoas sem ferramenta" conta só as ativas e não aparece durante a busca. O estoque também atualiza ao vivo quando uma unidade muda (empreiteira não recebe movimentos de outras empresas; conserto e baixa não geram movimento). |
 | 11/10/2026 | M7 (comparação com o protótipo): chips da lista e linhas do estoque usam o **ícone com o nome escrito ao lado** (pílula do protótipo), exceção à regra "nome embaixo" onde o nome já está na mesma linha (`CirculoFerramenta`). Tipos do estoque e pessoas da lista em ordem alfabética; empresa sem ninguém com ferramenta não aparece. Barra do estoque com um bloco por peça (até 40; acima, proporcional). Barra inferior também na Lista e no Estoque (PRD F-01). |
+| 11/10/2026 | M8: a TV **pergunta ao servidor a cada 2 s** (RPC só de leitura com o token do dispositivo, sem login) em vez de Realtime: atende ao ≤ 3 s, reconecta sozinha e é o mais robusto para rodar dias seguidos. |
+| 11/10/2026 | M8: a TV é conectada pelo link **"Abrir painel nesta TV"** (`/tv/entrar?t=…`), mostrado uma vez ao criar o dispositivo; o token vai para um cookie httpOnly e sai da URL. |
+| 11/10/2026 | M8: configuração do painel por obra em **Cadastros › "Painel da TV"**, nos limites do PRD (página 3–30 s, velocidade 15–150 px/s, pausas, cartões por página 8, 12 ou 16). |
+| 11/10/2026 | M8: recarga automática diária da TV às **04:00** (fuso da obra). |
+| 11/10/2026 | M8: **sem contagens na TV** (CLAUDE.md): a coluna da empresa mostra só o nome, sem o "N itens · M pessoas" do protótipo; a fase de colunas não diz quantas empresas são. |
+| 11/10/2026 | M8: no cartão, ferramentas **agrupadas por tipo com ×N**; se passar de 3 tipos, aparecem 2 e um "+N" com as peças que sobraram (a lista completa fica no app). Nas colunas por empresa aparecem todas (a linha quebra). A pendência mostra o "desde" real ("desde ontem 16:40", "desde 09/10"), como no app. |
+| 12/10/2026 | M8 (revisão): a TV tem **credencial própria, só de leitura do painel**. O engenheiro toca em "Conectar uma TV" no mini PC (Cadastros › Impressora) e recebe um endereço com **código de uso único que vale 10 minutos**, só em texto (sem link, para não conectar o celular); a TV troca o código pela credencial. O cadastro do mini PC continua um só e revogar desliga TV e agente (ajuste da decisão do M3). O token do agente não abre mais o painel. |
+| 12/10/2026 | M8 (revisão): só "dispositivo não autorizado" (erro AL008) desliga a TV; qualquer outra falha é passageira. Mesmo sem autorização, a TV segue perguntando a cada 60 s e recarrega a cada 5 min. Quando nada mudou, o servidor responde só a hora (versão dos dados). O sinal da TV fica separado do sinal do agente. Coluna de empresa ganha uma subcoluna a cada 6 pessoas (dupla, tripla…), para ninguém ficar cortado. |
+| 12/10/2026 | M8 (comparação com o protótipo): a tela da TV é montada sempre em **1920 × 1080 e escalada** para a TV (qualquer resolução ou zoom do sistema), como no protótipo. Nas colunas por empresa, a tela **mede a altura de cada pessoa** e abre outra subcoluna quando ela não cabe (começa com 6 por subcoluna; subcolunas de 436 px com 28 px entre elas). Borda da pendência no vermelho forte do protótipo; nome de ferramenta longo quebra com hífen em até 2 linhas; o relógio do cabeçalho usa a hora do servidor. Mantidos do DS: fundo do círculo do ícone (sutil) e raio de 18 px do protótipo nos cartões. |

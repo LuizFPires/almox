@@ -13,7 +13,7 @@ import { formatarDataHora } from '@/lib/formatos/datas'
 import { obterSessao } from '@/lib/sessao'
 import { lerAmbientePublico } from '@/lib/supabase/ambiente'
 import { revogarDispositivo } from './acoes'
-import { BotaoTeste, FormDispositivo, FormImpressora } from './FormsImpressora'
+import { BotaoConectarTv, BotaoTeste, FormDispositivo, FormImpressora } from './FormsImpressora'
 
 export const metadata: Metadata = { title: 'Impressora · Almox' }
 
@@ -78,23 +78,33 @@ export default async function PaginaImpressora({
             <ErroFormulario mensagem="Não foi possível revogar o mini PC. Tente de novo." />
           )}
           {ativos.map((d) => (
-            <Cartao key={d.id} className="flex items-center justify-between gap-3">
-              <span className="flex flex-col">
-                <span className="font-semibold">{d.nome}</span>
-                <span className="text-[13px] text-texto-2">
-                  {agenteOnline(d.ultimo_ping, agora)
-                    ? 'online'
-                    : d.ultimo_ping
-                      ? `último sinal ${formatarDataHora(d.ultimo_ping)}`
-                      : 'nunca conectou'}
+            <Cartao key={d.id} className="flex flex-col gap-3">
+              <div className="flex items-center justify-between gap-3">
+                <span className="flex flex-col">
+                  <span className="font-semibold">{d.nome}</span>
+                  <span className="text-[13px] text-texto-2">
+                    Agente:{' '}
+                    {agenteOnline(d.ultimo_ping, agora)
+                      ? 'online'
+                      : d.ultimo_ping
+                        ? `último sinal ${formatarDataHora(d.ultimo_ping)}`
+                        : 'nunca conectou'}
+                  </span>
+                  <span className="text-[13px] text-texto-2">
+                    TV:{' '}
+                    {d.ultimo_ping_tv
+                      ? `último sinal ${formatarDataHora(d.ultimo_ping_tv)}`
+                      : 'não conectada'}
+                  </span>
                 </span>
-              </span>
-              <form action={revogarDispositivo}>
-                <input type="hidden" name="id" value={d.id} />
-                <Botao type="submit" variante="secundaria">
-                  Revogar
-                </Botao>
-              </form>
+                <form action={revogarDispositivo}>
+                  <input type="hidden" name="id" value={d.id} />
+                  <Botao type="submit" variante="secundaria">
+                    Revogar
+                  </Botao>
+                </form>
+              </div>
+              <BotaoConectarTv dispositivo={d.id} />
             </Cartao>
           ))}
           <Cartao>

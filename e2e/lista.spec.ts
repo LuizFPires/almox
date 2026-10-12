@@ -105,7 +105,7 @@ test.describe('lista e estoque', () => {
     try {
       const estoque = await outro.newPage()
       await entrarComo(estoque, 'engenheiro', '/estoque')
-      const linha = estoque.getByRole('button', { name: new RegExp(nome) })
+      const linha = estoque.getByRole('button', { name: new RegExp(`${nome}(?!\\d)`) })
       await expect(linha).toContainText('2 /2')
       await linha.click()
       const painel = estoque.locator(`#${await linha.getAttribute('aria-controls')}`)
@@ -161,7 +161,7 @@ test.describe('lista e estoque', () => {
     const { tipo } = await criarFerramenta(request, nome, 2)
     const quem = pessoas(info.project.name).outra
     await entrarComo(page, 'formas', '/estoque')
-    const linha = page.getByRole('button', { name: new RegExp(nome) })
+    const linha = page.getByRole('button', { name: new RegExp(`${nome}(?!\\d)`) })
     await expect(linha).toContainText('2 /2')
 
     // A consulta da Fôrmas não vê o movimento da Construtora, mas o estoque muda.

@@ -102,3 +102,13 @@ export async function revogarDispositivo(form: FormData) {
   revalidatePath('/cadastros/impressora')
   if (error) redirect('/cadastros/impressora?erro=revogar')
 }
+
+export type EstadoConectarTv = { erro?: string; codigo?: string }
+
+/** Código para conectar uma TV a este mini PC: vale 10 minutos e uma vez (gerar_codigo_tv). */
+export async function conectarTv(dispositivo: string): Promise<EstadoConectarTv> {
+  const { supabase } = await exigirEngenheiro()
+  const { data, error } = await supabase.rpc('gerar_codigo_tv', { p_dispositivo: dispositivo })
+  if (error || !data) return { erro: 'Não foi possível gerar o código. Tente de novo.' }
+  return { codigo: data }
+}

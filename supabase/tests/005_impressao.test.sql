@@ -5,6 +5,7 @@ select plan(41);
 -- Parte do zero mesmo num banco local já usado (tudo volta no rollback).
 delete from public.trabalho_impressao;
 delete from public.impressora;
+delete from public.codigo_tv;
 delete from public.dispositivo_tv;
 
 -- Sem impressora escolhida, nada entra na fila.

@@ -183,6 +183,75 @@ export type Database = {
           },
         ]
       }
+      codigo_tv: {
+        Row: {
+          codigo_hash: string
+          dispositivo_id: string
+          expira_em: string
+          usado_em: string | null
+        }
+        ComputedFields: never
+        Insert: {
+          codigo_hash: string
+          dispositivo_id: string
+          expira_em: string
+          usado_em?: string | null
+        }
+        Update: {
+          codigo_hash?: string
+          dispositivo_id?: string
+          expira_em?: string
+          usado_em?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: 'codigo_tv_dispositivo_id_fkey'
+            columns: ['dispositivo_id']
+            isOneToOne: false
+            referencedRelation: 'dispositivo_tv'
+            referencedColumns: ['id']
+          },
+        ]
+      }
+      config_tv: {
+        Row: {
+          atualizado_em: string
+          cartoes_por_pagina: number
+          obra_id: string
+          pausa_antes_ms: number
+          pausa_depois_ms: number
+          tempo_pagina_s: number
+          velocidade_px_s: number
+        }
+        ComputedFields: never
+        Insert: {
+          atualizado_em?: string
+          cartoes_por_pagina?: number
+          obra_id: string
+          pausa_antes_ms?: number
+          pausa_depois_ms?: number
+          tempo_pagina_s?: number
+          velocidade_px_s?: number
+        }
+        Update: {
+          atualizado_em?: string
+          cartoes_por_pagina?: number
+          obra_id?: string
+          pausa_antes_ms?: number
+          pausa_depois_ms?: number
+          tempo_pagina_s?: number
+          velocidade_px_s?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: 'config_tv_obra_id_fkey'
+            columns: ['obra_id']
+            isOneToOne: true
+            referencedRelation: 'obra'
+            referencedColumns: ['id']
+          },
+        ]
+      }
       dispositivo_tv: {
         Row: {
           criado_em: string
@@ -191,7 +260,9 @@ export type Database = {
           obra_id: string
           revogado_em: string | null
           token_hash: string
+          tv_token_hash: string | null
           ultimo_ping: string | null
+          ultimo_ping_tv: string | null
         }
         ComputedFields: never
         Insert: {
@@ -201,7 +272,9 @@ export type Database = {
           obra_id: string
           revogado_em?: string | null
           token_hash: string
+          tv_token_hash?: string | null
           ultimo_ping?: string | null
+          ultimo_ping_tv?: string | null
         }
         Update: {
           criado_em?: string
@@ -210,7 +283,9 @@ export type Database = {
           obra_id?: string
           revogado_em?: string | null
           token_hash?: string
+          tv_token_hash?: string | null
           ultimo_ping?: string | null
+          ultimo_ping_tv?: string | null
         }
         Relationships: [
           {
@@ -1011,6 +1086,7 @@ export type Database = {
         Args: { p_motivo: string; p_movimento: string; p_obra: string }
         Returns: string
       }
+      gerar_codigo_tv: { Args: { p_dispositivo: string }; Returns: string }
       identificacao_valida: {
         Args: { p_identificacao: string; p_obra: string }
         Returns: {
@@ -1042,6 +1118,7 @@ export type Database = {
           usuario_id: string
         }[]
       }
+      painel_tv: { Args: { p_token: string; p_versao?: string }; Returns: Json }
       registrar_devolucao: {
         Args: {
           p_chave?: string
@@ -1065,6 +1142,18 @@ export type Database = {
         Returns: string
       }
       revogar_dispositivo: { Args: { p_dispositivo: string }; Returns: undefined }
+      salvar_config_tv: {
+        Args: {
+          p_cartoes_por_pagina: number
+          p_obra: string
+          p_pausa_antes_ms: number
+          p_pausa_depois_ms: number
+          p_tempo_pagina_s: number
+          p_velocidade_px_s: number
+        }
+        Returns: undefined
+      }
+      trocar_codigo_tv: { Args: { p_codigo: string }; Returns: string }
     }
     Enums: {
       linguagem_impressora: 'ZPL' | 'TSPL'

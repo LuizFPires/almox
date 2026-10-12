@@ -32,7 +32,7 @@ devolver. Não existe "passar para outro" nem "baixar tudo" no fim do dia.
 ### Devolução (4 min)
 1. Leia o capacete de **quem pegou** → **Devolução**.
 2. Marque o que voltou (**Devolver mais uma**).
-3. Voltou quebrada? **Mais uma: avariadas** → **Fotografar a avaria** → escolha o motivo.
+3. Voltou quebrada? Em **Avariadas**, toque no **+** → **Fotografar a avaria** → escolha o motivo.
    - Sem foto não registra.
    - A peça vai para manutenção.
 4. **Registrar devolução**. O que não voltou continua no nome da pessoa.

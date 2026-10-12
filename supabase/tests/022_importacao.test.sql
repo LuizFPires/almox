@@ -1,6 +1,6 @@
 -- M11 · Importação do cadastro inicial: só o engenheiro, tudo ou nada, RLS do próprio login.
 begin;
-select plan(9);
+select plan(11);
 
 create temp table t_ctx (chave text primary key, valor text) on commit drop;
 grant all on t_ctx to authenticated, anon;
@@ -9,7 +9,7 @@ insert into t_ctx values ('dados', jsonb_build_object(
     'cor', '#9A6BFF', 'donoNome', 'Dono Imp', 'donoEmail', 'dono@imp.exemplo', 'encarregadoEmail', null)),
   'pessoas', jsonb_build_array(
     jsonb_build_object('nome', 'Pedro Importado', 'nomeCapacete', 'PEDRO I.', 'funcao', 'Pedreiro', 'empresa', 'Importada Ltda'),
-    jsonb_build_object('nome', 'Paulo Importado', 'nomeCapacete', 'PAULO I.', 'funcao', 'Servente', 'empresa', 'construtora')),
+    jsonb_build_object('nome', 'Paulo Importado', 'nomeCapacete', 'PAULO I.', 'funcao', 'Servente', 'empresa', 'Construtora')),
   'ferramentas', jsonb_build_array(jsonb_build_object('nome', 'Betoneira Imp', 'icone', 'carrinho',
     'prefixo', 'BTI', 'valor', 450000, 'quantidade', 2, 'altoValor', true))
 )::text);
@@ -48,7 +48,7 @@ select ok(
 );
 select is(
   (select e.nome from public.pessoa p join public.empresa e on e.id = p.empresa_id where p.nome = 'Paulo Importado'),
-  'Construtora', 'empresa existente encontrada sem diferenciar maiúsculas'
+  'Construtora', 'empresa existente encontrada pelo nome'
 );
 
 -- Tudo ou nada: a segunda importação repete o prefixo e nada da segunda fica.
@@ -61,7 +61,14 @@ select throws_ok(
         'prefixo', 'BTI', 'valor', 1000, 'quantidade', 1))))$$,
   null, null, 'erro em qualquer linha desfaz a importação inteira'
 );
+select throws_ok(
+  $$select public.importar_cadastro('a0000000-0000-4000-8000-000000000001', jsonb_build_object(
+      'pessoas', jsonb_build_object('nome', 'Não sou lista')))$$,
+  '22023', null, 'abas que não são lista: recusado'
+);
 reset role;
+select is((select count(*)::int from public.empresa where nome = 'Outra Imp'), 0,
+  'nada da importação recusada ficou gravado');
 
 select * from finish();
 rollback;

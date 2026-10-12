@@ -1,3 +1,4 @@
+import ExcelJS from 'exceljs'
 import { describe, expect, it } from 'vitest'
 import { lerPlanilha, planilhaModelo } from './importacao'
 
@@ -29,5 +30,28 @@ describe('planilha modelo do cadastro inicial', () => {
     expect(r).toEqual({
       erro: 'Não foi possível abrir o arquivo. Envie a planilha modelo em .xlsx.',
     })
+  })
+
+  it('número na célula de valor vira texto com vírgula (12,345 não vira R$ 12.345,00)', async () => {
+    const livro = new ExcelJS.Workbook()
+    const aba = livro.addWorksheet('Ferramentas')
+    aba.addRow(['Nome', 'Ícone', 'Prefixo', 'Valor', 'Quantidade', 'Alto'])
+    aba.addRow(['Trena', 'Pá', '', 12.345, 3, 'não'])
+    const buf = Buffer.from(await livro.xlsx.writeBuffer())
+    const lida = await lerPlanilha(
+      buf.buffer.slice(buf.byteOffset, buf.byteOffset + buf.byteLength) as ArrayBuffer,
+    )
+    if ('erro' in lida) throw new Error(lida.erro)
+    expect(lida.ferramentas[0]?.slice(3, 5)).toEqual(['12,35', '3'])
+  })
+
+  it('aba com linhas demais é recusada', async () => {
+    const livro = new ExcelJS.Workbook()
+    livro.addWorksheet('Pessoas').getCell('A6000').value = 'x'
+    const buf = Buffer.from(await livro.xlsx.writeBuffer())
+    const r = await lerPlanilha(
+      buf.buffer.slice(buf.byteOffset, buf.byteOffset + buf.byteLength) as ArrayBuffer,
+    )
+    expect(r).toEqual({ erro: 'A aba Pessoas tem mais de 5000 linhas.' })
   })
 })

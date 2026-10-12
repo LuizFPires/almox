@@ -2,6 +2,8 @@ import type { NextConfig } from 'next'
 
 const nextConfig: NextConfig = {
   cacheComponents: true,
+  // Planilha do cadastro inicial (M11) vai por Server Action: até 5 MB (o padrão é 1 MB).
+  experimental: { serverActions: { bodySizeLimit: '5mb' } },
   partialPrefetching: true,
   turbopack: {
     rules: {

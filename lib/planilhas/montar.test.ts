@@ -80,29 +80,32 @@ describe('planilhaMetricas', () => {
     const livro = new ExcelJS.Workbook()
     await livro.xlsx.load(
       (await planilhaMetricas(
-        [
-          {
-            semana: '2026-10-05',
-            retiradas: 40,
-            semQr: 2,
-            tempoMedianaS: 11.5,
-            tempoMedioS: 13,
-            tempoAte15s: 30,
-            tempoMedidas: 36,
-            pendencias: 3,
-            pendenciasComAviso: 3,
-            movimentos: 70,
-            movimentosCompletos: 70,
-          },
-        ],
-        { de: '2026-10-05', ate: '2026-10-11' },
+        {
+          semanas: [
+            {
+              semana: '2026-10-05',
+              retiradas: 40,
+              semQr: 2,
+              tempoMedianaS: 11.5,
+              tempoMedioS: 13,
+              tempoAte15s: 30,
+              tempoMedidas: 36,
+              pendencias: 3,
+              pendenciasComAviso: 3,
+              movimentos: 70,
+              movimentosCompletos: 70,
+            },
+          ],
+          total: { tempoMedidas: 36, tempoMedianaS: 11.5, tempoMedioS: 13, tempoAte15s: 30 },
+        },
+        { de: '2026-10-05', ate: '2026-10-11', hoje: '2026-10-13' },
       )) as unknown as ArrayBuffer,
     )
     const metas = livro.getWorksheet('Metas')
     expect(metas?.getRow(2).values).toEqual([
       undefined,
-      'Tempo do QR lido até a retirada (mediana)',
-      '11,5 s',
+      'Tempo do QR lido até a retirada (média)',
+      '13 s',
       'até 15 s',
       'sim',
     ])

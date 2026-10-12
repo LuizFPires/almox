@@ -22,8 +22,8 @@ export async function GET(request: NextRequest) {
   if (!periodoValido(filtros)) {
     return NextResponse.json({ erro: 'Escolha um período de até um ano.' }, { status: 400 })
   }
-  const semanas = await buscarMetricas(obraAtual.id, filtros.de, filtros.ate)
-  const arquivo = await planilhaMetricas(semanas, filtros)
+  const metricas = await buscarMetricas(obraAtual.id, filtros.de, filtros.ate)
+  const arquivo = await planilhaMetricas(metricas, { ...filtros, hoje: diaDaObra(agora) })
   return new NextResponse(new Uint8Array(arquivo), {
     headers: {
       'Content-Type': 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',

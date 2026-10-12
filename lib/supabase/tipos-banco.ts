@@ -598,6 +598,7 @@ export type Database = {
           criado_em: string
           expira_em: string
           id: string
+          lido_em: string | null
           obra_id: string
           pessoa_id: string
           usuario_id: string
@@ -607,6 +608,7 @@ export type Database = {
           criado_em?: string
           expira_em: string
           id?: string
+          lido_em?: string | null
           obra_id: string
           pessoa_id: string
           usuario_id: string
@@ -615,6 +617,7 @@ export type Database = {
           criado_em?: string
           expira_em?: string
           id?: string
+          lido_em?: string | null
           obra_id?: string
           pessoa_id?: string
           usuario_id?: string
@@ -1338,7 +1341,7 @@ export type Database = {
         Returns: undefined
       }
       conferir_pessoa: {
-        Args: { p_obra: string; p_token: string }
+        Args: { p_obra: string; p_segundos_leitura?: number; p_token: string }
         Returns: {
           identificacao: string
           pessoa_id: string

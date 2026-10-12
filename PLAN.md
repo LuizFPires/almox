@@ -25,7 +25,7 @@ Fonte da verdade do produto: `PRD.md`. Regras para quem codifica: `CLAUDE.md`.
 | M8 | Painel da TV | ✅ Concluído (soak acelerado no build de produção; falta conferir 60 fps e 72 h no mini PC real) | 12/10/2026 |
 | M9 | Fechamento do dia e avisos às empreiteiras | ✅ Concluído (e-mail real depende da conta no Resend; notificação conferida até a inscrição) | 12/10/2026 |
 | M10 | Offline, auditoria e endurecimento | ✅ Concluído (Sentry liga com o DSN; leitor jsQR e política de dados a validar no piloto e com o jurídico) | 12/10/2026 |
-| M11 | Piloto em obra | 🟡 Em andamento | `feat/m11-piloto` |
+| M11 | Piloto em obra | 🟨 Em andamento | `feat/m11-piloto` |
 | M12 | Conector ioo | ⬜ A fazer | |
 
 Legenda: ⬜ A fazer · 🟨 Em andamento · ✅ Concluído · ⛔ Bloqueado
@@ -433,3 +433,5 @@ Legenda: ⬜ A fazer · 🟨 Em andamento · ✅ Concluído · ⛔ Bloqueado
 | 12/10/2026 | M11: o tempo "QR lido → retirada registrada" é medido gravando **a conferência usada em cada retirada** (vale daqui para frente). |
 | 12/10/2026 | M11: a obra do piloto é criada **por script no almox-prod, com OK do dono**, com o vínculo do engenheiro; sem tela nem perfil de administrador. |
 | 12/10/2026 | M11: **adesivos em lote** — "Imprimir N adesivos" na empresa e no fim da importação, um trabalho por pessoa na fila do agente. |
+| 13/10/2026 | M11 (revisão): o tempo do piloto conta **da leitura do QR** (o celular informa os segundos entre ler e tocar em "Sim", com o cronômetro dele) até a retirada gravada; a meta usa a **média** do período (critério do M11), com a mediana ao lado, calculadas no banco. "Não devolvidas" compara só **semanas inteiras**. Rastreabilidade aparece como "garantido" (o banco não aceita movimento incompleto). |
+| 13/10/2026 | M11 (revisão): **adesivos em lote = quem ainda não tem adesivo** (da obra ou da empresa), 100 por toque; repetir continua de onde parou e nunca imprime duas vezes; reimpressão continua pela ficha. Importação: até 1000 pessoas e 150 ferramentas por planilha (cabe no tempo da requisição), arquivo até 5 MB, empresa pelo nome exato. Aceito sem mudar: conferência reaproveitada (voltar no navegador) poderia contar o tempo da primeira leitura; a tela não reaproveita. |

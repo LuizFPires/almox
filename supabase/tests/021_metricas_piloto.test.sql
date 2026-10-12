@@ -1,6 +1,6 @@
 -- M11 · Métricas do piloto: conferência gravada na retirada, tempo, % sem QR, só o engenheiro.
 begin;
-select plan(9);
+select plan(12);
 
 create temp table t_ctx (chave text primary key, valor text) on commit drop;
 grant all on t_ctx to authenticated, anon;
@@ -18,6 +18,7 @@ select 'a0000000-0000-4000-8000-0000000000d9', 'f0000000-0000-4000-8000-00000000
 insert into public.usuario_obra (usuario_id, obra_id, perfil) values
   ('b0000000-0000-4000-8000-000000000001', 'a0000000-0000-4000-8000-0000000000d9', 'engenheiro'),
   ('b0000000-0000-4000-8000-000000000002', 'a0000000-0000-4000-8000-0000000000d9', 'almoxarife');
+insert into t_ctx select 'token_beto', qr_token from public.pessoa where id = 'c0000000-0000-4000-8000-0000000000d2';
 -- Conferência lida 12 s antes da retirada.
 insert into public.identificacao (id, obra_id, pessoa_id, usuario_id, criado_em, expira_em)
 values ('d0000000-0000-4000-8000-0000000000d9', 'a0000000-0000-4000-8000-0000000000d9',
@@ -37,8 +38,14 @@ select throws_ok(
   '42501', null, 'almoxarife não vê as métricas'
 );
 select set_config('request.jwt.claims', '{"sub":"b0000000-0000-4000-8000-000000000001","role":"authenticated"}', true);
-insert into t_ctx select 'm', (public.metricas_piloto('a0000000-0000-4000-8000-0000000000d9',
-  (now() at time zone 'America/Sao_Paulo')::date, (now() at time zone 'America/Sao_Paulo')::date) -> 0)::text;
+insert into t_ctx select 'todo', public.metricas_piloto('a0000000-0000-4000-8000-0000000000d9',
+  (now() at time zone 'America/Sao_Paulo')::date, (now() at time zone 'America/Sao_Paulo')::date)::text;
+insert into t_ctx select 'm', (valor::jsonb -> 'semanas' -> 0)::text from t_ctx where chave = 'todo';
+-- Conferência pela tela: o celular informa 20 s entre ler o QR e tocar em "Sim".
+select set_config('request.jwt.claims', '{"sub":"b0000000-0000-4000-8000-000000000002","role":"authenticated"}', true);
+insert into t_ctx select 'conf', identificacao::text from public.conferir_pessoa('a0000000-0000-4000-8000-0000000000d9',
+  (select valor from t_ctx where chave = 'token_beto'), 20);
+select set_config('request.jwt.claims', '{"sub":"b0000000-0000-4000-8000-000000000001","role":"authenticated"}', true);
 reset role;
 
 select is(
@@ -58,6 +65,16 @@ select is(
   0, 'rastreabilidade: todos os movimentos completos'
 );
 
+select is(
+  (select (valor::jsonb -> 'total' ->> 'tempoMedioS')::numeric between 11 and 14 from t_ctx where chave = 'todo'),
+  true, 'total do período: média calculada no banco'
+);
+select is((select (valor::jsonb -> 'total' ->> 'tempoMedidas')::int from t_ctx where chave = 'todo'), 1, 'total: medidas');
+select ok(
+  (select lido_em between now() - interval '21 seconds' and now() - interval '19 seconds'
+     from public.identificacao where id = (select valor::uuid from t_ctx where chave = 'conf')),
+  'conferência guarda a hora da leitura do QR (segundos informados pelo celular)'
+);
 set local role anon;
 select throws_ok(
   $$select public.metricas_piloto('a0000000-0000-4000-8000-0000000000d9', current_date, current_date)$$,

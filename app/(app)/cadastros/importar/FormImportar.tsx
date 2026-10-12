@@ -21,6 +21,10 @@ export function FormImportar() {
       setResposta({ tipo: 'erro', texto: 'Escolha a planilha.' })
       return
     }
+    if (f.size > 5 * 1024 * 1024) {
+      setResposta({ tipo: 'erro', texto: 'Planilha grande demais (máximo 5 MB).' })
+      return
+    }
     const form = new FormData()
     form.set('arquivo', f)
     iniciar(async () => {
@@ -49,10 +53,10 @@ export function FormImportar() {
         </p>
         {resposta.pessoas.length > 0 && (
           <Link
-            href={`/cadastros/adesivos?pessoas=${resposta.pessoas.join(',')}`}
+            href="/cadastros/adesivos"
             className="flex min-h-toque items-center justify-center rounded-botao bg-escuro font-bold text-white"
           >
-            Imprimir {plural(resposta.pessoas.length, 'adesivo', 'adesivos')}
+            Imprimir os adesivos ({plural(resposta.pessoas.length, 'pessoa nova', 'pessoas novas')})
           </Link>
         )}
         <Link href="/cadastros/pessoas" className="text-center font-bold underline">

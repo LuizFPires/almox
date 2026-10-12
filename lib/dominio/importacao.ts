@@ -1,5 +1,6 @@
 import { normalizarTexto } from '@/lib/formatos/texto'
 import {
+  capaceteRepetido,
   lerValorReposicao,
   normalizarNomeCapacete,
   sugerirNomeCapacete,
@@ -41,6 +42,9 @@ export const ABAS = {
     ],
   },
 } as const
+
+/** Iguais aos limites de importar_cadastro no banco (cabe no tempo de uma requisição). */
+export const LIMITES = { empresas: 200, pessoas: 1000, ferramentas: 150 } as const
 
 export type EmpresaImportada = {
   linha: number
@@ -175,6 +179,13 @@ export function validarImportacao(
       return
     }
     const informado = normalizarNomeCapacete(l[1] ?? '')
+    if (informado && capaceteRepetido(informado, capacetes)) {
+      r.avisos.push({
+        aba,
+        linha,
+        texto: `Capacete "${informado}" igual ao de outra pessoa (só aviso).`,
+      })
+    }
     const nomeCapacete = informado || sugerirNomeCapacete(nome, capacetes)
     capacetes.push(nomeCapacete)
     r.pessoas.push({ linha, nome, nomeCapacete, funcao, empresa })
@@ -211,7 +222,8 @@ export function validarImportacao(
     if (prefixos.includes(prefixo)) return erro(aba, linha, `Prefixo ${prefixo} já usado.`)
     const valor = lerValorReposicao(limpo(l[3]))
     if ('erro' in valor) return erro(aba, linha, `Valor: ${valor.erro}`)
-    const quantidade = Number(limpo(l[4]))
+    const quantidadeTexto = limpo(l[4])
+    const quantidade = /^\d{1,3}$/.test(quantidadeTexto) ? Number(quantidadeTexto) : NaN
     if (!Number.isInteger(quantidade) || quantidade < 1 || quantidade > 200) {
       return erro(aba, linha, 'Quantidade: um número inteiro de 1 a 200.')
     }
@@ -229,5 +241,14 @@ export function validarImportacao(
       altoValor: alto === 'sim' || alto === 's',
     })
   })
+  for (const chave of ['empresas', 'pessoas', 'ferramentas'] as const) {
+    if (r[chave].length > LIMITES[chave]) {
+      r.erros.push({
+        aba: ABAS[chave].nome,
+        linha: 0,
+        texto: `No máximo ${LIMITES[chave]} por vez: divida a planilha e importe em partes.`,
+      })
+    }
+  }
   return r
 }

@@ -107,4 +107,42 @@ describe('validarImportacao', () => {
     expect(r.empresas.map((e) => [e.nome, e.tipo])).toEqual([['Nova', 'propria']])
     expect(r.erros).toEqual([{ aba: 'Empresas', linha: 5, texto: '"NOVA" aparece duas vezes.' }])
   })
+
+  it('capacete repetido avisa; quantidade só com dígitos; limite por vez', () => {
+    const r = validarImportacao(
+      {
+        ...vazio,
+        pessoas: [['Ana Souza', 'JOAQUIM', 'Servente', 'Construtora']],
+        ferramentas: [
+          ['Trena', 'pa', '', '10,00', '1e2', ''],
+          ['Nível', 'pa', '', '10,00', '0x10', ''],
+        ],
+      },
+      EXISTENTES,
+      ICONES,
+    )
+    expect(r.avisos.map((a) => a.texto)).toEqual([
+      'Capacete "JOAQUIM" igual ao de outra pessoa (só aviso).',
+    ])
+    expect(r.pessoas).toHaveLength(1)
+    expect(r.erros.map((e) => e.linha)).toEqual([2, 3])
+
+    const letras = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ'
+    const muitas = Array.from({ length: 151 }, (_, i) => [
+      `Ferramenta ${i}`,
+      'pa',
+      `${letras[Math.floor(i / 26)]}${letras[i % 26]}`,
+      '10,00',
+      '1',
+      '',
+    ])
+    const grande = validarImportacao(
+      { ...vazio, ferramentas: muitas },
+      { ...EXISTENTES, prefixos: [] },
+      ICONES,
+    )
+    expect(grande.erros.at(-1)?.texto).toBe(
+      'No máximo 150 por vez: divida a planilha e importe em partes.',
+    )
+  })
 })

@@ -112,14 +112,29 @@ test.describe('importação do cadastro inicial', () => {
     )
     await page.getByRole('button', { name: 'Importar tudo' }).click()
     await expect(page.getByRole('heading', { name: 'Cadastro importado' })).toBeVisible()
-    // Adesivos em lote: as 2 pessoas importadas vão para a fila da impressora.
+    await expect(
+      page.getByRole('link', { name: 'Imprimir os adesivos (2 pessoas novas)' }),
+    ).toBeVisible()
+
+    // Adesivos em lote da empresa: só quem ainda não tem; repetir não imprime de novo.
+    const get = await engenheiro(request)
     await garantirImpressora(request)
-    await page.getByRole('link', { name: 'Imprimir 2 adesivos' }).click()
+    const [empresaNova] = await get<{ id: string }[]>(
+      `empresa?select=id&obra_id=eq.${OBRA}&nome=eq.${encodeURIComponent(empresa)}`,
+    )
+    await page.goto(`/cadastros/empresa/${empresaNova?.id}`)
+    await page.getByRole('link', { name: 'Adesivos da empresa (quem ainda não tem)' }).click()
     await expect(page.getByRole('list', { name: 'Pessoas' }).getByRole('listitem')).toHaveCount(2)
     await page.getByRole('button', { name: 'Imprimir 2 adesivos' }).click()
-    await expect(page.getByRole('status')).toContainText('2 adesivos foram para a fila')
+    await expect(page.getByRole('status')).toContainText(
+      '2 adesivos foram para a fila da impressora. Todos já têm adesivo.',
+    )
+    await page.reload()
+    await expect(page.getByRole('button', { name: /^Imprimir/ })).toHaveCount(0)
+    await expect(
+      page.getByText('Todos já têm adesivo. Para reimprimir, use a ficha da pessoa.'),
+    ).toBeVisible()
 
-    const get = await engenheiro(request)
     const pessoas = await get<{ nome_capacete: string; empresa: { nome: string } }[]>(
       `pessoa?select=nome_capacete,empresa:empresa!pessoa_empresa_id_obra_id_fkey(nome)&obra_id=eq.${OBRA}&nome=like.*Imp%20${encodeURIComponent(n)}`,
     )

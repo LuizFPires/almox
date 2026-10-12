@@ -46,8 +46,14 @@ export default async function PaginaMetricas({ searchParams }: PageProps<'/metri
     agora,
   )
   const valido = periodoValido(filtros)
-  const semanas = valido ? await buscarMetricas(obraAtual.id, filtros.de, filtros.ate) : []
-  const tempo = metaTempo(semanas)
+  const { semanas, total } = valido
+    ? await buscarMetricas(obraAtual.id, filtros.de, filtros.ate)
+    : {
+        semanas: [],
+        total: { tempoMedidas: 0, tempoMedianaS: null, tempoMedioS: null, tempoAte15s: 0 },
+      }
+  const tempo = metaTempo(total)
+  const hoje = diaDaObra(agora)
 
   return (
     <>
@@ -85,22 +91,32 @@ export default async function PaginaMetricas({ searchParams }: PageProps<'/metri
         )}
 
         <section aria-label="Metas" className="grid grid-cols-2 gap-2">
-          <Indicador titulo="QR lido → retirada" meta={tempo} alvo="até 15 s (mediana)" />
+          <Indicador titulo="QR lido → retirada (média)" meta={tempo} alvo="até 15 s" />
           <Indicador titulo="Retiradas sem QR" meta={metaSemQr(semanas)} alvo="menos de 10%" />
-          <Indicador titulo="Não devolvidas" meta={metaPerdas(semanas)} alvo="queda de 50%" />
+          <Indicador
+            titulo="Não devolvidas"
+            meta={metaPerdas(semanas, filtros.de, hoje)}
+            alvo="queda de 50%"
+          />
           <Indicador titulo="Pendências com aviso" meta={metaAvisos(semanas)} alvo="100%" />
           <Indicador titulo="Rastreabilidade" meta={metaRastreabilidade(semanas)} alvo="100%" />
           <div className="flex flex-col gap-0.5 rounded-cartao bg-sutil px-4 py-3 text-texto-2">
-            <span className="text-[13px] font-semibold">Retiradas em até 15 s</span>
+            <span className="text-[13px] font-semibold">Em até 15 s · mediana</span>
             <span className="text-2xl font-bold tabular-nums">
               {tempo.ate15 === null ? '—' : `${tempo.ate15.toLocaleString('pt-BR')}%`}
             </span>
-            <span className="text-[13px]">das medidas com QR</span>
+            <span className="text-[13px]">
+              {tempo.mediana === null
+                ? 'sem medidas'
+                : `mediana ${tempo.mediana.toLocaleString('pt-BR')} s · ${total.tempoMedidas} medidas`}
+            </span>
           </div>
         </section>
         <p className="text-[13px] text-texto-2">
-          O atraso do lançamento até a TV (meta: até 3 s) é medido na obra, com cronômetro: a TV
-          consulta o Almox a cada 2 s.
+          O tempo conta da leitura do QR até a retirada gravada (lançamentos sem internet não
+          entram). &ldquo;Não devolvidas&rdquo; compara só semanas inteiras. O atraso do lançamento
+          até a TV (meta: até 3 s) é medido na obra, com cronômetro: a TV consulta o Almox a cada 2
+          s.
         </p>
 
         {valido && (

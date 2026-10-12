@@ -8,7 +8,8 @@
  *
  * --env: arquivo com SUPABASE_URL (ou NEXT_PUBLIC_SUPABASE_URL) e SUPABASE_SECRET_KEY.
  *        As chaves nunca são impressas.
- * Sem --confirmar, só mostra o que faria.
+ * Sem --confirmar, só mostra o que faria. Pode rodar de novo: completa o que faltou (login,
+ * obra ou vínculo) sem duplicar.
  * Login que já existe só ganha o vínculo: a senha dele nunca é trocada nem mostrada.
  * Login novo nasce com senha provisória (mostrada uma vez, aqui) e troca obrigatória no
  * primeiro acesso, como em Cadastros › Acessos.
@@ -31,8 +32,8 @@ function argumentos(lista) {
 function lerEnv(arquivo) {
   const env = {}
   for (const linha of readFileSync(arquivo, 'utf8').split(/\r?\n/)) {
-    const m = /^\s*([A-Z0-9_]+)\s*=\s*(.*)\s*$/.exec(linha)
-    if (m) env[m[1]] = m[2].replace(/^"(.*)"$/, '$1')
+    const m = /^\s*([A-Z0-9_]+)\s*=\s*(.*?)\s*$/.exec(linha)
+    if (m) env[m[1]] = m[2].replace(/^(["'])(.*)\1$/, '$2')
   }
   return env
 }
@@ -86,34 +87,52 @@ async function principal() {
     return texto ? JSON.parse(texto) : null
   }
 
+  /** Login no Auth pelo e-mail (fonte de verdade: pega login sem linha em public.usuario). */
+  async function loginPorEmail() {
+    for (let pagina = 1; pagina <= 50; pagina++) {
+      const r = await fetch(`${url}/auth/v1/admin/users?page=${pagina}&per_page=200`, {
+        headers: cab,
+      })
+      if (!r.ok) throw new Error(`auth/admin/users: ${r.status}`)
+      const { users = [] } = await r.json()
+      const achado = users.find((u) => (u.email ?? '').toLowerCase() === email)
+      if (achado) return achado.id
+      if (users.length < 200) return null
+    }
+    return null
+  }
+
   const projeto = new URL(url).host.split('.')[0]
-  const obras = await rest(`obra?select=id,nome&nome=eq.${encodeURIComponent(a.obra.trim())}`)
-  const [existente] = await rest(`usuario?select=id,nome&email=eq.${encodeURIComponent(email)}`)
+  const nomeObra = a.obra.trim()
+  const [obraExistente] = await rest(`obra?select=id&nome=eq.${encodeURIComponent(nomeObra)}`)
+  const loginExistente = await loginPorEmail()
+  const vinculo =
+    obraExistente && loginExistente
+      ? (
+          await rest(
+            `usuario_obra?select=perfil&obra_id=eq.${obraExistente.id}&usuario_id=eq.${loginExistente}`,
+          )
+        )[0]
+      : null
 
   console.log(`Projeto: ${projeto}`)
+  console.log(`Obra: "${nomeObra}" — ${obraExistente ? 'já existe' : 'nova'}`)
   console.log(
-    `Obra: "${a.obra.trim()}"${obras.length ? ' (JÁ EXISTE — nada será criado)' : ' (nova)'}`,
+    `Engenheiro: ${a.nome.trim()} — ${loginExistente ? 'login já existe (a senha dele não é tocada)' : 'login novo, com senha provisória'}`,
   )
-  console.log(
-    `Engenheiro: ${a.nome.trim()} — ${existente ? 'login já existe: só ganha o vínculo' : 'login novo, com senha provisória'}`,
-  )
-  if (obras.length) return 1
+  if (vinculo) {
+    console.log(`Vínculo: já existe (${vinculo.perfil}). Nada a fazer.`)
+    return 0
+  }
   if (!a.confirmar) {
     console.log('\nNada foi feito. Rode de novo com --confirmar.')
     return 0
   }
 
-  const [obra] = await rest('obra?select=id', {
-    method: 'POST',
-    body: JSON.stringify({
-      nome: a.obra.trim(),
-      endereco: typeof a.endereco === 'string' ? a.endereco.trim() : null,
-    }),
-  })
-  let usuarioId = existente?.id ?? null
-  let senha = null
+  // 1. Login primeiro (a senha aparece logo; se algo falhar depois, rodar de novo completa).
+  let usuarioId = loginExistente
   if (!usuarioId) {
-    senha = senhaProvisoria()
+    const senha = senhaProvisoria()
     const r = await fetch(`${url}/auth/v1/admin/users`, {
       method: 'POST',
       headers: cab,
@@ -127,26 +146,35 @@ async function principal() {
     })
     const corpo = await r.json().catch(() => ({}))
     if (!r.ok || !corpo.id) {
-      console.error(
-        `Não foi possível criar o login (${r.status}). A obra ${obra.id} ficou criada sem engenheiro.`,
-      )
+      console.error(`Não foi possível criar o login (${r.status}). Nada foi criado.`)
       return 1
     }
     usuarioId = corpo.id
-  }
-  await rest('usuario_obra', {
-    method: 'POST',
-    body: JSON.stringify({ usuario_id: usuarioId, obra_id: obra.id, perfil: 'engenheiro' }),
-    headers: { Prefer: 'return=minimal' },
-  })
-
-  console.log(`\nObra criada: ${obra.id}`)
-  console.log(`Engenheiro vinculado: ${email}`)
-  if (senha) {
+    console.log(`\nLogin criado: ${email}`)
     console.log(
       `Senha provisória (mostrada só agora; ele cria a própria no primeiro acesso): ${senha}`,
     )
   }
+
+  // 2. Obra (se ainda não existe) e 3. vínculo de engenheiro.
+  let obraId = obraExistente?.id
+  if (!obraId) {
+    const [obra] = await rest('obra?select=id', {
+      method: 'POST',
+      body: JSON.stringify({
+        nome: nomeObra,
+        endereco: typeof a.endereco === 'string' ? a.endereco.trim() : null,
+      }),
+    })
+    obraId = obra.id
+    console.log(`Obra criada: ${obraId}`)
+  }
+  await rest('usuario_obra', {
+    method: 'POST',
+    body: JSON.stringify({ usuario_id: usuarioId, obra_id: obraId, perfil: 'engenheiro' }),
+    headers: { Prefer: 'return=minimal' },
+  })
+  console.log(`Engenheiro vinculado à obra: ${email}`)
   return 0
 }
 

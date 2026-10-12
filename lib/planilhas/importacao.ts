@@ -58,6 +58,18 @@ export async function planilhaModelo(icones: readonly string[]): Promise<Buffer>
   return Buffer.from(await livro.xlsx.writeBuffer())
 }
 
+const MAX_LINHAS = 5000
+
+/**
+ * Texto da célula como o engenheiro vê. Número (ex.: valor digitado como 12,345 num Excel em
+ * português) vira texto no padrão brasileiro com vírgula, para não virar R$ 12.345,00.
+ */
+function textoDaCelula(celula: ExcelJS.Cell): string {
+  const v = celula.value
+  if (typeof v === 'number') return Number.isInteger(v) ? String(v) : v.toFixed(2).replace('.', ',')
+  return celula.text ?? ''
+}
+
 /** Lê o arquivo enviado: as linhas de cada aba (sem cabeçalho), células como texto. */
 export async function lerPlanilha(arquivo: ArrayBuffer): Promise<Planilha | { erro: string }> {
   const livro = new ExcelJS.Workbook()
@@ -68,20 +80,27 @@ export async function lerPlanilha(arquivo: ArrayBuffer): Promise<Planilha | { er
   }
   const resultado: Planilha = { empresas: [], pessoas: [], ferramentas: [] }
   let achou = false
+  let erro: string | null = null
   for (const chave of Object.keys(ABAS) as (keyof typeof ABAS)[]) {
     const aba = livro.getWorksheet(ABAS[chave].nome)
     if (!aba) continue
     achou = true
     const colunas = ABAS[chave].colunas.length
+    // Planilha gigante (ou célula perdida na linha 1 milhão): recusa antes de montar as linhas.
+    if (aba.rowCount > MAX_LINHAS + 1) {
+      erro = `A aba ${ABAS[chave].nome} tem mais de ${MAX_LINHAS} linhas.`
+      continue
+    }
     aba.eachRow({ includeEmpty: true }, (linha, n) => {
       if (n === 1) return
       const celulas: string[] = []
-      for (let c = 1; c <= colunas; c++) celulas.push(linha.getCell(c).text ?? '')
+      for (let c = 1; c <= colunas; c++) celulas.push(textoDaCelula(linha.getCell(c)))
       resultado[chave][n - 2] = celulas
     })
     // eachRow pula linhas nunca tocadas: preenche os buracos para manter o número da linha.
     for (let i = 0; i < resultado[chave].length; i++) resultado[chave][i] ??= []
   }
+  if (erro) return { erro }
   if (!achou)
     return { erro: 'A planilha não tem as abas Empresas, Pessoas ou Ferramentas do modelo.' }
   return resultado

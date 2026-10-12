@@ -64,8 +64,10 @@ Siga `agente-impressao/LEIA-ME.md`:
 - [ ] Desligue e ligue o mini PC: o agente volta sozinho (Agente online de novo).
 
 ### TV
-- [ ] No app (engenheiro): *Cadastros › Impressora › Conectar uma TV* → anote o endereço.
-- [ ] No navegador do mini PC, abra o endereço (vale uma vez só) → o painel aparece.
+- [ ] Já no mini PC: no app (engenheiro, pode ser no celular), *Cadastros › Impressora ›
+      Conectar uma TV* → aparece um endereço.
+- [ ] Digite esse endereço no navegador do mini PC **em até 10 minutos** (vale uma vez só) → o
+      painel aparece. Passou do prazo: gere outro.
 - [ ] Navegador em tela cheia (F11) e abrindo sozinho com o Windows/Linux, nesse endereço `/tv`.
 - [ ] Desligar a economia de energia da TV e do mini PC (tela não pode apagar).
 - [ ] Cronômetro: lance uma retirada no celular e conte até aparecer na TV (meta: até 3 s).

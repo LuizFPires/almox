@@ -1,7 +1,7 @@
 'use client'
 
 import Link from 'next/link'
-import { useState, useTransition } from 'react'
+import { useRef, useState, useTransition } from 'react'
 import { Botao } from '@/components/Botao'
 import { Cabecalho } from '@/components/Cabecalho'
 import { LeitorQr } from '@/components/LeitorQr'
@@ -36,6 +36,8 @@ export function FluxoLeitura({ lanca }: { lanca: boolean }) {
   const [leitura, setLeitura] = useState(0)
   const [enviando, iniciar] = useTransition()
   const [erro, setErro] = useState<string | null>(null)
+  // Quando o QR foi lido (relógio monotônico do celular): o tempo até a retirada é métrica do piloto.
+  const lidoEm = useRef<number | null>(null)
 
   function lerDeNovo() {
     setErro(null)
@@ -44,6 +46,7 @@ export function FluxoLeitura({ lanca }: { lanca: boolean }) {
   }
 
   function aoLer(token: string) {
+    lidoEm.current = performance.now()
     setEtapa({ tipo: 'buscando' })
     iniciar(async () => {
       try {
@@ -113,7 +116,12 @@ export function FluxoLeitura({ lanca }: { lanca: boolean }) {
               onClick={() =>
                 iniciar(async () => {
                   try {
-                    const r = await confirmarPessoa(token)
+                    const r = await confirmarPessoa(
+                      token,
+                      lidoEm.current === null
+                        ? undefined
+                        : (performance.now() - lidoEm.current) / 1000,
+                    )
                     setErro(r.erro)
                   } catch (e) {
                     repassarNavegacao(e)

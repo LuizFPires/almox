@@ -50,7 +50,7 @@ export default async function PaginaEditarEmpresa({
             href={`/cadastros/adesivos?empresa=${empresa.id}&volta=${encodeURIComponent(`/cadastros/empresa/${empresa.id}`)}`}
             className="flex min-h-toque items-center justify-center rounded-botao border border-borda bg-cartao font-bold"
           >
-            Imprimir os {pessoas.length} {pessoas.length === 1 ? 'adesivo' : 'adesivos'} da empresa
+            Adesivos da empresa (quem ainda não tem)
           </Link>
         </div>
       )}

@@ -5,7 +5,7 @@ import {
   metaRastreabilidade,
   metaSemQr,
   metaTempo,
-  type SemanaMetricas,
+  type Metricas,
 } from '@/lib/dominio/metricas'
 import {
   resumoItens,
@@ -143,8 +143,8 @@ export async function planilhaDescontos(
 
 /** Relatório do piloto: as metas do período e as métricas por semana (PRD §3). */
 export async function planilhaMetricas(
-  semanas: SemanaMetricas[],
-  periodo: { de: string; ate: string },
+  { semanas, total }: Metricas,
+  periodo: { de: string; ate: string; hoje: string },
 ): Promise<Buffer> {
   const livro = new ExcelJS.Workbook()
   livro.creator = 'Almox'
@@ -154,11 +154,15 @@ export async function planilhaMetricas(
     { header: 'Meta (PRD)', key: 'meta', width: 26 },
     { header: 'Atingida', key: 'ok', width: 10 },
   ])
-  const tempo = metaTempo(semanas)
+  const tempo = metaTempo(total)
   const linhas: [string, ReturnType<typeof metaSemQr>, string][] = [
-    ['Tempo do QR lido até a retirada (mediana)', tempo, 'até 15 s'],
+    ['Tempo do QR lido até a retirada (média)', tempo, 'até 15 s'],
     ['Retiradas sem QR', metaSemQr(semanas), 'menos de 10%'],
-    ['Ferramentas não devolvidas por semana', metaPerdas(semanas), 'queda de 50% em 60 dias'],
+    [
+      'Ferramentas não devolvidas por semana (semanas inteiras)',
+      metaPerdas(semanas, periodo.de, periodo.hoje),
+      'queda de 50% em 60 dias',
+    ],
     ['Pendências de empreiteira com aviso', metaAvisos(semanas), '100%'],
     ['Movimentos com pessoa, almoxarife, hora e via', metaRastreabilidade(semanas), '100%'],
   ]
@@ -170,6 +174,10 @@ export async function planilhaMetricas(
       ok: m.ok === null ? '—' : m.ok ? 'sim' : 'não',
     })
   }
+  resumo.addRow({
+    metrica: 'Tempo do QR lido até a retirada (mediana)',
+    resultado: tempo.mediana === null ? '—' : `${tempo.mediana.toLocaleString('pt-BR')} s`,
+  })
   resumo.addRow({
     metrica: 'Retiradas medidas em até 15 s',
     resultado: tempo.ate15 === null ? '—' : `${tempo.ate15.toLocaleString('pt-BR')}%`,

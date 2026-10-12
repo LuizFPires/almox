@@ -5,10 +5,15 @@ import {
   metaRastreabilidade,
   metaSemQr,
   metaTempo,
+  semanasCompletas,
   type SemanaMetricas,
 } from './metricas'
 
 function semana(p: Partial<SemanaMetricas>): SemanaMetricas {
+  return semana_(p)
+}
+
+function semana_(p: Partial<SemanaMetricas>): SemanaMetricas {
   return {
     semana: '2026-10-05',
     retiradas: 0,
@@ -38,13 +43,16 @@ describe('metas do piloto', () => {
     expect(metaSemQr([]).texto).toBe('sem retiradas')
   })
 
-  it('tempo: mediana ponderada e % até 15 s', () => {
-    const m = metaTempo([
-      semana({ tempoMedianaS: 12, tempoMedidas: 30, tempoAte15s: 27 }),
-      semana({ tempoMedianaS: 18, tempoMedidas: 10, tempoAte15s: 4 }),
-    ])
-    expect(m).toEqual({ valor: 13.5, texto: '13,5 s', ok: true, ate15: 77.5 })
-    expect(metaTempo([semana({})]).ok).toBeNull()
+  it('tempo: a média do período (critério do M11), com mediana e % até 15 s', () => {
+    expect(
+      metaTempo({ tempoMedidas: 40, tempoMedianaS: 12, tempoMedioS: 13.5, tempoAte15s: 31 }),
+    ).toEqual({ valor: 13.5, texto: '13,5 s', ok: true, ate15: 77.5, mediana: 12 })
+    expect(
+      metaTempo({ tempoMedidas: 10, tempoMedianaS: 14, tempoMedioS: 21, tempoAte15s: 6 }).ok,
+    ).toBe(false)
+    expect(
+      metaTempo({ tempoMedidas: 0, tempoMedianaS: null, tempoMedioS: null, tempoAte15s: 0 }).ok,
+    ).toBeNull()
   })
 
   it('avisos e rastreabilidade: 100%', () => {
@@ -54,21 +62,33 @@ describe('metas do piloto', () => {
       ok: false,
     })
     expect(metaRastreabilidade([semana({ movimentos: 9, movimentosCompletos: 9 })]).texto).toBe(
-      '100%',
+      '100% (garantido)',
     )
   })
 
-  it('perdas: queda de 50% entre o começo e o fim', () => {
-    const s = (n: number) => semana({ pendencias: n })
-    expect(metaPerdas([s(10), s(10), s(6), s(4), s(5)])).toEqual({
-      valor: 55,
-      texto: 'queda de 55%',
+  it('perdas: só semanas inteiras (a semana corrente e a primeira pela metade não contam)', () => {
+    const s = (semana: string, n: number) => semana_({ semana, pendencias: n })
+    const semanas = [
+      s('2026-08-31', 0), // começou antes do período (de = 03/09)
+      s('2026-09-07', 10),
+      s('2026-09-14', 10),
+      s('2026-09-21', 6),
+      s('2026-09-28', 5),
+      s('2026-10-05', 5),
+      s('2026-10-12', 0), // semana corrente, pela metade
+    ]
+    expect(metaPerdas(semanas, '2026-09-03', '2026-10-13')).toEqual({
+      valor: 50,
+      texto: 'queda de 50%',
       ok: true,
     })
-    expect(metaPerdas([s(4), s(4), s(5), s(6)])).toMatchObject({
-      texto: 'alta de 37,5%',
-      ok: false,
-    })
-    expect(metaPerdas([s(1), s(1)]).ok).toBeNull()
+    expect(semanasCompletas(semanas, '2026-09-03', '2026-10-13').map((x) => x.semana)).toEqual([
+      '2026-09-07',
+      '2026-09-14',
+      '2026-09-21',
+      '2026-09-28',
+      '2026-10-05',
+    ])
+    expect(metaPerdas(semanas.slice(0, 3), '2026-09-03', '2026-10-13').ok).toBeNull()
   })
 })

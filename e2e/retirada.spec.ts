@@ -42,19 +42,28 @@ async function apiEngenheiro(request: APIRequestContext) {
     return { id: p?.id ?? '', token: d?.token ?? '' }
   }
 
-  async function ultimaRetirada(pessoaId: string) {
-    const [m] = await get<{ via: string; usuario_id: string; itens: { unidade_id: string }[] }[]>(
-      `movimento?select=via,usuario_id,itens:movimento_item!movimento_item_movimento_id_obra_id_fkey(unidade_id)` +
+  /**
+   * A retirada que levou as peças destes tipos (criados só por este teste). Não use "a última
+   * retirada da pessoa": os projetos do celular rodam juntos e lançam para as mesmas pessoas.
+   */
+  async function retiradaDosTipos(pessoaId: string, tipos: string[]) {
+    const itens = await get<{ movimento_id: string }[]>(
+      `movimento_item?select=movimento_id,unidade:unidade!movimento_item_unidade_id_obra_id_fkey!inner(tipo_id)` +
+        `&unidade.tipo_id=in.(${tipos.join(',')})`,
+    )
+    const ids = [...new Set(itens.map((i) => i.movimento_id))]
+    const [m] = await get<{ id: string; via: string; usuario_id: string }[]>(
+      `movimento?select=id,via,usuario_id&id=in.(${ids.join(',')})` +
         `&pessoa_id=eq.${pessoaId}&tipo=eq.retirada&order=criado_em.desc&limit=1`,
     )
-    return m
+    return m && { ...m, itens: itens.filter((i) => i.movimento_id === m.id) }
   }
 
   async function emUso(tipoId: string) {
     return (await get<unknown[]>(`unidade?select=id&tipo_id=eq.${tipoId}&status=eq.em_uso`)).length
   }
 
-  return { criarFerramenta, pessoa, ultimaRetirada, emUso }
+  return { criarFerramenta, pessoa, retiradaDosTipos, emUso }
 }
 
 /** Toca `vezes` no ícone da ferramenta na grade. */
@@ -115,7 +124,7 @@ test.describe('retirada', () => {
       await navegador.close()
     }
 
-    const mov = await api.ultimaRetirada(wagner.id)
+    const mov = await api.retiradaDosTipos(wagner.id, [pa, furadeira])
     expect(mov?.via).toBe('qr')
     expect(mov?.usuario_id).toBe('b0000000-0000-4000-8000-000000000002')
     expect(mov?.itens).toHaveLength(3)
@@ -178,7 +187,7 @@ test.describe('retirada', () => {
   test('retirada pela lista (sem QR) grava via = manual', async ({ page, request }, info) => {
     const api = await apiEngenheiro(request)
     const nome = `Colher ${info.project.name}-${Date.now() % 100000}`
-    await api.criarFerramenta(nome, 'colher', 2)
+    const colher = await api.criarFerramenta(nome, 'colher', 2)
     const helio = await api.pessoa('Hélio Moreira')
 
     await entrarComo(page, 'almoxarife', '/inicio')
@@ -193,6 +202,6 @@ test.describe('retirada', () => {
     await page.getByRole('checkbox').click()
     await page.getByRole('button', { name: 'Concluir retirada' }).click()
     await expect(page.getByText('com Hélio · manual, sem QR')).toBeVisible()
-    expect((await api.ultimaRetirada(helio.id))?.via).toBe('manual')
+    expect((await api.retiradaDosTipos(helio.id, [colher]))?.via).toBe('manual')
   })
 })

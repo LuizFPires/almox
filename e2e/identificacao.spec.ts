@@ -35,7 +35,16 @@ async function capaceteDe(request: APIRequestContext, nome: string) {
         await request.get(`${url}/rest/v1/movimento?select=id&pessoa_id=eq.${id}`, { headers })
       ).json()) as unknown[]
     ).length
-  return { id, token: dados?.token ?? '', posses, movimentos }
+  const ocorrenciasDesde = async (desde: string) =>
+    (
+      (await (
+        await request.get(
+          `${url}/rest/v1/ocorrencia?select=id&pessoa_id=eq.${id}&criado_em=gte.${encodeURIComponent(desde)}`,
+          { headers },
+        )
+      ).json()) as unknown[]
+    ).length
+  return { id, token: dados?.token ?? '', posses, movimentos, ocorrenciasDesde }
 }
 
 /** Abre o app num Chromium cuja câmera mostra o QR e entra com o perfil. */
@@ -90,6 +99,7 @@ test.describe('identificação pelo QR do capacete', () => {
     const joaquim = await capaceteDe(request, 'Joaquim Silva')
     const antes = await joaquim.posses()
     const movimentosAntes = await joaquim.movimentos()
+    const inicio = new Date().toISOString()
     const { navegador, pagina } = await celularLendo(joaquim.token, 'almoxarife', baseURL)
     try {
       await pagina.goto('/leitura')
@@ -98,10 +108,9 @@ test.describe('identificação pelo QR do capacete', () => {
       await expect(pagina.getByText(/A ocorrência ficou anotada no histórico/)).toBeVisible()
       expect(await joaquim.posses()).toBe(antes)
       expect(await joaquim.movimentos()).toBe(movimentosAntes)
-      await pagina.goto('/inicio')
-      await expect(
-        pagina.getByText('Bloqueado: capacete usado por outra pessoa').first(),
-      ).toBeVisible()
+      // A ocorrência ficou gravada. Pelo banco, e não pela lista do Início: ela mostra só os 5
+      // últimos lançamentos e os outros testes lançam ao mesmo tempo.
+      expect(await joaquim.ocorrenciasDesde(inicio)).toBeGreaterThanOrEqual(1)
     } finally {
       await navegador.close()
     }

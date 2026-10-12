@@ -17,7 +17,10 @@ de outra pessoa está indicado.
 - [ ] **Sentry**: projeto criado; `NEXT_PUBLIC_SENTRY_DSN` na Vercel. Sem ele o app funciona,
       só não avisa os erros.
 - [ ] **Obra no Almox**: o dono do sistema passa o nome, o endereço e o e-mail do engenheiro.
-      A obra e o vínculo do engenheiro são criados por script, com OK.
+      A obra e o vínculo do engenheiro são criados por script, com OK:
+      `node scripts/criar-obra.mjs --env <arquivo com a chave secreta> --obra "…" --endereco "…" --email … --nome "…"`
+      (sem `--confirmar` só mostra o que faria; login novo recebe senha provisória, mostrada
+      uma vez, e troca no primeiro acesso).
 
 ### Compras e rede (obra)
 - [ ] TV de 43" ou mais, com entrada HDMI, numa parede visível da fila do almoxarifado.

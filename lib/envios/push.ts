@@ -1,5 +1,6 @@
 import 'server-only'
 import webpush from 'web-push'
+import { endpointPushValido } from './endpoint'
 import type { Notificacao } from './mensagens'
 
 export type Inscricao = { endpoint: string; p256dh: string; auth: string }
@@ -27,6 +28,11 @@ export async function enviarPush(
   const removidas: string[] = []
   let falhou = false
   for (const i of inscricoes) {
+    // Endereço fora dos serviços de push conhecidos: nunca chama, tira da lista.
+    if (!endpointPushValido(i.endpoint)) {
+      removidas.push(i.endpoint)
+      continue
+    }
     try {
       await webpush.sendNotification(
         { endpoint: i.endpoint, keys: { p256dh: i.p256dh, auth: i.auth } },

@@ -2,6 +2,7 @@
 
 import { cookies } from 'next/headers'
 import { redirect } from 'next/navigation'
+import { endpointPushValido } from '@/lib/envios/endpoint'
 import { COOKIE_OBRA, obterSessao } from '@/lib/sessao'
 import { criarClienteServidor } from '@/lib/supabase/servidor'
 
@@ -32,7 +33,7 @@ export async function ativarNotificacoes(inscricao: {
   const endpoint = inscricao.endpoint ?? ''
   const p256dh = inscricao.keys?.p256dh ?? ''
   const auth = inscricao.keys?.auth ?? ''
-  if (!/^https:\/\//.test(endpoint) || !p256dh || !auth || endpoint.length > 1000) {
+  if (!endpointPushValido(endpoint) || !p256dh || !auth) {
     return { erro: 'Este navegador não entregou uma inscrição válida.' }
   }
   const supabase = await criarClienteServidor()

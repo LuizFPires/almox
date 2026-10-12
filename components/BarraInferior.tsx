@@ -1,5 +1,6 @@
 import Link from 'next/link'
 import { IconeInterface } from './IconeInterface'
+import { ItemBarraInferior } from './ItemBarraInferior'
 
 // Ordem do PRD F-01: Início · Lista · Estoque · Fechamento · Cadastros.
 const ITENS = [
@@ -55,10 +56,13 @@ export function BarraInferior({ ativa, podeLancar }: Props) {
             key={item.chave}
             href={item.href}
             aria-current={atual ? 'page' : undefined}
-            className={`flex flex-1 flex-col items-center justify-center gap-1 text-xs ${atual ? 'font-bold text-texto' : 'text-texto-2'}`}
+            className="flex flex-1 flex-col items-center justify-center text-xs"
           >
-            <IconeInterface nome={item.icone} />
-            {item.rotulo}
+            <ItemBarraInferior
+              atual={atual}
+              icone={<IconeInterface nome={item.icone} />}
+              rotulo={item.rotulo}
+            />
           </Link>
         )
       })}

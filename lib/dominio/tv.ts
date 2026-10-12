@@ -205,3 +205,57 @@ export function msAteRecarga(agora: Date, hora = 4): number {
   const alvo = hoje > agora.getTime() ? hoje : hoje + 24 * 60 * 60 * 1000
   return alvo - agora.getTime()
 }
+
+/** Padrões do PRD F-13. */
+export const CONFIG_PADRAO: ConfigTv = {
+  tempoPaginaS: 8,
+  velocidadePxS: 45,
+  pausaAntesMs: 2500,
+  pausaDepoisMs: 3000,
+  cartoesPorPagina: 12,
+}
+
+export type CamposConfigTv = 'tempo' | 'velocidade' | 'antes' | 'depois' | 'cartoes'
+
+/** Lê segundos com vírgula ou ponto ("2,5" → 2500 ms). */
+function segundosEmMs(texto: string): number | null {
+  const t = texto.trim().replace(',', '.')
+  if (!/^\d{1,2}(\.\d)?$/.test(t)) return null
+  return Math.round(Number(t) * 1000)
+}
+
+/** Confere a configuração nos limites do PRD (o banco confere de novo). */
+export function validarConfigTv(entrada: Record<CamposConfigTv, string>): {
+  config?: ConfigTv
+  erros: Partial<Record<CamposConfigTv, string>>
+} {
+  const erros: Partial<Record<CamposConfigTv, string>> = {}
+  const inteiro = (t: string) => (/^\d{1,3}$/.test(t.trim()) ? Number(t.trim()) : null)
+  const tempo = inteiro(entrada.tempo)
+  if (tempo === null || tempo < 3 || tempo > 30) erros.tempo = 'De 3 a 30 segundos.'
+  const velocidade = inteiro(entrada.velocidade)
+  if (velocidade === null || velocidade < 15 || velocidade > 150)
+    erros.velocidade = 'De 15 a 150 px/s.'
+  const antes = segundosEmMs(entrada.antes)
+  if (antes === null || antes > 15000) erros.antes = 'De 0 a 15 segundos (ex.: 2,5).'
+  const depois = segundosEmMs(entrada.depois)
+  if (depois === null || depois > 15000) erros.depois = 'De 0 a 15 segundos (ex.: 3).'
+  const cartoes = Number(entrada.cartoes)
+  if (![8, 12, 16].includes(cartoes)) erros.cartoes = 'Escolha 8, 12 ou 16.'
+  if (Object.keys(erros).length > 0) return { erros }
+  return {
+    erros,
+    config: {
+      tempoPaginaS: tempo!,
+      velocidadePxS: velocidade!,
+      pausaAntesMs: antes!,
+      pausaDepoisMs: depois!,
+      cartoesPorPagina: cartoes,
+    },
+  }
+}
+
+/** 2500 → "2,5" (campo em segundos). */
+export function msEmSegundos(ms: number): string {
+  return String(ms / 1000).replace('.', ',')
+}

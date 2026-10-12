@@ -1,6 +1,9 @@
 import { describe, expect, it } from 'vitest'
 import {
   agruparFerramentas,
+  CONFIG_PADRAO,
+  msEmSegundos,
+  validarConfigTv,
   deslocamentoMaximo,
   limitarFerramentas,
   montarCartoes,
@@ -168,5 +171,27 @@ describe('recarga diária', () => {
     expect(msAteRecarga(agora)).toBe(16 * 60 * 60 * 1000)
     // 03:30 em SP → falta meia hora
     expect(msAteRecarga(new Date('2026-10-11T06:30:00Z'))).toBe(30 * 60 * 1000)
+  })
+})
+
+describe('configuração do painel', () => {
+  const ok = { tempo: '8', velocidade: '45', antes: '2,5', depois: '3', cartoes: '12' }
+
+  it('aceita os padrões, com vírgula nas pausas', () => {
+    expect(validarConfigTv(ok).config).toEqual(CONFIG_PADRAO)
+    expect(msEmSegundos(2500)).toBe('2,5')
+  })
+
+  it('recusa fora dos limites do PRD', () => {
+    expect(
+      validarConfigTv({ tempo: '2', velocidade: '151', antes: '16', depois: 'x', cartoes: '10' })
+        .erros,
+    ).toEqual({
+      tempo: 'De 3 a 30 segundos.',
+      velocidade: 'De 15 a 150 px/s.',
+      antes: 'De 0 a 15 segundos (ex.: 2,5).',
+      depois: 'De 0 a 15 segundos (ex.: 3).',
+      cartoes: 'Escolha 8, 12 ou 16.',
+    })
   })
 })

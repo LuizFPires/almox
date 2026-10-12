@@ -55,7 +55,7 @@ export type ColunaEmpresa = {
   id: string
   nome: string
   cor: string
-  /** Até 6 pessoas por subcoluna: mais de 6 = dupla (PRD F-13), mais de 12 = tripla… */
+  /** Estimativa (6 por subcoluna); a tela mede e abre outra quando alguém não cabe. */
   subcolunas: number
   larguraPx: number
   pessoas: CartaoTv[]
@@ -63,10 +63,38 @@ export type ColunaEmpresa = {
 
 /** No cartão de 448 px cabem 3 ferramentas (104 px cada); a terceira vira "+N" se sobrar. */
 export const MAX_FERRAMENTAS_CARTAO = 3
-export const LARGURA_COLUNA = 480
-/** Cada subcoluna a mais: 480 + 20 de espaço (dupla = 980, como no protótipo). */
-export const LARGURA_SUBCOLUNA_EXTRA = 500
+/** Coluna da empresa: 22 px de cada lado, subcolunas de 436 px com 28 px entre elas. */
+export const PADDING_COLUNA = 44
+export const LARGURA_SUBCOLUNA = 436
+export const ESPACO_SUBCOLUNAS = 28
+/** Estimativa antes de medir a tela: 6 pessoas por subcoluna (PRD F-13). */
 export const PESSOAS_POR_SUBCOLUNA = 6
+
+/** 1 subcoluna = 480 px (protótipo); cada subcoluna a mais soma 436 + 28. */
+export function larguraColuna(subcolunas: number): number {
+  return PADDING_COLUNA + subcolunas * LARGURA_SUBCOLUNA + (subcolunas - 1) * ESPACO_SUBCOLUNAS
+}
+
+/**
+ * Distribui as pessoas (pela altura de cada linha, medida na tela) em subcolunas que cabem
+ * na altura disponível, na ordem. Uma linha mais alta que a coluna fica sozinha na dela.
+ */
+export function empacotar(alturas: number[], alturaDisponivel: number): number[][] {
+  const grupos: number[][] = []
+  let atual: number[] = []
+  let usado = 0
+  alturas.forEach((altura, i) => {
+    if (atual.length > 0 && usado + altura > alturaDisponivel) {
+      grupos.push(atual)
+      atual = []
+      usado = 0
+    }
+    atual.push(i)
+    usado += altura
+  })
+  if (atual.length > 0) grupos.push(atual)
+  return grupos
+}
 export const ESPACO_COLUNAS = 24
 /** Largura útil da área de conteúdo a 1920 px (protótipo). */
 export const LARGURA_UTIL = 1840
@@ -156,7 +184,7 @@ export function montarColunas(cartoes: CartaoTv[], painel: PainelTv): ColunaEmpr
         nome: e.nome,
         cor: e.cor,
         subcolunas,
-        larguraPx: LARGURA_COLUNA + (subcolunas - 1) * LARGURA_SUBCOLUNA_EXTRA,
+        larguraPx: larguraColuna(subcolunas),
         pessoas,
       }
     })

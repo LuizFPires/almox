@@ -1,6 +1,8 @@
 import { describe, expect, it } from 'vitest'
 import {
   agruparFerramentas,
+  empacotar,
+  larguraColuna,
   CONFIG_PADRAO,
   msEmSegundos,
   validarConfigTv,
@@ -133,11 +135,21 @@ describe('loop', () => {
     const cartoes = montarCartoes(painel(trinta), agora)
     const colunas = montarColunas(cartoes, painel(trinta))
     expect(colunas.map((c) => [c.nome, c.pessoas.length, c.subcolunas, c.larguraPx])).toEqual([
-      ['Construtora', 11, 2, 980],
-      ['Armação Teixeira', 19, 4, 1980],
+      ['Construtora', 11, 2, 944],
+      ['Armação Teixeira', 19, 4, 1872],
     ])
-    // 980 + 24 + 1980 = 2984 → rola 1144 px até a última coluna encostar na borda
-    expect(deslocamentoMaximo(colunas)).toBe(1144)
+    // 944 + 24 + 1872 = 2840 → rola 1000 px até a última coluna encostar na borda
+    expect(deslocamentoMaximo(colunas)).toBe(1000)
+  })
+
+  it('coluna simples tem 480 px, como no protótipo', () => {
+    expect(larguraColuna(1)).toBe(480)
+  })
+
+  it('empacota pela altura medida: abre subcoluna quando a próxima pessoa não cabe', () => {
+    expect(empacotar([100, 100, 100, 250, 100], 320)).toEqual([[0, 1, 2], [3], [4]])
+    expect(empacotar([400], 320)).toEqual([[0]])
+    expect(empacotar([], 320)).toEqual([])
   })
 
   it('rolagem: parada 2,5 s, 45 px/s, parada 3 s no fim', () => {

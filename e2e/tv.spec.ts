@@ -151,6 +151,8 @@ test.describe('painel da TV', () => {
     page,
     request,
   }, info) => {
+    // O ciclo inteiro (páginas + rolagem das colunas medidas) passa dos 30 s padrão.
+    test.setTimeout(120_000)
     const eng = await apiEngenheiro(request)
     await configurar(eng, { tempo: 3, velocidade: 150, antes: 500, depois: 500, cartoes: 12 })
     try {
@@ -174,7 +176,7 @@ test.describe('painel da TV', () => {
       await expect(page.getByRole('region', { name: 'Construtora' })).toBeVisible()
       // Sem contagens na TV (só o nome da empresa).
       await expect(page.getByText(/\d+ (itens|pessoas)/)).toHaveCount(0)
-      await expect(page.getByText(/^Pessoas 1–12 de/)).toBeVisible({ timeout: 60_000 })
+      await expect(page.getByText(/^Pessoas 1–12 de/)).toBeVisible({ timeout: 90_000 })
     } finally {
       await configurar(eng, PADRAO)
     }

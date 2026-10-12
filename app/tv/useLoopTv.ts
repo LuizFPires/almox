@@ -54,7 +54,11 @@ export function useLoopTv(entrada: Entrada) {
           fracao = Math.min(1, t / duracao)
           terminou = t >= duracao
         } else {
-          const r = posicaoRolagem(t, maxOff, config)
+          // Fim da rolagem medido na tela (largura real das colunas menos a área visível);
+          // a estimativa só vale até as colunas aparecerem.
+          const area = trilho.current?.parentElement?.clientWidth ?? 0
+          const medido = trilho.current && area > 0 ? trilho.current.offsetWidth - area : null
+          const r = posicaoRolagem(t, medido === null ? maxOff : Math.max(0, medido), config)
           fracao = r.progresso
           terminou = r.terminou
           if (trilho.current) {

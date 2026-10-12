@@ -91,15 +91,21 @@ select is(
   1, 'movimentos ficam (RN-16)'
 );
 
--- Foto vencida: peça consertada há 13 meses.
+-- Foto vencida: avaria de 14 meses atrás, peça consertada há 13 meses.
+insert into public.avaria (obra_id, unidade_id, movimento_id, motivo, foto_path, criado_em)
+select 'a0000000-0000-4000-8000-0000000000f1', '10000000-0000-4000-8000-0000000000f1', m.id, 'quebrada',
+       'a0000000-0000-4000-8000-0000000000f1/00000000-0000-4000-8000-0000000000f1.jpg',
+       now() - interval '14 months'
+  from public.movimento m where m.pessoa_id = 'c0000000-0000-4000-8000-0000000000f2';
 insert into public.alteracao (obra_id, tabela, registro_id, campo, de, para, criado_em)
-select a.obra_id, 'unidade', a.unidade_id, 'status', 'manutencao', 'livre', now() - interval '13 months'
-  from public.avaria a order by a.criado_em limit 1;
-update public.avaria set criado_em = now() - interval '14 months'
- where id = (select id from public.avaria order by criado_em limit 1);
+values ('a0000000-0000-4000-8000-0000000000f1', 'unidade', '10000000-0000-4000-8000-0000000000f1',
+        'status', 'manutencao', 'livre', now() - interval '13 months');
 set local role service_role;
 create temp table t_f on commit drop as select * from public.fotos_vencidas(10) f;
-select ok((select count(*) from t_f) >= 1, 'foto de peça consertada há mais de 12 meses vence');
+select ok(
+  'a0000000-0000-4000-8000-0000000000f1/00000000-0000-4000-8000-0000000000f1.jpg' in (select f from t_f),
+  'foto de peça consertada há mais de 12 meses vence'
+);
 select public.marcar_fotos_apagadas(array(select f from t_f));
 select is((select count(*)::int from public.fotos_vencidas(10)), 0, 'marcada, não volta na lista');
 reset role;

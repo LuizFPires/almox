@@ -264,16 +264,16 @@ Legenda: ⬜ A fazer · 🟨 Em andamento · ✅ Concluído · ⛔ Bloqueado
 **Objetivo:** aguentar a internet ruim da obra e ficar pronto para produção.
 
 **Entregas**
-- [ ] Fila local (IndexedDB) para retiradas e devoluções sem conexão; envio automático ao reconectar; selo "aguardando envio"
-- [ ] Resolução de conflito: se a unidade não está mais livre ao sincronizar, o servidor aloca outra do mesmo tipo ou devolve erro claro ao almoxarife
-- [ ] Cache local de pessoas e tokens para ler QR offline
+- [x] Fila local (IndexedDB) para retiradas e devoluções sem conexão; envio automático ao reconectar; selo "aguardando envio"
+- [x] Resolução de conflito: se a unidade não está mais livre ao sincronizar, o servidor aloca outra do mesmo tipo ou devolve erro claro ao almoxarife
+- [x] Cache local de pessoas e tokens para ler QR offline
 - [ ] Tela de histórico/auditoria (engenheiro): filtros por pessoa, empresa, ferramenta, período, via, ocorrências
 - [ ] Exportação do histórico e dos avisos em planilha (.xlsx), com valores no padrão brasileiro
 - [ ] Revisão de RLS e testes de segurança (token da TV não escreve; QR não vaza dados)
 - [ ] Monitoramento de erros (Sentry ou similar) e logs do agente de impressão
 - [ ] Testes e2e do fluxo completo: cadastro → adesivo → retirada → devolução com avaria → fechamento → aviso
 - [ ] Política de dados (LGPD): retenção de fotos e histórico, texto do termo de responsabilidade (a validar com o jurídico)
-- [ ] Pendências do M9: e-mail sem provedor configurado não gasta tentativas (fica aguardando); e2e de câmera estável no CI
+- [x] Pendências do M9: e-mail sem provedor configurado não gasta tentativas (fica aguardando); e2e de câmera estável no CI
 
 **Critérios de aceite**
 - Celular em modo avião registra 3 retiradas; ao voltar a rede, as 3 aparecem no servidor e na TV.
@@ -426,3 +426,4 @@ Legenda: ⬜ A fazer · 🟨 Em andamento · ✅ Concluído · ⛔ Bloqueado
 | 12/10/2026 | M10: lançamento offline vale pela **hora em que foi feito no celular**, com limite: o servidor recusa hora no futuro ou com mais de 24 h e guarda também a hora de chegada (auditoria). |
 | 12/10/2026 | M10: monitoramento de erros com **Sentry** (plano grátis, alerta por e-mail) no app e no agente de impressão, sem dado pessoal nos relatórios; sem a chave configurada, o app funciona sem ele. |
 | 12/10/2026 | M10: proposta de retenção (LGPD, a validar com o jurídico): **fotos de avaria apagadas 12 meses** após o conserto/baixa; movimentos e avisos guardados **até 5 anos após o fim da obra**; pessoas inativas sem movimento há 5 anos são anonimizadas. Prazos configuráveis. |
+| 12/10/2026 | M10: a tela **Lançar sem internet** (`/campo`) fica guardada no celular de quem lança; retirada e devolução vão para a fila e o servidor escolhe as unidades quando chegam (se não houver livres, o item fica "não enviado" com o motivo e o almoxarife descarta). **Avaria não é lançada sem internet** (a foto precisa subir): a peça é separada e devolvida quando a rede voltar. "Não é ele" sem internet entra no histórico com a hora em que chegou. Sair do app apaga os dados e a fila do celular (com aviso se houver item não enviado). |

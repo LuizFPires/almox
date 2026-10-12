@@ -768,6 +768,7 @@ export type Database = {
           obs: string | null
           ordem: number
           pessoa_id: string
+          recebido_em: string | null
           tipo: Database['public']['Enums']['tipo_movimento']
           usuario_id: string
           via: Database['public']['Enums']['via_movimento']
@@ -783,6 +784,7 @@ export type Database = {
           obs?: string | null
           ordem?: never
           pessoa_id: string
+          recebido_em?: string | null
           tipo: Database['public']['Enums']['tipo_movimento']
           usuario_id: string
           via: Database['public']['Enums']['via_movimento']
@@ -797,6 +799,7 @@ export type Database = {
           obs?: string | null
           ordem?: never
           pessoa_id?: string
+          recebido_em?: string | null
           tipo?: Database['public']['Enums']['tipo_movimento']
           usuario_id?: string
           via?: Database['public']['Enums']['via_movimento']
@@ -1340,6 +1343,7 @@ export type Database = {
         }[]
       }
       dados_envio: { Args: { p_envio: string }; Returns: Json }
+      dados_offline: { Args: { p_obra: string }; Returns: Json }
       encerrar_dia: { Args: { p_obra: string }; Returns: string }
       enfileirar_impressao: {
         Args: {
@@ -1427,6 +1431,8 @@ export type Database = {
           p_itens: Json
           p_obra: string
           p_pessoa: string
+          p_quando?: string
+          p_token?: string
         }
         Returns: string
       }
@@ -1439,6 +1445,8 @@ export type Database = {
           p_itens: Json
           p_obra: string
           p_pessoa: string
+          p_quando?: string
+          p_token?: string
         }
         Returns: string
       }

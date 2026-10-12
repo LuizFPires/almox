@@ -7,6 +7,7 @@ import { IconeInterface } from '@/components/IconeInterface'
 import { Indicador } from '@/components/Indicador'
 import { Marca } from '@/components/Marca'
 import { Relogio } from '@/components/Relogio'
+import { SeloFila } from '@/components/SeloFila'
 import { SeloPerfil } from '@/components/SeloPerfil'
 import { resumoDoDia, ultimosLancamentos } from '@/lib/dados/inicio'
 import { textoDesde } from '@/lib/dominio/ficha'
@@ -47,6 +48,7 @@ export default async function PaginaInicio() {
 
       <AoVivo obraId={obraAtual.id} tabelas={['movimento', 'ocorrencia']} />
       <main className="flex flex-1 flex-col gap-3.5 px-5 pt-3.5 pb-5">
+        <SeloFila lanca={lanca} />
         {!lanca && (
           <p className="rounded-cartao bg-sutil px-3.5 py-3 text-sm leading-snug">
             <b>Perfil de consulta.</b> Você vê quem está com o quê. Retirada e devolução só pelo

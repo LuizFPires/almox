@@ -1,4 +1,5 @@
 import type { Metadata } from 'next'
+import Link from 'next/link'
 import { notFound } from 'next/navigation'
 import { Cabecalho } from '@/components/Cabecalho'
 import { buscarEmpresa } from '@/lib/dados/empresas'
@@ -43,6 +44,16 @@ export default async function PaginaEditarEmpresa({
         }
         corSugerida={empresa.cor}
       />
+      {pessoas.length > 0 && (
+        <div className="px-5 pb-6">
+          <Link
+            href={`/cadastros/adesivos?empresa=${empresa.id}&volta=${encodeURIComponent(`/cadastros/empresa/${empresa.id}`)}`}
+            className="flex min-h-toque items-center justify-center rounded-botao border border-borda bg-cartao font-bold"
+          >
+            Imprimir os {pessoas.length} {pessoas.length === 1 ? 'adesivo' : 'adesivos'} da empresa
+          </Link>
+        </div>
+      )}
     </>
   )
 }

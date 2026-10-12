@@ -34,6 +34,28 @@ async function engenheiro(request: APIRequestContext) {
     ).json()) as T
 }
 
+/** Impressora ativa na obra demo (o seed não tem; outro teste pode já ter criado). */
+async function garantirImpressora(request: APIRequestContext) {
+  const { url, chave } = ambiente()
+  const login = await request.post(`${url}/auth/v1/token?grant_type=password`, {
+    headers: { apikey: chave },
+    data: { email: USUARIOS.engenheiro, password: SENHA_SEED },
+  })
+  const jwt = ((await login.json()) as { access_token: string }).access_token
+  const headers = { apikey: chave, Authorization: `Bearer ${jwt}` }
+  const ativas = (await (
+    await request.get(`${url}/rest/v1/impressora?select=id&obra_id=eq.${OBRA}&ativa=eq.true`, {
+      headers,
+    })
+  ).json()) as unknown[]
+  if (ativas.length > 0) return
+  // Conflito (outro teste criou ao mesmo tempo) não importa: o que vale é haver uma ativa.
+  await request.post(`${url}/rest/v1/impressora`, {
+    headers,
+    data: { obra_id: OBRA, nome: 'Impressora e2e', ip: '127.0.0.1', porta: 9100, linguagem: 'ZPL' },
+  })
+}
+
 test.describe('importação do cadastro inicial', () => {
   test.skip(({ isMobile }) => !isMobile, 'telas do celular')
   test.skip(semSeed, 'precisa do seed')
@@ -90,7 +112,12 @@ test.describe('importação do cadastro inicial', () => {
     )
     await page.getByRole('button', { name: 'Importar tudo' }).click()
     await expect(page.getByRole('heading', { name: 'Cadastro importado' })).toBeVisible()
-    await expect(page.getByRole('link', { name: 'Imprimir 2 adesivos' })).toBeVisible()
+    // Adesivos em lote: as 2 pessoas importadas vão para a fila da impressora.
+    await garantirImpressora(request)
+    await page.getByRole('link', { name: 'Imprimir 2 adesivos' }).click()
+    await expect(page.getByRole('list', { name: 'Pessoas' }).getByRole('listitem')).toHaveCount(2)
+    await page.getByRole('button', { name: 'Imprimir 2 adesivos' }).click()
+    await expect(page.getByRole('status')).toContainText('2 adesivos foram para a fila')
 
     const get = await engenheiro(request)
     const pessoas = await get<{ nome_capacete: string; empresa: { nome: string } }[]>(

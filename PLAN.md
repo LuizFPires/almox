@@ -25,7 +25,7 @@ Fonte da verdade do produto: `PRD.md`. Regras para quem codifica: `CLAUDE.md`.
 | M8 | Painel da TV | ✅ Concluído (soak acelerado no build de produção; falta conferir 60 fps e 72 h no mini PC real) | 12/10/2026 |
 | M9 | Fechamento do dia e avisos às empreiteiras | ✅ Concluído (e-mail real depende da conta no Resend; notificação conferida até a inscrição) | 12/10/2026 |
 | M10 | Offline, auditoria e endurecimento | ✅ Concluído (Sentry liga com o DSN; leitor jsQR e política de dados a validar no piloto e com o jurídico) | 12/10/2026 |
-| M11 | Piloto em obra | 🟨 Em andamento | `feat/m11-piloto` |
+| M11 | Piloto em obra | 🟨 Preparado: código e documentos prontos (13/10/2026); falta o piloto em campo (30 dias) | — |
 | M12 | Conector ioo | ⬜ A fazer | |
 
 Legenda: ⬜ A fazer · 🟨 Em andamento · ✅ Concluído · ⛔ Bloqueado

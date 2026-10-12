@@ -2,6 +2,35 @@
 
 Registro do que foi entregue em cada milestone (ver `PLAN.md`).
 
+## M11 — Piloto em obra: preparação (código e documentos em 13/10/2026; piloto em campo pendente)
+
+### Adicionado
+- **Métricas do piloto (PRD §3)**, só para o engenheiro: tela *Métricas do piloto* e planilha do relatório.
+  - Tempo do QR lido até a retirada registrada (média e mediana; meta até 15 s).
+  - Retiradas sem QR (meta abaixo de 10%).
+  - Ferramentas não devolvidas por semana, comparando semanas inteiras (meta: queda de 50%).
+  - Pendências de empreiteira com aviso (meta: 100%).
+  - O tempo conta da leitura do QR: o celular informa quanto levou até a confirmação.
+- **Cadastro inicial por planilha modelo (.xlsx):**
+  - empresas, pessoas e ferramentas de uma vez;
+  - prévia com os erros linha a linha antes de gravar;
+  - tudo numa transação, com as permissões do engenheiro.
+- **Adesivos em lote:** quem ainda não tem adesivo, da obra ou de uma empresa, 100 por toque. Repetir continua de onde parou e não imprime duas vezes.
+- **Documentos do piloto:**
+  - checklist de implantação (`docs/IMPLANTACAO.md`);
+  - roteiro de treinamento de 30 minutos (`docs/TREINAMENTO.md`);
+  - modelo do relatório (`docs/RELATORIO-PILOTO.md`).
+- **Script `scripts/criar-obra.mjs`:** cria a obra do piloto com o engenheiro (por OK do dono). Pode rodar de novo sem duplicar.
+
+### Corrigido
+- **Lista de pessoas:** passa de 1000 (a API devolvia no máximo 1000).
+
+### Falta (campo)
+- Termo assinado e cláusula nos contratos (jurídico).
+- Implantação na obra e cadastro real.
+- Treinamento.
+- 30 dias de uso e o relatório com as melhorias priorizadas.
+
 ## M10 — Offline, auditoria e endurecimento (concluído em 12/10/2026)
 
 ### Adicionado

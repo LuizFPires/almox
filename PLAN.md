@@ -23,7 +23,7 @@ Fonte da verdade do produto: `PRD.md`. Regras para quem codifica: `CLAUDE.md`.
 | M6 | Devolução e avaria | ✅ Concluído | 11/10/2026 |
 | M7 | Lista, estoque e busca | ✅ Concluído | 11/10/2026 |
 | M8 | Painel da TV | ✅ Concluído (soak acelerado no build de produção; falta conferir 60 fps e 72 h no mini PC real) | 12/10/2026 |
-| M9 | Fechamento do dia e avisos às empreiteiras | ⬜ A fazer | |
+| M9 | Fechamento do dia e avisos às empreiteiras | 🟨 Em andamento | |
 | M10 | Offline, auditoria e endurecimento | ⬜ A fazer | |
 | M11 | Piloto em obra | ⬜ A fazer | |
 | M12 | Conector ioo | ⬜ A fazer | |
@@ -412,3 +412,8 @@ Legenda: ⬜ A fazer · 🟨 Em andamento · ✅ Concluído · ⛔ Bloqueado
 | 12/10/2026 | M8 (revisão): a TV tem **credencial própria, só de leitura do painel**. O engenheiro toca em "Conectar uma TV" no mini PC (Cadastros › Impressora) e recebe um endereço com **código de uso único que vale 10 minutos**, só em texto (sem link, para não conectar o celular); a TV troca o código pela credencial. O cadastro do mini PC continua um só e revogar desliga TV e agente (ajuste da decisão do M3). O token do agente não abre mais o painel. |
 | 12/10/2026 | M8 (revisão): só "dispositivo não autorizado" (erro AL008) desliga a TV; qualquer outra falha é passageira. Mesmo sem autorização, a TV segue perguntando a cada 60 s e recarrega a cada 5 min. Quando nada mudou, o servidor responde só a hora (versão dos dados). O sinal da TV fica separado do sinal do agente. Coluna de empresa ganha uma subcoluna a cada 6 pessoas (dupla, tripla…), para ninguém ficar cortado. |
 | 12/10/2026 | M8 (comparação com o protótipo): a tela da TV é montada sempre em **1920 × 1080 e escalada** para a TV (qualquer resolução ou zoom do sistema), como no protótipo. Nas colunas por empresa, a tela **mede a altura de cada pessoa** e abre outra subcoluna quando ela não cabe (começa com 6 por subcoluna; subcolunas de 436 px com 28 px entre elas). Borda da pendência no vermelho forte do protótipo; nome de ferramenta longo quebra com hífen em até 2 linhas; o relógio do cabeçalho usa a hora do servidor. Mantidos do DS: fundo do círculo do ícone (sutil) e raio de 18 px do protótipo nos cartões. |
+| 12/10/2026 | M9: e-mail em produção pelo **Resend com o domínio da construtora** (o usuário cria a conta e confirma o domínio no DNS). Local e CI enviam para a caixa de teste do Supabase (Mailpit), que prova a entrega nos e2e. O mesmo envio resolve o login por link do Supabase (pendência do M1). |
+| 12/10/2026 | M9: peça pendente por vários dias gera **lembrete a cada encerramento**, com o mesmo valor (não acumula): o aviso do dia lista as peças ainda pendentes; cada peça é cobrada uma vez na medição. |
+| 12/10/2026 | M9: devolução antes da medição **cancela peça a peça** (RN-14): o aviso fica com o total novo e o dono/encarregado recebem e-mail de atualização; quando todas voltam, o aviso vira `cancelado`. |
+| 12/10/2026 | M9: o **engenheiro fecha a medição** da empresa no relatório "valores a descontar": confirma os avisos em aberto (`confirmado`) e informa a data da próxima medição. |
+| 12/10/2026 | M9: "Não é ele" avisa o **encarregado na hora, por notificação** (sem e-mail). Pendências de funcionários próprios: **notificação de resumo ao engenheiro** no encerramento (sem e-mail). Encerramento automático das 23:59 agendado no Supabase (pg_cron), com fila de envios e nova tentativa. |

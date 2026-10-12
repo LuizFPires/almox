@@ -183,6 +183,45 @@ export type Database = {
           },
         ]
       }
+      config_tv: {
+        Row: {
+          atualizado_em: string
+          cartoes_por_pagina: number
+          obra_id: string
+          pausa_antes_ms: number
+          pausa_depois_ms: number
+          tempo_pagina_s: number
+          velocidade_px_s: number
+        }
+        ComputedFields: never
+        Insert: {
+          atualizado_em?: string
+          cartoes_por_pagina?: number
+          obra_id: string
+          pausa_antes_ms?: number
+          pausa_depois_ms?: number
+          tempo_pagina_s?: number
+          velocidade_px_s?: number
+        }
+        Update: {
+          atualizado_em?: string
+          cartoes_por_pagina?: number
+          obra_id?: string
+          pausa_antes_ms?: number
+          pausa_depois_ms?: number
+          tempo_pagina_s?: number
+          velocidade_px_s?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: 'config_tv_obra_id_fkey'
+            columns: ['obra_id']
+            isOneToOne: true
+            referencedRelation: 'obra'
+            referencedColumns: ['id']
+          },
+        ]
+      }
       dispositivo_tv: {
         Row: {
           criado_em: string
@@ -1042,6 +1081,7 @@ export type Database = {
           usuario_id: string
         }[]
       }
+      painel_tv: { Args: { p_token: string }; Returns: Json }
       registrar_devolucao: {
         Args: {
           p_chave?: string
@@ -1065,6 +1105,17 @@ export type Database = {
         Returns: string
       }
       revogar_dispositivo: { Args: { p_dispositivo: string }; Returns: undefined }
+      salvar_config_tv: {
+        Args: {
+          p_cartoes_por_pagina: number
+          p_obra: string
+          p_pausa_antes_ms: number
+          p_pausa_depois_ms: number
+          p_tempo_pagina_s: number
+          p_velocidade_px_s: number
+        }
+        Returns: undefined
+      }
     }
     Enums: {
       linguagem_impressora: 'ZPL' | 'TSPL'

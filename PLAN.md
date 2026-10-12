@@ -21,7 +21,7 @@ Fonte da verdade do produto: `PRD.md`. Regras para quem codifica: `CLAUDE.md`.
 | M4 | Identificação por QR e ficha da pessoa | ✅ Concluído (câmera conferida no Chromium; falta testar no Android e no iPhone reais) | 11/10/2026 |
 | M5 | Retirada | ✅ Concluído | 11/10/2026 |
 | M6 | Devolução e avaria | ✅ Concluído | 11/10/2026 |
-| M7 | Lista, estoque e busca | ⬜ A fazer | |
+| M7 | Lista, estoque e busca | ✅ Concluído | 11/10/2026 |
 | M8 | Painel da TV | ⬜ A fazer | |
 | M9 | Fechamento do dia e avisos às empreiteiras | ⬜ A fazer | |
 | M10 | Offline, auditoria e endurecimento | ⬜ A fazer | |
@@ -197,11 +197,11 @@ Legenda: ⬜ A fazer · 🟨 Em andamento · ✅ Concluído · ⛔ Bloqueado
 **Objetivo:** qualquer perfil vê quem está com o quê e quanto tem livre.
 
 **Entregas**
-- [ ] Lista "quem está com o quê" (F-07) agrupada por empresa, chips por item, pendência em vermelho
-- [ ] Busca por nome ou código, sem acento
-- [ ] Estoque (F-09): totais (na obra, livres, canteiro, manutenção), barra por tipo, toque mostra com quem está cada unidade
-- [ ] Consulta de empreiteira vê só a própria empresa
-- [ ] Atualização em tempo real
+- [x] Lista "quem está com o quê" (F-07) agrupada por empresa, chips por item, pendência em vermelho
+- [x] Busca por nome ou código, sem acento
+- [x] Estoque (F-09): totais (na obra, livres, canteiro, manutenção), barra por tipo, toque mostra com quem está cada unidade
+- [x] Consulta de empreiteira vê só a própria empresa
+- [x] Atualização em tempo real
 
 **Critérios de aceite**
 - Após uma retirada em outro celular, lista e estoque atualizam sem recarregar.
@@ -399,3 +399,7 @@ Legenda: ⬜ A fazer · 🟨 Em andamento · ✅ Concluído · ⛔ Bloqueado
 | 11/10/2026 | M6 (revisão, achado no e2e): **QR do capacete sempre em um segmento só de bytes**. O modo automático mistura segmento numérico e de bytes quando o token começa com dígitos, e o leitor do app (zxing) não lê. ZPL vai em modo manual `MM,B0036…`, TSPL em `M` com `B0036…`, e a prévia e o teste usam o mesmo. **Conferir com a impressora real** (principalmente o modo manual no TSPL), junto com o critério de 10 s do M3. |
 | 11/10/2026 | M6 (comparação, decidido pelo dono): **carimbo gravado na foto** da avaria ("Pá · 11/10/2026 14:32 · Ana (almoxarife)", faixa escura no pé da imagem), para valer como prova fora do app (ex.: medição da empreiteira). |
 | 11/10/2026 | M6 (comparação): contadores grandes com " de N", painéis Devolvendo/Avariadas, ícone maior, câmera no botão, "· foto HH:MM" e ícone por linha no sucesso, como no protótipo. Aceito sem mudança: "Fica com ele" lista **tudo** o que fica com a pessoa (sem QR também mostra o que saiu com QR, mais fiel); visor da câmera é o do próprio celular (sem cantoneiras no app). |
+| 11/10/2026 | M7: a lista mostra só quem está com ferramenta, por empresa, mais "+ N pessoas sem ferramenta". A busca ignora acentos e acha nome, **apelido do capacete** e **código da peça**. Tocar na pessoa abre a ficha como "Aberto pela lista" (sem QR). |
+| 11/10/2026 | M7: no Estoque, a consulta de empreiteira vê os totais da obra (PRD §5) e os nomes só da própria empresa; o resto aparece como "N com outras empresas". Unidades com baixa não contam. O detalhe mostra o código de cada peça com quem está ("MT-01 · Raimundo · desde ontem"). |
+| 11/10/2026 | M7 (revisão): inativar pessoa que ainda está com ferramenta **continua permitido**; ela segue na lista "quem está com o quê" (e como pendência) até devolver. "+ N pessoas sem ferramenta" conta só as ativas e não aparece durante a busca. O estoque também atualiza ao vivo quando uma unidade muda (empreiteira não recebe movimentos de outras empresas; conserto e baixa não geram movimento). |
+| 11/10/2026 | M7 (comparação com o protótipo): chips da lista e linhas do estoque usam o **ícone com o nome escrito ao lado** (pílula do protótipo), exceção à regra "nome embaixo" onde o nome já está na mesma linha (`CirculoFerramenta`). Tipos do estoque e pessoas da lista em ordem alfabética; empresa sem ninguém com ferramenta não aparece. Barra do estoque com um bloco por peça (até 40; acima, proporcional). Barra inferior também na Lista e no Estoque (PRD F-01). |

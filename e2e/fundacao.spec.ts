@@ -60,7 +60,7 @@ test.describe('app no celular', () => {
   test('a barra inferior navega entre as abas', async ({ page }) => {
     await page.getByRole('link', { name: 'Estoque' }).click()
     await expect(page).toHaveURL(/\/estoque$/)
-    await expect(page.getByRole('heading', { name: 'Estoque' })).toBeVisible()
+    await expect(page.getByRole('heading', { name: 'Ferramentas na obra' })).toBeVisible()
     await expect(page.getByRole('link', { name: 'Estoque' })).toHaveAttribute(
       'aria-current',
       'page',

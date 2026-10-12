@@ -6,9 +6,16 @@ import { criarClienteNavegador } from '@/lib/supabase/navegador'
 
 type Props = {
   obraId: string
-  /** Tabelas que, quando ganham linha nova na obra, recarregam a tela. */
-  tabelas: ('movimento' | 'ocorrencia')[]
+  /** Tabelas que, quando mudam na obra, recarregam a tela. */
+  tabelas: (keyof typeof EVENTOS)[]
 }
+
+/** Lançamentos só entram (imutáveis); a unidade muda de situação (livre, em uso, manutenção…). */
+const EVENTOS = {
+  movimento: 'INSERT',
+  ocorrencia: 'INSERT',
+  unidade: '*',
+} as const
 
 /**
  * Atualiza a tela quando entra um lançamento na obra (Supabase Realtime; a RLS vale aqui
@@ -35,10 +42,15 @@ export function AoVivo({ obraId, tabelas }: Props) {
       // Tópico único por montagem: o realtime-js reaproveita canal de mesmo nome, e um canal
       // antigo ainda saindo deixaria a tela sem tempo real.
       let c = supabase.channel(`obra-${obraId}-${chave}-${crypto.randomUUID()}`)
-      for (const tabela of chave.split(',')) {
+      for (const tabela of chave.split(',') as (keyof typeof EVENTOS)[]) {
         c = c.on(
           'postgres_changes',
-          { event: 'INSERT', schema: 'public', table: tabela, filter: `obra_id=eq.${obraId}` },
+          {
+            event: EVENTOS[tabela],
+            schema: 'public',
+            table: tabela,
+            filter: `obra_id=eq.${obraId}`,
+          },
           recarregar,
         )
       }

@@ -5,6 +5,7 @@ import { useState } from 'react'
 import { IconeFerramenta } from '@/components/IconeFerramenta'
 import { ehChaveIcone } from '@/components/icones-ferramenta'
 import { IconeInterface } from '@/components/IconeInterface'
+import { textoDesde } from '@/lib/dominio/ficha'
 import {
   agruparPorEmpresa,
   resumoGrupo,
@@ -22,7 +23,8 @@ type Props = {
 /** "Quem está com o quê" (F-07): por empresa, com busca por nome, apelido ou código. */
 export function ListaQuemEsta({ pessoas, empresas, agora }: Props) {
   const [busca, setBusca] = useState('')
-  const grupos = agruparPorEmpresa(pessoas, empresas, busca, new Date(agora))
+  const momento = new Date(agora)
+  const grupos = agruparPorEmpresa(pessoas, empresas, busca, momento)
 
   return (
     <>
@@ -70,7 +72,9 @@ export function ListaQuemEsta({ pessoas, empresas, agora }: Props) {
                 <span className="flex min-w-0 flex-1 flex-col">
                   <span className="truncate font-bold">
                     {p.nome}
-                    {p.pendente && <span className="text-erro"> · desde ontem</span>}
+                    {p.pendenteDesde && (
+                      <span className="text-erro"> · {textoDesde(p.pendenteDesde, momento)}</span>
+                    )}
                   </span>
                   <span className="text-[13px] text-texto-2">{p.funcao}</span>
                 </span>

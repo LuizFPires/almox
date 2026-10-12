@@ -16,9 +16,11 @@ const pessoa = (
   nome: string,
   empresa: typeof construtora,
   itens: [string, string][] = [],
+  ativa = true,
 ): PessoaLista => ({
   id,
   nome,
+  ativa,
   nomeCapacete: nome.split(' ')[0]!.toUpperCase(),
   funcao: 'Pedreiro',
   empresa,
@@ -48,8 +50,29 @@ describe('quem está com o quê', () => {
 
   it('pendência de outro dia em vermelho', () => {
     const g = agruparPorEmpresa(pessoas, [construtora], '', agora)
-    expect(g[0]?.pessoas.find((p) => p.nome === 'Raimundo Alves')?.pendente).toBe(true)
-    expect(g[0]?.pessoas.find((p) => p.nome === 'João Souza')?.pendente).toBe(false)
+    expect(g[0]?.pessoas.find((p) => p.nome === 'Raimundo Alves')?.pendenteDesde).toBe(
+      '2026-10-10T19:40:00Z',
+    )
+    expect(g[0]?.pessoas.find((p) => p.nome === 'João Souza')?.pendenteDesde).toBeNull()
+  })
+
+  it('inativa com ferramenta aparece; inativa sem ferramenta não conta; ordem pt-BR', () => {
+    const g = agruparPorEmpresa(
+      [
+        ...pessoas,
+        pessoa('5', 'Ângelo Dias', construtora, [['PA-01', '2026-10-11T10:00:00Z']], false),
+        pessoa('6', 'Zeca Antigo', construtora, [], false),
+      ],
+      [construtora],
+      '',
+      agora,
+    )
+    expect(g[0]?.pessoas.map((p) => p.nome)).toEqual([
+      'Ângelo Dias',
+      'João Souza',
+      'Raimundo Alves',
+    ])
+    expect(g[0]?.semFerramenta).toBe(1)
   })
 
   it('itens em ordem de código', () => {
@@ -63,6 +86,8 @@ describe('quem está com o quê', () => {
     expect(bateBusca(pessoas[1]!, 'MT-02')).toBe(false)
     const g = agruparPorEmpresa(pessoas, [construtora, formas], 'MT-02', agora)
     expect(g.map((x) => x.pessoas.map((p) => p.nome))).toEqual([['João Souza']])
+    // "sem ferramenta" não se aplica durante a busca
+    expect(g[0]?.semFerramenta).toBe(0)
   })
 
   it('busca pelo apelido do capacete', () => {

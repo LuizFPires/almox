@@ -9,15 +9,18 @@ export type PessoaLista = {
   nome: string
   nomeCapacete: string
   funcao: string
+  /** Inativa com ferramenta ainda aparece: a peça continua com ela. */
+  ativa: boolean
   empresa: { id: string; nome: string; cor: string }
   itens: ItemPessoa[]
 }
 
 export type GrupoEmpresa = {
   empresa: { id: string; nome: string; cor: string }
-  pessoas: (PessoaLista & { pendente: boolean })[]
+  /** `pendenteDesde`: o item mais antigo, quando é de antes de hoje (pendência). */
+  pessoas: (PessoaLista & { pendenteDesde: string | null })[]
   totalItens: number
-  /** Da empresa, sem ferramenta (ou fora da busca). */
+  /** Pessoas ativas da empresa sem ferramenta; 0 durante a busca (não se aplica). */
   semFerramenta: number
 }
 
@@ -48,16 +51,25 @@ export function agruparPorEmpresa(
       const daEmpresa = pessoas.filter((p) => p.empresa.id === empresa.id)
       const mostradas = daEmpresa
         .filter((p) => p.itens.length > 0 && bateBusca(p, busca))
-        .map((p) => ({
-          ...p,
-          itens: [...p.itens].sort((a, b) => compararCodigos(a.codigo, b.codigo)),
-          pendente: p.itens.some((i) => ehPendencia(i.desde, agora)),
-        }))
+        .sort((a, b) => a.nome.localeCompare(b.nome, 'pt-BR'))
+        .map((p) => {
+          const maisAntigo = p.itens.reduce(
+            (m, i) => (i.desde < m ? i.desde : m),
+            p.itens[0]!.desde,
+          )
+          return {
+            ...p,
+            itens: [...p.itens].sort((a, b) => compararCodigos(a.codigo, b.codigo)),
+            pendenteDesde: ehPendencia(maisAntigo, agora) ? maisAntigo : null,
+          }
+        })
       return {
         empresa,
         pessoas: mostradas,
         totalItens: mostradas.reduce((s, p) => s + p.itens.length, 0),
-        semFerramenta: daEmpresa.length - mostradas.length,
+        semFerramenta: buscando
+          ? 0
+          : daEmpresa.filter((p) => p.ativa && p.itens.length === 0).length,
       }
     })
     .filter((g) => g.pessoas.length > 0 || (!buscando && g.semFerramenta > 0))

@@ -10,6 +10,7 @@ type PessoaComPosses = {
   nome: string
   nome_capacete: string
   funcao: string
+  ativa: boolean
   empresa: { id: string; nome: string; cor: string } | null
   posses: {
     desde: string
@@ -17,19 +18,20 @@ type PessoaComPosses = {
   }[]
 }
 
-/** Pessoas ativas com o que está com cada uma (a RLS limita a consulta de empreiteira). */
+/**
+ * Pessoas com o que está com cada uma (a RLS limita a consulta de empreiteira). Inativas
+ * vêm junto: quem foi inativado com ferramenta continua aparecendo até devolver.
+ */
 export async function pessoasComItens(obraId: string): Promise<PessoaLista[]> {
   const supabase = await criarClienteServidor()
   const { data, error } = await supabase
     .from('pessoa')
     .select(
-      'id, nome, nome_capacete, funcao, empresa:empresa!pessoa_empresa_id_obra_id_fkey (id, nome, cor), ' +
+      'id, nome, nome_capacete, funcao, ativa, empresa:empresa!pessoa_empresa_id_obra_id_fkey (id, nome, cor), ' +
         'posses:posse!posse_pessoa_id_obra_id_fkey (desde, ' +
         'unidade:unidade!posse_unidade_id_obra_id_fkey (codigo, tipo:tipo_ferramenta!unidade_tipo_id_obra_id_fkey (nome, icone)))',
     )
     .eq('obra_id', obraId)
-    .eq('ativa', true)
-    .order('nome')
     .overrideTypes<PessoaComPosses[], { merge: false }>()
   if (error) throw new Error('Não foi possível carregar a lista.')
   return data
@@ -39,14 +41,36 @@ export async function pessoasComItens(obraId: string): Promise<PessoaLista[]> {
       nome: p.nome,
       nomeCapacete: p.nome_capacete,
       funcao: p.funcao,
+      ativa: p.ativa,
       empresa: p.empresa!,
-      itens: p.posses.map((x) => ({
-        codigo: x.unidade?.codigo ?? '',
-        tipo: x.unidade?.tipo?.nome ?? '',
-        icone: x.unidade?.tipo?.icone ?? '',
-        desde: x.desde,
-      })),
+      itens: p.posses.flatMap((x) =>
+        x.unidade
+          ? [
+              {
+                codigo: x.unidade.codigo,
+                tipo: x.unidade.tipo?.nome ?? '',
+                icone: x.unidade.tipo?.icone ?? '',
+                desde: x.desde,
+              },
+            ]
+          : [],
+      ),
     }))
+}
+
+/** Empresas da obra para os grupos da lista: própria primeiro, depois por nome. */
+export async function empresasDaLista(
+  obraId: string,
+): Promise<{ id: string; nome: string; cor: string }[]> {
+  const supabase = await criarClienteServidor()
+  const { data, error } = await supabase
+    .from('empresa')
+    .select('id, nome, cor')
+    .eq('obra_id', obraId)
+    .order('tipo') // enum: propria antes de empreiteira
+    .order('nome')
+  if (error) throw new Error('Não foi possível carregar as empresas.')
+  return data
 }
 
 type TipoComUnidades = {

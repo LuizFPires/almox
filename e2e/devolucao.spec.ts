@@ -134,7 +134,10 @@ test.describe('devolução e avaria', () => {
 
   test('item retirado sem QR volta sem QR pela lista', async ({ page, request }, info) => {
     const nome = `Colher dev ${info.project.name}-${Date.now() % 100000}`
-    const { tipo, pessoa, eng } = await preparar(request, 'Sandro Melo', nome, 1)
+    // Uma pessoa por projeto: "Devolveu tudo" levaria junto a peça do outro projeto.
+    const [quem, busca] =
+      info.project.name === 'iphone' ? ['Tiago Ramos', 'tiago'] : ['Sandro Melo', 'sandro']
+    const { tipo, pessoa, eng } = await preparar(request, quem, nome, 1)
     const alm = await api(request, 'almoxarife')
     await alm.post('rpc/registrar_retirada', {
       p_obra: OBRA,
@@ -146,8 +149,8 @@ test.describe('devolução e avaria', () => {
 
     await entrarComo(page, 'almoxarife', '/inicio')
     await page.goto('/pessoas')
-    await page.getByPlaceholder('Buscar pelo nome').fill('sandro')
-    await page.getByRole('link', { name: /^Sandro Melo/ }).click()
+    await page.getByPlaceholder('Buscar pelo nome').fill(busca)
+    await page.getByRole('link', { name: new RegExp(`^${quem}`) }).click()
     await page.getByRole('link', { name: 'Devolução' }).click()
     await expect(page.getByText('PEGOU SEM QR · PODE DEVOLVER SEM QR')).toBeVisible()
     await page.getByRole('region', { name: nome }).waitFor()

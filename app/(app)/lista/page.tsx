@@ -3,8 +3,7 @@ import { AoVivo } from '@/components/AoVivo'
 import { BarraInferior } from '@/components/BarraInferior'
 import { Cabecalho } from '@/components/Cabecalho'
 import { SeloPerfil } from '@/components/SeloPerfil'
-import { listarEmpresas } from '@/lib/dados/empresas'
-import { pessoasComItens } from '@/lib/dados/lista'
+import { empresasDaLista, pessoasComItens } from '@/lib/dados/lista'
 import { podeLancar } from '@/lib/dominio/permissoes'
 import { obterSessao } from '@/lib/sessao'
 import { ListaQuemEsta } from './ListaQuemEsta'
@@ -16,7 +15,7 @@ export default async function PaginaLista() {
   const { obraAtual } = await obterSessao()
   const [pessoas, empresas] = await Promise.all([
     pessoasComItens(obraAtual.id),
-    listarEmpresas(obraAtual.id),
+    empresasDaLista(obraAtual.id),
   ])
   const comPessoas = new Set(pessoas.map((p) => p.empresa.id))
 
@@ -34,9 +33,7 @@ export default async function PaginaLista() {
       <main className="flex flex-1 flex-col gap-4 px-5 pt-2 pb-6">
         <ListaQuemEsta
           pessoas={pessoas}
-          empresas={empresas
-            .filter((e) => comPessoas.has(e.id))
-            .map((e) => ({ id: e.id, nome: e.nome, cor: e.cor }))}
+          empresas={empresas.filter((e) => comPessoas.has(e.id))}
           agora={new Date().toISOString()}
         />
       </main>

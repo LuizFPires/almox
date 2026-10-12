@@ -39,15 +39,20 @@ export function TiposEstoque({ tipos, agora }: Props) {
             >
               <span className="flex items-center gap-3">
                 {ehChaveIcone(t.icone) && (
-                  <IconeFerramenta icone={t.icone} nome={t.nome} tamanho="p" />
+                  // O nome já vem ao lado; o de baixo do ícone fica só para quem vê.
+                  <span aria-hidden="true">
+                    <IconeFerramenta icone={t.icone} nome={t.nome} tamanho="p" />
+                  </span>
                 )}
                 <span className="flex min-w-0 flex-1 flex-col">
                   <span className="font-bold">{t.nome}</span>
-                  <span className="text-[13px] text-texto-2">{subtituloTipo(t)}</span>
+                  <span className="text-[13px] text-texto-2">
+                    {t.total === 0 ? 'sem peças cadastradas' : subtituloTipo(t)}
+                  </span>
                 </span>
                 <span className="flex flex-col items-end">
                   <span
-                    className={`text-[22px] leading-none font-bold tabular-nums ${t.livres === 0 ? 'text-erro' : ''}`}
+                    className={`text-[22px] leading-none font-bold tabular-nums ${t.total === 0 ? 'text-texto-2' : t.livres === 0 ? 'text-erro' : ''}`}
                   >
                     {t.livres}
                     <span className="text-[15px] font-normal text-texto-2"> /{t.total}</span>
@@ -61,31 +66,31 @@ export function TiposEstoque({ tipos, agora }: Props) {
                 <span className="bg-erro" style={{ width: pct(t.manutencao) }} />
               </span>
             </button>
-            {estaAberto && (
-              <div
-                id={`com-quem-${t.id}`}
-                className="flex flex-col gap-1.5 border-t border-borda px-4 py-3 text-[14px]"
-              >
-                {t.linhas.length === 0 && t.comOutrasEmpresas === 0 && (
-                  <p className="font-bold text-sucesso">Todas no almoxarifado</p>
-                )}
-                {t.linhas.map((l) =>
-                  l.tipo === 'pessoa' ? (
-                    <p key={l.codigo} className={l.pendente ? 'text-erro' : ''}>
-                      <span className="font-mono text-[13px]">{l.codigo}</span> · {l.pessoa} ·{' '}
-                      {textoDesde(l.desde, momento)}
-                    </p>
-                  ) : (
-                    <p key={l.codigo} className="text-texto-2">
-                      <span className="font-mono text-[13px]">{l.codigo}</span> · em manutenção
-                    </p>
-                  ),
-                )}
-                {t.comOutrasEmpresas > 0 && (
-                  <p className="text-texto-2">{t.comOutrasEmpresas} com outras empresas</p>
-                )}
-              </div>
-            )}
+            <div
+              id={`com-quem-${t.id}`}
+              hidden={!estaAberto}
+              className="flex flex-col gap-1.5 border-t border-borda px-4 py-3 text-[14px]"
+            >
+              {t.total === 0 && <p className="text-texto-2">Nenhuma peça cadastrada.</p>}
+              {t.total > 0 && t.linhas.length === 0 && t.comOutrasEmpresas === 0 && (
+                <p className="font-bold text-sucesso">Todas no almoxarifado</p>
+              )}
+              {t.linhas.map((l) =>
+                l.tipo === 'pessoa' ? (
+                  <p key={l.codigo} className={l.pendente ? 'text-erro' : ''}>
+                    <span className="font-mono text-[13px]">{l.codigo}</span> · {l.pessoa} ·{' '}
+                    {textoDesde(l.desde, momento)}
+                  </p>
+                ) : (
+                  <p key={l.codigo} className="text-texto-2">
+                    <span className="font-mono text-[13px]">{l.codigo}</span> · em manutenção
+                  </p>
+                ),
+              )}
+              {t.comOutrasEmpresas > 0 && (
+                <p className="text-texto-2">{t.comOutrasEmpresas} com outras empresas</p>
+              )}
+            </div>
           </li>
         )
       })}

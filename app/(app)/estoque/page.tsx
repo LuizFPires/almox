@@ -26,7 +26,7 @@ export default async function PaginaEstoque() {
 
   return (
     <>
-      <AoVivo obraId={obraAtual.id} tabelas={['movimento']} />
+      <AoVivo obraId={obraAtual.id} tabelas={['movimento', 'unidade']} />
       <Cabecalho
         titulo="Ferramentas na obra"
         subtitulo="Total e livres · agora"

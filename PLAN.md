@@ -271,7 +271,7 @@ Legenda: ⬜ A fazer · 🟨 Em andamento · ✅ Concluído · ⛔ Bloqueado
 - [x] Exportação do histórico e dos avisos em planilha (.xlsx), com valores no padrão brasileiro
 - [x] Revisão de RLS e testes de segurança (token da TV não escreve; QR não vaza dados)
 - [x] Monitoramento de erros (Sentry ou similar) e logs do agente de impressão
-- [ ] Testes e2e do fluxo completo: cadastro → adesivo → retirada → devolução com avaria → fechamento → aviso
+- [x] Testes e2e do fluxo completo: cadastro → adesivo → retirada → devolução com avaria → fechamento → aviso
 - [ ] Política de dados (LGPD): retenção de fotos e histórico, texto do termo de responsabilidade (a validar com o jurídico)
 - [x] Pendências do M9: e-mail sem provedor configurado não gasta tentativas (fica aguardando); e2e de câmera estável no CI
 

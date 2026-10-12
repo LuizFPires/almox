@@ -83,9 +83,10 @@ export async function aguardarLeitura(pagina: Page, alvo: Locator): Promise<void
     if (await falhou.isVisible()) await pagina.getByRole('button', { name: 'Ler de novo' }).click()
     await pagina.waitForTimeout(250)
   }
-  await test.info().attach('tela do celular sem leitura', {
-    body: await pagina.screenshot({ fullPage: true }),
-    contentType: 'image/png',
+  const tela = await pagina.screenshot({
+    fullPage: true,
+    path: test.info().outputPath('tela-sem-leitura.png'),
   })
+  await test.info().attach('tela do celular sem leitura', { body: tela, contentType: 'image/png' })
   await expect(alvo).toBeVisible({ timeout: 1_000 })
 }

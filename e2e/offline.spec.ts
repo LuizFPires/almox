@@ -110,6 +110,8 @@ test.describe('lançar sem internet', () => {
       const telaTv = await tv.newPage()
       await telaTv.goto(`/tv/entrar?c=${codigo}`)
       await expect(telaTv).toHaveURL(/\/tv$/)
+      // O painel anima sem parar (CPU): fica só a credencial da TV, conferida pelos dados dela.
+      await telaTv.close()
 
       const celular = await navegador.newContext({ ...CELULAR, baseURL })
       const pagina = await celular.newPage()
@@ -163,7 +165,7 @@ test.describe('lançar sem internet', () => {
 
       // E na TV (dados do painel).
       await expect
-        .poll(async () => (await (await telaTv.request.get('/tv/dados')).text()).includes(nome), {
+        .poll(async () => (await (await tv.request.get('/tv/dados')).text()).includes(nome), {
           timeout: 15_000,
         })
         .toBe(true)

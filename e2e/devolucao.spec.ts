@@ -118,7 +118,7 @@ test.describe('devolução e avaria', () => {
     const posses = await eng.get<unknown[]>(`posse?select=unidade_id&pessoa_id=eq.${pessoa}`)
     expect(posses.length).toBeGreaterThanOrEqual(1)
     const avarias = await eng.get<{ motivo: string; foto_path: string }[]>(
-      `avaria?select=motivo,foto_path&order=criado_em.desc&limit=1`,
+      `avaria?select=motivo,foto_path&obra_id=eq.${OBRA}&order=criado_em.desc&limit=1`,
     )
     expect(avarias[0]?.motivo).toBe('cabo_rompido')
     expect(avarias[0]?.foto_path).toMatch(new RegExp(`^${OBRA}/[0-9a-f-]{36}\\.jpg$`))

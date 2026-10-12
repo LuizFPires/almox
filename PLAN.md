@@ -21,7 +21,7 @@ Fonte da verdade do produto: `PRD.md`. Regras para quem codifica: `CLAUDE.md`.
 | M4 | Identificação por QR e ficha da pessoa | ✅ Concluído (câmera conferida no Chromium; falta testar no Android e no iPhone reais) | 11/10/2026 |
 | M5 | Retirada | ✅ Concluído | 11/10/2026 |
 | M6 | Devolução e avaria | ✅ Concluído | 11/10/2026 |
-| M7 | Lista, estoque e busca | 🟨 Em andamento | |
+| M7 | Lista, estoque e busca | ✅ Concluído | 11/10/2026 |
 | M8 | Painel da TV | ⬜ A fazer | |
 | M9 | Fechamento do dia e avisos às empreiteiras | ⬜ A fazer | |
 | M10 | Offline, auditoria e endurecimento | ⬜ A fazer | |

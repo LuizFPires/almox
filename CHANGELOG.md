@@ -2,6 +2,35 @@
 
 Registro do que foi entregue em cada milestone (ver `PLAN.md`).
 
+## M7 — Lista, estoque e busca (concluído em 11/10/2026)
+
+### Adicionado
+- **"Quem está com o quê" (F-07):**
+  - agrupado por empresa (própria primeiro), só quem está com ferramenta, mais "+ N pessoas sem ferramenta";
+  - cada peça aparece em um chip com ícone, nome do tipo e código;
+  - pendência em vermelho com o "desde" real;
+  - tocar abre a ficha como "Aberto pela lista".
+- **Busca** por nome, apelido do capacete ou código da peça, sem acento ("jose" acha José, "mt-02" acha quem está com ela).
+- **Estoque (F-09):**
+  - totais da obra (na obra, livres, no canteiro, manutenção) e legenda;
+  - por tipo, uma barra com um bloco por peça e "livres /total";
+  - tocar mostra com quem está cada peça ("MT-01 · Raimundo · desde ontem 16:40") e o que está em manutenção;
+  - unidades com baixa não contam.
+- **Consulta de empreiteira:** na lista, só a própria empresa (RLS). No estoque, os totais da obra; as peças com outras empresas aparecem só como "N com outras empresas", sem nome.
+- **Tempo real:** as duas telas atualizam sozinhas. O estoque também escuta mudanças de unidade (migration nova: `unidade` no Realtime).
+
+### Revisão e comparação com o protótipo
+- **Estoque ao vivo para todos:** a empreiteira não recebe movimentos de outras empresas, e "Voltou do conserto" / "Dar baixa" não geram movimento. Por isso o estoque passou a escutar a unidade.
+- **Lista:**
+  - quem foi inativado com ferramenta continua aparecendo até devolver (decisão: inativar continua permitido);
+  - "sem ferramenta" conta só as ativas e some durante a busca.
+- **Visual do protótipo:**
+  - chip em pílula com o nome ao lado do ícone (exceção registrada à regra "nome embaixo");
+  - barra por peça, livres em verde e manutenção em vermelho.
+- **Testes:**
+  - os e2e criam os próprios dados, devolvem o que retiraram e usam uma pessoa por projeto (também na devolução sem QR, que falhava às vezes);
+  - 2 pgTAP novos (224 no total), 151 unitários e 63 e2e.
+
 ## M6 — Devolução e avaria (concluído em 11/10/2026)
 
 ### Adicionado

@@ -292,7 +292,7 @@ Legenda: ⬜ A fazer · 🟨 Em andamento · ✅ Concluído · ⛔ Bloqueado
 - [ ] Cadastro inicial de empresas, pessoas e ferramentas; impressão e colagem dos adesivos
 - [ ] Treinamento de 30 min: almoxarife, engenheiro, encarregados
 - [ ] Termo de responsabilidade assinado pelos trabalhadores e cláusula de desconto nos contratos das empreiteiras (jurídico)
-- [ ] Coleta das métricas do PRD §3 (tempo de lançamento, % manual, pendências/semana)
+- [x] Coleta das métricas do PRD §3 (tempo de lançamento, % manual, pendências/semana)
 - [ ] Rodada de ajustes a partir do uso real
 
 **Critérios de aceite**

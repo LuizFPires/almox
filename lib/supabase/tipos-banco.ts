@@ -767,6 +767,7 @@ export type Database = {
           criado_em: string
           estorno_de: string | null
           id: string
+          identificacao_id: string | null
           obra_id: string
           obs: string | null
           ordem: number
@@ -783,6 +784,7 @@ export type Database = {
           criado_em?: string
           estorno_de?: string | null
           id?: string
+          identificacao_id?: string | null
           obra_id: string
           obs?: string | null
           ordem?: never
@@ -798,6 +800,7 @@ export type Database = {
           criado_em?: string
           estorno_de?: string | null
           id?: string
+          identificacao_id?: string | null
           obra_id?: string
           obs?: string | null
           ordem?: never
@@ -1425,6 +1428,7 @@ export type Database = {
         }[]
       }
       marcar_fotos_apagadas: { Args: { p_caminhos: string[] }; Returns: number }
+      metricas_piloto: { Args: { p_ate: string; p_de: string; p_obra: string }; Returns: Json }
       painel_tv: { Args: { p_token: string; p_versao?: string }; Returns: Json }
       pegar_envios: {
         Args: { p_canais?: Database['public']['Enums']['canal_envio'][]; p_limite?: number }

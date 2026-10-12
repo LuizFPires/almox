@@ -87,10 +87,26 @@ test.describe('histórico e auditoria', () => {
     expect(descontos.headers()['content-type']).toContain('spreadsheetml')
   })
 
+  test('engenheiro vê as métricas do piloto com as metas do PRD', async ({ page }) => {
+    await entrarComo(page, 'engenheiro', '/inicio')
+    await page.getByRole('link', { name: 'Métricas do piloto' }).click()
+    await expect(page.getByRole('heading', { name: 'Métricas do piloto' })).toBeVisible()
+    const metas = page.getByRole('region', { name: 'Metas' })
+    for (const titulo of ['QR lido → retirada', 'Retiradas sem QR', 'Pendências com aviso']) {
+      await expect(metas.getByText(titulo)).toBeVisible()
+    }
+    await expect(metas.getByText('meta: menos de 10%')).toBeVisible()
+    await expect(page.getByRole('region', { name: 'Por semana' }).getByRole('row')).not.toHaveCount(
+      0,
+    )
+  })
+
   test('almoxarife não abre o histórico', async ({ page }) => {
     await entrarComo(page, 'almoxarife', '/inicio')
     await expect(page.getByRole('link', { name: 'Histórico e auditoria' })).toHaveCount(0)
     await page.goto('/historico')
+    await page.waitForURL((u) => u.pathname === '/inicio')
+    await page.goto('/metricas')
     await page.waitForURL((u) => u.pathname === '/inicio')
     expect((await page.request.get('/api/planilhas/historico')).status()).toBe(403)
     expect((await page.request.get('/api/planilhas/descontos')).status()).toBe(403)

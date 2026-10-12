@@ -24,7 +24,7 @@ Fonte da verdade do produto: `PRD.md`. Regras para quem codifica: `CLAUDE.md`.
 | M7 | Lista, estoque e busca | ✅ Concluído | 11/10/2026 |
 | M8 | Painel da TV | ✅ Concluído (soak acelerado no build de produção; falta conferir 60 fps e 72 h no mini PC real) | 12/10/2026 |
 | M9 | Fechamento do dia e avisos às empreiteiras | ✅ Concluído (e-mail real depende da conta no Resend; notificação conferida até a inscrição) | 12/10/2026 |
-| M10 | Offline, auditoria e endurecimento | ⬜ A fazer | |
+| M10 | Offline, auditoria e endurecimento | 🟡 Em andamento | `feat/m10-offline-endurecimento` |
 | M11 | Piloto em obra | ⬜ A fazer | |
 | M12 | Conector ioo | ⬜ A fazer | |
 
@@ -273,6 +273,7 @@ Legenda: ⬜ A fazer · 🟨 Em andamento · ✅ Concluído · ⛔ Bloqueado
 - [ ] Monitoramento de erros (Sentry ou similar) e logs do agente de impressão
 - [ ] Testes e2e do fluxo completo: cadastro → adesivo → retirada → devolução com avaria → fechamento → aviso
 - [ ] Política de dados (LGPD): retenção de fotos e histórico, texto do termo de responsabilidade (a validar com o jurídico)
+- [ ] Pendências do M9: e-mail sem provedor configurado não gasta tentativas (fica aguardando); e2e de câmera estável no CI
 
 **Critérios de aceite**
 - Celular em modo avião registra 3 retiradas; ao voltar a rede, as 3 aparecem no servidor e na TV.
@@ -421,3 +422,7 @@ Legenda: ⬜ A fazer · 🟨 Em andamento · ✅ Concluído · ⛔ Bloqueado
 | 12/10/2026 | M9 (revisão): **trocar a empresa da pessoa, ou o tipo da empresa, com desconto em aberto é recusado** (feche a medição ou espere a devolução); o desconto fica com a empresa em que a pessoa estava quando virou pendência. |
 | 12/10/2026 | M9 (revisão): o **almoxarife vê só o resultado do encerramento de hoje** (exceção à decisão do M1, só para o dia que acabou de encerrar); o histórico de avisos e valores é do engenheiro e da própria empreiteira. "Encerrar o dia" pede confirmação com o número de empreiteiras e o total. Na lista de avisos, cada peça conta no aviso que a cobrou primeiro; os dos dias seguintes aparecem como lembrete, sem valor novo. Relatórios do M9 não usam avarias (a pendência do M6 sobre avarias estornadas não se aplica). |
 | 12/10/2026 | M9 (comparação com o protótipo): o dia continua com **um encerramento**, mas se ele foi encerrado à mão o sistema faz um **complemento automático às 23:59**: avisa só as peças de empreiteira que saíram depois e não voltaram, uma vez. Saudação do e-mail com **nomes completos** (como no protótipo); itens sempre com "×n"; pendência com o "desde" real ("desde ontem 16:40", "desde 09/10"). |
+| 12/10/2026 | M10: QR offline com **impressão irreversível (hash) do token** guardada no celular, junto de nome, apelido, função e empresa das pessoas ativas da obra; o token em si continua sem sair do servidor. Ao sincronizar, o servidor confere o lançamento de novo (RN-02/RN-03 no servidor). O cache é apagado ao sair. |
+| 12/10/2026 | M10: lançamento offline vale pela **hora em que foi feito no celular**, com limite: o servidor recusa hora no futuro ou com mais de 24 h e guarda também a hora de chegada (auditoria). |
+| 12/10/2026 | M10: monitoramento de erros com **Sentry** (plano grátis, alerta por e-mail) no app e no agente de impressão, sem dado pessoal nos relatórios; sem a chave configurada, o app funciona sem ele. |
+| 12/10/2026 | M10: proposta de retenção (LGPD, a validar com o jurídico): **fotos de avaria apagadas 12 meses** após o conserto/baixa; movimentos e avisos guardados **até 5 anos após o fim da obra**; pessoas inativas sem movimento há 5 anos são anonimizadas. Prazos configuráveis. |

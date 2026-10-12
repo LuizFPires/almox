@@ -240,15 +240,15 @@ Legenda: ⬜ A fazer · 🟨 Em andamento · ✅ Concluído · ⛔ Bloqueado
 **Objetivo:** relatório diário e cobrança automática de reposição.
 
 **Entregas**
-- [ ] Tela de fechamento (F-10): pendentes por pessoa (empresa, itens, valor, "desde ontem"), quem devolveu tudo hoje, atalho "chegou: ler capacete e devolver"
-- [ ] **Sem baixa geral** (RN-12): encerrar só gera relatório e avisos
-- [ ] Encerramento manual + automático às 23:59 (job agendado)
-- [ ] Cálculo por empreiteira: soma dos valores vigentes das unidades pendentes (RN-16); construtora própria → só engenheiro (RN-15)
-- [ ] **Notificação no app** (Web Push, VAPID) para dono e encarregado, que precisam ter login de consulta
-- [ ] **E-mail** transacional (Resend ou SMTP) com o modelo do protótipo: destinatários, assunto, tabela pessoa/itens/valor, total, texto do desconto e do cancelamento
-- [ ] Tabela `aviso` com status `enviado` → `cancelado` (ferramenta devolvida antes do fechamento da medição — RN-14, com novo e-mail avisando o cancelamento) ou `confirmado` (no fechamento da medição)
-- [ ] Data da medição por empresa; relatório "valores a descontar por empresa" para o engenheiro
-- [ ] Tela "Ver aviso enviado" (prévia da notificação e do e-mail)
+- [x] Tela de fechamento (F-10): pendentes por pessoa (empresa, itens, valor, "desde ontem"), quem devolveu tudo hoje, atalho "chegou: ler capacete e devolver"
+- [x] **Sem baixa geral** (RN-12): encerrar só gera relatório e avisos
+- [x] Encerramento manual + automático às 23:59 (job agendado)
+- [x] Cálculo por empreiteira: soma dos valores vigentes das unidades pendentes (RN-16); construtora própria → só engenheiro (RN-15)
+- [x] **Notificação no app** (Web Push, VAPID) para dono e encarregado, que precisam ter login de consulta
+- [x] **E-mail** transacional (Resend ou SMTP) com o modelo do protótipo: destinatários, assunto, tabela pessoa/itens/valor, total, texto do desconto e do cancelamento
+- [x] Tabela `aviso` com status `enviado` → `cancelado` (ferramenta devolvida antes do fechamento da medição — RN-14, com novo e-mail avisando o cancelamento) ou `confirmado` (no fechamento da medição)
+- [x] Data da medição por empresa; relatório "valores a descontar por empresa" para o engenheiro
+- [x] Tela "Ver aviso enviado" (prévia da notificação e do e-mail)
 
 **Critérios de aceite**
 - Encerrar o dia com pendências de 2 empreiteiras gera 2 avisos, cada um com o total correto e e-mail entregue ao dono e ao encarregado.

@@ -34,5 +34,7 @@ export function ambiente() {
   return {
     url: valor('NEXT_PUBLIC_SUPABASE_URL'),
     chave: valor('NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY'),
+    /** Segredo do processador de envios (/api/envios), M9. */
+    segredoEnvios: valor('ENVIOS_SEGREDO'),
   }
 }

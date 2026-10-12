@@ -103,6 +103,16 @@ export default async function PaginaMetricas({ searchParams }: PageProps<'/metri
           consulta o Almox a cada 2 s.
         </p>
 
+        {valido && (
+          <a
+            href={`/api/planilhas/metricas?de=${filtros.de}&ate=${filtros.ate}`}
+            download
+            className="flex min-h-toque items-center justify-center rounded-botao border border-borda bg-cartao font-bold"
+          >
+            Baixar relatório do piloto (.xlsx)
+          </a>
+        )}
+
         <section aria-label="Por semana" className="overflow-x-auto rounded-cartao bg-cartao">
           <table className="w-full text-left text-[13px] tabular-nums">
             <thead className="text-texto-2">

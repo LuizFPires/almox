@@ -99,6 +99,9 @@ test.describe('histórico e auditoria', () => {
     await expect(page.getByRole('region', { name: 'Por semana' }).getByRole('row')).not.toHaveCount(
       0,
     )
+    const baixando = page.waitForEvent('download')
+    await page.getByRole('link', { name: 'Baixar relatório do piloto (.xlsx)' }).click()
+    expect((await baixando).suggestedFilename()).toMatch(/^almox-piloto-\d{4}-\d{2}-\d{2}-a-/)
   })
 
   test('almoxarife não abre o histórico', async ({ page }) => {
@@ -110,5 +113,6 @@ test.describe('histórico e auditoria', () => {
     await page.waitForURL((u) => u.pathname === '/inicio')
     expect((await page.request.get('/api/planilhas/historico')).status()).toBe(403)
     expect((await page.request.get('/api/planilhas/descontos')).status()).toBe(403)
+    expect((await page.request.get('/api/planilhas/metricas')).status()).toBe(403)
   })
 })

@@ -18,6 +18,7 @@ import {
 import { formatarHora } from '@/lib/formatos/datas'
 import { useLoopTv } from './useLoopTv'
 import { usePainel } from './usePainel'
+import { useTvLigada } from './useTvLigada'
 
 /** Grade por quantidade de cartões por página (configurável: 8, 12 ou 16). */
 const GRADES: Record<number, string> = {
@@ -28,6 +29,7 @@ const GRADES: Record<number, string> = {
 
 /** Painel da TV em loop: páginas de cartões por pessoa → colunas por empresa → recomeça. */
 export function PainelTv({ inicial }: { inicial: DadosPainel }) {
+  useTvLigada()
   const { painel, semConexaoDesde, naoAutorizado } = usePainel(inicial)
   const agora = new Date(painel.agora)
   const cartoes = montarCartoes(painel, agora)

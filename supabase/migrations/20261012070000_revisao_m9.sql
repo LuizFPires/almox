@@ -537,16 +537,21 @@ revoke execute on function privado.encerrar_dia(uuid, uuid, boolean, date),
   from public, anon, authenticated;
 
 -- Envios com problema, para o engenheiro ver (falharam 5 vezes ou ninguém ativou notificação).
+-- plpgsql (não sql): o valor novo do enum não pode ser usado na mesma transação em que foi criado.
 create function public.envios_com_problema(p_obra uuid) returns jsonb
-language sql stable
+language plpgsql stable
 security definer
 set search_path = ''
 as $$
-  select case when privado.eh_engenheiro(p_obra) then jsonb_build_object(
+begin
+  if not privado.eh_engenheiro(p_obra) then
+    return null;
+  end if;
+  return jsonb_build_object(
     'erro', (select count(*) from public.envio where obra_id = p_obra and status = 'erro' and tentativas >= 5),
-    'semDestino', (select count(*) from public.envio where obra_id = p_obra and status = 'sem_destino'
-                     and criado_em > now() - interval '7 days'))
-  end
+    'semDestino', (select count(*) from public.envio where obra_id = p_obra and status::text = 'sem_destino'
+                     and criado_em > now() - interval '7 days'));
+end;
 $$;
 revoke all on function public.envios_com_problema(uuid) from public, anon, authenticated;
 grant execute on function public.envios_com_problema(uuid) to authenticated;

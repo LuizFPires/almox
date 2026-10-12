@@ -23,7 +23,7 @@ Fonte da verdade do produto: `PRD.md`. Regras para quem codifica: `CLAUDE.md`.
 | M6 | Devolução e avaria | ✅ Concluído | 11/10/2026 |
 | M7 | Lista, estoque e busca | ✅ Concluído | 11/10/2026 |
 | M8 | Painel da TV | ✅ Concluído (soak acelerado no build de produção; falta conferir 60 fps e 72 h no mini PC real) | 12/10/2026 |
-| M9 | Fechamento do dia e avisos às empreiteiras | 🟨 Em andamento | |
+| M9 | Fechamento do dia e avisos às empreiteiras | ✅ Concluído (e-mail real depende da conta no Resend; notificação conferida até a inscrição) | 12/10/2026 |
 | M10 | Offline, auditoria e endurecimento | ⬜ A fazer | |
 | M11 | Piloto em obra | ⬜ A fazer | |
 | M12 | Conector ioo | ⬜ A fazer | |

@@ -547,6 +547,7 @@ export type Database = {
       fechamento_dia: {
         Row: {
           automatico: boolean
+          complementado_em: string | null
           data: string
           encerrado_em: string
           encerrado_por: string | null
@@ -556,6 +557,7 @@ export type Database = {
         ComputedFields: never
         Insert: {
           automatico?: boolean
+          complementado_em?: string | null
           data: string
           encerrado_em?: string
           encerrado_por?: string | null
@@ -564,6 +566,7 @@ export type Database = {
         }
         Update: {
           automatico?: boolean
+          complementado_em?: string | null
           data?: string
           encerrado_em?: string
           encerrado_por?: string | null

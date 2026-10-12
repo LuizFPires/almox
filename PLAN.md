@@ -407,3 +407,5 @@ Legenda: ⬜ A fazer · 🟨 Em andamento · ✅ Concluído · ⛔ Bloqueado
 | 11/10/2026 | M8: a TV é conectada pelo link **"Abrir painel nesta TV"** (`/tv/entrar?t=…`), mostrado uma vez ao criar o dispositivo; o token vai para um cookie httpOnly e sai da URL. |
 | 11/10/2026 | M8: configuração do painel por obra em **Cadastros › "Painel da TV"**, nos limites do PRD (página 3–30 s, velocidade 15–150 px/s, pausas, cartões por página 8, 12 ou 16). |
 | 11/10/2026 | M8: recarga automática diária da TV às **04:00** (fuso da obra). |
+| 11/10/2026 | M8: **sem contagens na TV** (CLAUDE.md): a coluna da empresa mostra só o nome, sem o "N itens · M pessoas" do protótipo; a fase de colunas não diz quantas empresas são. |
+| 11/10/2026 | M8: no cartão, ferramentas **agrupadas por tipo com ×N**; se passar de 3 tipos, aparecem 2 e um "+N" com as peças que sobraram (a lista completa fica no app). Nas colunas por empresa aparecem todas (a linha quebra). A pendência mostra o "desde" real ("desde ontem 16:40", "desde 09/10"), como no app. |

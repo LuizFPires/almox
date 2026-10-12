@@ -53,3 +53,9 @@ export async function navegadorComQr(texto: string): Promise<Browser> {
 }
 
 export const CELULAR = devices['Pixel 7']
+
+/**
+ * Espera pela leitura do QR na câmera falsa. A decodificação é quadro a quadro e depende de
+ * CPU: no runner do CI (2 núcleos, outras suítes em paralelo) 15 s ficaram no limite.
+ */
+export const LEITURA_QR_MS = 30_000

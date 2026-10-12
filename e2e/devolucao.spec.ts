@@ -1,7 +1,7 @@
 import { readFileSync } from 'node:fs'
 import { expect, test, type APIRequestContext } from '@playwright/test'
 import { ambiente, entrarComo, SENHA_SEED, semSeed, USUARIOS } from './apoio'
-import { CELULAR, navegadorComQr } from './camera'
+import { CELULAR, LEITURA_QR_MS, navegadorComQr } from './camera'
 
 const OBRA = 'a0000000-0000-4000-8000-000000000001'
 /** Foto da "avaria" (qualquer imagem serve: a tela comprime para JPEG antes de enviar). */
@@ -91,7 +91,9 @@ test.describe('devolução e avaria', () => {
       const pagina = await navegador.newPage({ ...CELULAR, baseURL })
       await entrarComo(pagina, 'almoxarife', '/inicio')
       await pagina.goto('/leitura')
-      await pagina.getByRole('button', { name: 'Sim, é o Valter' }).click({ timeout: 15_000 })
+      await pagina
+        .getByRole('button', { name: 'Sim, é o Valter' })
+        .click({ timeout: LEITURA_QR_MS })
       await pagina.getByRole('link', { name: 'Devolução' }).click()
       await expect(pagina.getByText('Marque o que voltou')).toBeVisible()
       const cartao = pagina.getByRole('region', { name: nome })

@@ -5,6 +5,8 @@ import type { PainelTv } from '@/lib/dominio/tv'
 
 /** A TV pergunta a cada 2 s (decisão do M8); a resposta tem que chegar em 5 s. */
 export const INTERVALO_MS = 2000
+/** Sem autorização, segue perguntando devagar: volta sozinha se foi um erro passageiro. */
+const INTERVALO_SEM_AUTORIZACAO_MS = 60_000
 const LIMITE_MS = 5000
 
 export type EstadoPainel = {
@@ -12,52 +14,62 @@ export type EstadoPainel = {
   /** Desde quando o servidor não responde (o painel segue com o último estado). */
   semConexaoDesde: Date | null
   naoAutorizado: boolean
+  /** Hora do servidor menos a do mini PC: a pendência vira no dia da obra, não no do relógio. */
+  diferencaMs: number
 }
 
 /**
- * Busca o painel em ciclo, sem sobrepor pedidos. Só troca o estado quando os dados mudam,
- * então a animação não re-renderiza à toa. Reconecta sozinha: basta o próximo pedido dar certo.
+ * Busca o painel em ciclo, sem sobrepor pedidos, mandando a versão que já tem: sem mudança, o
+ * servidor responde só a hora e a tela não re-renderiza. Reconecta sozinha.
  */
 export function usePainel(inicial: PainelTv): EstadoPainel {
   const [estado, setEstado] = useState<EstadoPainel>({
     painel: inicial,
     semConexaoDesde: null,
     naoAutorizado: false,
+    diferencaMs: 0,
   })
 
   useEffect(() => {
     let encerrado = false
     let espera: ReturnType<typeof setTimeout> | undefined
-    // "agora" muda a cada pedido; só o resto decide se a tela precisa mudar.
-    const semHora = (texto: string) => texto.replace(/"agora":"[^"]*",?/, '')
-    let anterior = semHora(JSON.stringify(inicial))
-    let caiu = false
     let controle: AbortController | undefined
+    let versao = inicial.versao
+    let caiu = false
+    let semAutorizacao = false
 
     const buscar = async () => {
       controle = new AbortController()
       const limite = setTimeout(() => controle?.abort(), LIMITE_MS)
       try {
-        const r = await fetch('/tv/dados', { cache: 'no-store', signal: controle.signal })
+        const r = await fetch(`/tv/dados?v=${encodeURIComponent(versao)}`, {
+          cache: 'no-store',
+          signal: controle.signal,
+        })
+        if (encerrado) return
         if (r.status === 401) {
-          if (!encerrado) setEstado((e) => ({ ...e, naoAutorizado: true }))
-          return // revogado: para de perguntar
+          if (!semAutorizacao) {
+            semAutorizacao = true
+            setEstado((e) => ({ ...e, naoAutorizado: true }))
+          }
+          return
         }
         if (!r.ok) throw new Error(String(r.status))
-        const texto = await r.text()
+        const corpo = (await r.json()) as Partial<PainelTv> & { agora: string }
         if (encerrado) return
-        const atual = semHora(texto)
-        const mudou = atual !== anterior
-        anterior = atual
-        if (mudou || caiu) {
-          const painel = mudou ? (JSON.parse(texto) as PainelTv) : undefined
+        const diferencaMs = Date.parse(corpo.agora) - Date.now()
+        const novo = corpo.pessoas ? (corpo as PainelTv) : null
+        if (novo) versao = novo.versao
+        if (novo || caiu || semAutorizacao) {
           setEstado((e) => ({
-            painel: painel ?? e.painel,
+            painel: novo ?? e.painel,
             semConexaoDesde: null,
             naoAutorizado: false,
+            diferencaMs,
           }))
         }
         caiu = false
+        semAutorizacao = false
       } catch {
         if (!encerrado && !caiu) {
           caiu = true
@@ -66,8 +78,10 @@ export function usePainel(inicial: PainelTv): EstadoPainel {
         }
       } finally {
         clearTimeout(limite)
+        if (!encerrado) {
+          espera = setTimeout(buscar, semAutorizacao ? INTERVALO_SEM_AUTORIZACAO_MS : INTERVALO_MS)
+        }
       }
-      if (!encerrado) espera = setTimeout(buscar, INTERVALO_MS)
     }
     espera = setTimeout(buscar, INTERVALO_MS)
 

@@ -3,7 +3,7 @@
 import { useEffect, useLayoutEffect, useRef, useState } from 'react'
 import { posicaoRolagem, proximaFase, TROCA_MS, type ConfigTv, type Fase } from '@/lib/dominio/tv'
 
-type Entrada = { nPaginas: number; maxOff: number; config: ConfigTv }
+type Entrada = { nPaginas: number; temColunas: boolean; maxOff: number; config: ConfigTv }
 
 /**
  * Motor do loop (F-13): um único `requestAnimationFrame` mede o tempo da fase, move o trilho
@@ -28,7 +28,7 @@ export function useLoopTv(entrada: Entrada) {
     let trocandoDesde: number | null = null
 
     const passo = (agora: number) => {
-      const { nPaginas, maxOff, config } = atual.current
+      const { nPaginas, temColunas, maxOff, config } = atual.current
       // Menos páginas do que antes (alguém devolveu tudo): fica na última que existe.
       if (faseAtual.tipo === 'pagina' && faseAtual.indice > Math.max(0, nPaginas - 1)) {
         faseAtual = { tipo: 'pagina', indice: Math.max(0, nPaginas - 1) }
@@ -38,7 +38,7 @@ export function useLoopTv(entrada: Entrada) {
       if (trocandoDesde !== null) {
         // Esmaecendo: o conteúdo troca 650 ms depois e o cronômetro da nova fase começa.
         if (agora - trocandoDesde >= TROCA_MS) {
-          faseAtual = proximaFase(faseAtual, nPaginas)
+          faseAtual = proximaFase(faseAtual, nPaginas, temColunas)
           setFase(faseAtual)
           setVisivel(true)
           inicio = agora
@@ -66,8 +66,15 @@ export function useLoopTv(entrada: Entrada) {
           trocandoDesde = agora
           setVisivel(false)
         }
-      } else if (progresso.current) {
-        progresso.current.style.width = '0%'
+      } else {
+        // Painel vazio: fica na página 1 com o cronômetro parado, para a primeira retirada
+        // do dia entrar e ficar o tempo inteiro da página (não sumir na hora).
+        inicio = agora
+        if (faseAtual.tipo !== 'pagina' || faseAtual.indice !== 0) {
+          faseAtual = { tipo: 'pagina', indice: 0 }
+          setFase(faseAtual)
+        }
+        if (progresso.current) progresso.current.style.width = '0%'
       }
       quadro = requestAnimationFrame(passo)
     }

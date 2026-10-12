@@ -41,12 +41,12 @@ const item = (tipo: string, desde = '2026-10-11T10:05:00Z', codigo = 'X-01') => 
 const pessoa = (nome: string, empresaId: string, itens = [item('Pá')]): PessoaTv => ({
   id: nome,
   nome,
-  apelido: nome.toUpperCase(),
   funcao: 'Servente',
   empresaId,
   itens,
 })
 const painel = (pessoas: PessoaTv[]): PainelTv => ({
+  versao: 'v1',
   agora: agora.toISOString(),
   obra: 'Obra',
   config,
@@ -129,15 +129,15 @@ describe('loop', () => {
     expect(subtituloPagina(2, 12, 30)).toBe('Pessoas 25–30 de 30 · ordem alfabética')
   })
 
-  it('colunas: só empresas com alguém, dupla com mais de 6 pessoas', () => {
+  it('colunas: só empresas com alguém, dupla com mais de 6 pessoas, tripla com mais de 12', () => {
     const cartoes = montarCartoes(painel(trinta), agora)
     const colunas = montarColunas(cartoes, painel(trinta))
-    expect(colunas.map((c) => [c.nome, c.pessoas.length, c.dupla, c.larguraPx])).toEqual([
-      ['Construtora', 11, true, 980],
-      ['Armação Teixeira', 19, true, 980],
+    expect(colunas.map((c) => [c.nome, c.pessoas.length, c.subcolunas, c.larguraPx])).toEqual([
+      ['Construtora', 11, 2, 980],
+      ['Armação Teixeira', 19, 4, 1980],
     ])
-    // 980 + 24 + 980 = 1984 → rola 144 px até a última coluna encostar na borda
-    expect(deslocamentoMaximo(colunas)).toBe(144)
+    // 980 + 24 + 1980 = 2984 → rola 1144 px até a última coluna encostar na borda
+    expect(deslocamentoMaximo(colunas)).toBe(1144)
   })
 
   it('rolagem: parada 2,5 s, 45 px/s, parada 3 s no fim', () => {
@@ -162,6 +162,13 @@ describe('loop', () => {
 
   it('ninguém com ferramenta: fica na página vazia', () => {
     expect(proximaFase({ tipo: 'pagina', indice: 0 }, 0)).toEqual({ tipo: 'pagina', indice: 0 })
+  })
+
+  it('sem colunas a mostrar: da última página volta à primeira', () => {
+    expect(proximaFase({ tipo: 'pagina', indice: 1 }, 2, false)).toEqual({
+      tipo: 'pagina',
+      indice: 0,
+    })
   })
 })
 

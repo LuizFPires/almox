@@ -50,12 +50,22 @@ async function configurar(eng: Engenheiro, c: typeof PADRAO) {
   })
 }
 
-/** Conecta esta página como a TV da obra (dispositivo novo). */
+/** Mini PC novo da obra: devolve o id e o token do agente (que não abre o painel). */
+async function criarMiniPc(eng: Engenheiro, nome: string) {
+  const agente = await eng.rpc<string>('criar_dispositivo', { p_obra: OBRA, p_nome: nome })
+  const [d] = await eng.get<{ id: string }[]>(
+    `dispositivo_tv?select=id&nome=eq.${encodeURIComponent(nome)}&revogado_em=is.null`,
+  )
+  return { id: d?.id ?? '', agente }
+}
+
+/** Conecta esta página como a TV da obra: mini PC novo → código de uso único → /tv. */
 async function conectarTv(page: Page, eng: Engenheiro, nome: string) {
-  const token = await eng.rpc<string>('criar_dispositivo', { p_obra: OBRA, p_nome: nome })
-  await page.goto(`/tv/entrar?t=${token}`)
+  const miniPc = await criarMiniPc(eng, nome)
+  const codigo = await eng.rpc<string>('gerar_codigo_tv', { p_dispositivo: miniPc.id })
+  await page.goto(`/tv/entrar?c=${codigo}`)
   await expect(page).toHaveURL(/\/tv$/)
-  return token
+  return { ...miniPc, codigo }
 }
 
 test.describe('painel da TV', () => {
@@ -63,36 +73,78 @@ test.describe('painel da TV', () => {
   test.skip(semSeed, 'precisa do seed')
   test.describe.configure({ mode: 'serial' })
 
-  test('conecta pelo link do dispositivo, tira o token da URL e para ao revogar', async ({
+  test('engenheiro gera o código em Impressora e a TV conecta; o código vale uma vez', async ({
     page,
+    browser,
+    baseURL,
     request,
   }, info) => {
     const eng = await apiEngenheiro(request)
     const nome = `TV e2e ${info.project.name}-${Date.now() % 100000}`
+    const miniPc = await criarMiniPc(eng, nome)
 
-    await page.goto('/tv')
-    await expect(page.getByText('Dispositivo não autorizado')).toBeVisible()
+    await entrarComo(page, 'engenheiro', '/inicio')
+    await page.goto('/cadastros/impressora')
+    const cartao = page
+      .locator('div')
+      .filter({ hasText: nome })
+      .filter({
+        has: page.getByRole('button', { name: 'Conectar uma TV' }),
+      })
+    await cartao.last().getByRole('button', { name: 'Conectar uma TV' }).click()
+    const endereco = page.getByLabel('Endereço para conectar a TV')
+    await expect(endereco).toContainText('/tv/entrar?c=')
+    // Só texto: um link tocado no celular conectaria o celular, não a TV.
+    await expect(page.getByRole('link', { name: /tv\/entrar/ })).toHaveCount(0)
+    const url = new URL((await endereco.textContent()) ?? '')
 
-    await conectarTv(page, eng, nome)
-    await expect(page.getByText('Obra Demonstração')).toBeVisible()
-    const dados = await page.request.get('/tv/dados')
-    expect(dados.status()).toBe(200)
-    expect(((await dados.json()) as { obra: string }).obra).toBe('Obra Demonstração')
+    const tv = await browser.newContext({ baseURL, viewport: { width: 1920, height: 1080 } })
+    const outra = await browser.newContext({ baseURL, viewport: { width: 1920, height: 1080 } })
+    try {
+      const telaTv = await tv.newPage()
+      await telaTv.goto('/tv')
+      await expect(telaTv.getByText('Dispositivo não autorizado')).toBeVisible()
+      await telaTv.goto(`${url.pathname}${url.search}`)
+      await expect(telaTv).toHaveURL(/\/tv$/)
+      await expect(telaTv.getByText('Obra Demonstração')).toBeVisible()
 
-    const [dispositivo] = await eng.get<{ id: string }[]>(
-      `dispositivo_tv?select=id&nome=eq.${encodeURIComponent(nome)}`,
-    )
-    await eng.rpc('revogar_dispositivo', { p_dispositivo: dispositivo?.id })
-    expect((await page.request.get('/tv/dados')).status()).toBe(401)
-    // A TV aberta percebe sozinha no próximo ciclo.
-    await expect(page.getByText('Dispositivo não autorizado')).toBeVisible({ timeout: 6_000 })
+      // O mesmo código não serve uma segunda vez.
+      const segunda = await outra.newPage()
+      await segunda.goto(`${url.pathname}${url.search}`)
+      await expect(segunda.getByText('Código vencido ou já usado')).toBeVisible()
+      expect((await outra.cookies()).some((c) => c.name === 'almox_tv')).toBe(false)
+
+      // Revogar o mini PC desliga a TV aberta no próximo ciclo.
+      await eng.rpc('revogar_dispositivo', { p_dispositivo: miniPc.id })
+      expect((await telaTv.request.get('/tv/dados')).status()).toBe(401)
+      await expect(telaTv.getByText('Dispositivo não autorizado')).toBeVisible({ timeout: 6_000 })
+    } finally {
+      await tv.close()
+      await outra.close()
+    }
   })
 
-  test('token inválido não vira cookie', async ({ page }) => {
-    await page.goto('/tv/entrar?t=nao-e-um-token')
-    await expect(page).toHaveURL(/\/tv$/)
+  test('token do agente de impressão não abre o painel', async ({ page, request }, info) => {
+    const eng = await apiEngenheiro(request)
+    const { agente } = await criarMiniPc(eng, `Agente ${info.project.name}-${Date.now() % 100000}`)
+    const { hostname } = new URL(page.url() === 'about:blank' ? 'http://localhost' : page.url())
+    await page
+      .context()
+      .addCookies([{ name: 'almox_tv', value: agente, domain: hostname, path: '/tv' }])
+    await page.goto('/tv')
     await expect(page.getByText('Dispositivo não autorizado')).toBeVisible()
-    expect((await page.context().cookies()).some((c) => c.name === 'almox_tv')).toBe(false)
+    expect((await page.request.get('/tv/dados')).status()).toBe(401)
+  })
+
+  test('sem mudança, a TV recebe só a hora (sem os dados)', async ({ page, request }, info) => {
+    const eng = await apiEngenheiro(request)
+    await conectarTv(page, eng, `TV versão ${info.project.name}-${Date.now() % 100000}`)
+    const completo = (await (await page.request.get('/tv/dados')).json()) as { versao: string }
+    expect(completo.versao).toMatch(/^[0-9a-f]{32}$/)
+    const igual = (await (
+      await page.request.get(`/tv/dados?v=${completo.versao}`)
+    ).json()) as object
+    expect(Object.keys(igual)).toEqual(['agora'])
   })
 
   test('loop: páginas de 12 → colunas por empresa → volta à página 1', async ({
@@ -202,13 +254,13 @@ test.describe('painel da TV', () => {
       await expect(page.locator('article').first()).toBeVisible()
       const cartoes = await page.locator('article').count()
 
-      await page.route('**/tv/dados', (rota) => rota.abort('internetdisconnected'))
+      await page.route('**/tv/dados?**', (rota) => rota.abort('internetdisconnected'))
       await expect(page.getByRole('status')).toContainText(/Sem conexão desde \d{2}:\d{2}/, {
         timeout: 6_000,
       })
       await expect(page.locator('article')).toHaveCount(cartoes)
 
-      await page.unroute('**/tv/dados')
+      await page.unroute('**/tv/dados?**')
       await expect(page.getByText(/Sem conexão desde/)).toHaveCount(0, { timeout: 6_000 })
     } finally {
       await configurar(eng, PADRAO)

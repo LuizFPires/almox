@@ -3,6 +3,8 @@ import { ehPendencia, textoDesde } from './ficha'
 
 /** O que a função `painel_tv` devolve (só leitura, pelo token do dispositivo). */
 export type PainelTv = {
+  /** Muda quando qualquer dado do painel muda (a TV manda de volta para não receber igual). */
+  versao: string
   agora: string
   obra: string
   config: ConfigTv
@@ -25,7 +27,6 @@ export type ItemTv = { codigo: string; tipo: string; icone: string; desde: strin
 export type PessoaTv = {
   id: string
   nome: string
-  apelido: string
   funcao: string
   empresaId: string
   itens: ItemTv[]
@@ -54,8 +55,8 @@ export type ColunaEmpresa = {
   id: string
   nome: string
   cor: string
-  /** Mais de 6 pessoas: coluna dupla (PRD F-13). */
-  dupla: boolean
+  /** Até 6 pessoas por subcoluna: mais de 6 = dupla (PRD F-13), mais de 12 = tripla… */
+  subcolunas: number
   larguraPx: number
   pessoas: CartaoTv[]
 }
@@ -63,7 +64,9 @@ export type ColunaEmpresa = {
 /** No cartão de 448 px cabem 3 ferramentas (104 px cada); a terceira vira "+N" se sobrar. */
 export const MAX_FERRAMENTAS_CARTAO = 3
 export const LARGURA_COLUNA = 480
-export const LARGURA_COLUNA_DUPLA = 980
+/** Cada subcoluna a mais: 480 + 20 de espaço (dupla = 980, como no protótipo). */
+export const LARGURA_SUBCOLUNA_EXTRA = 500
+export const PESSOAS_POR_SUBCOLUNA = 6
 export const ESPACO_COLUNAS = 24
 /** Largura útil da área de conteúdo a 1920 px (protótipo). */
 export const LARGURA_UTIL = 1840
@@ -147,13 +150,13 @@ export function montarColunas(cartoes: CartaoTv[], painel: PainelTv): ColunaEmpr
       const pessoas = (porEmpresa.get(e.id) ?? []).sort((a, b) =>
         a.nome.localeCompare(b.nome, 'pt-BR'),
       )
-      const dupla = pessoas.length > 6
+      const subcolunas = Math.max(1, Math.ceil(pessoas.length / PESSOAS_POR_SUBCOLUNA))
       return {
         id: e.id,
         nome: e.nome,
         cor: e.cor,
-        dupla,
-        larguraPx: dupla ? LARGURA_COLUNA_DUPLA : LARGURA_COLUNA,
+        subcolunas,
+        larguraPx: LARGURA_COLUNA + (subcolunas - 1) * LARGURA_SUBCOLUNA_EXTRA,
         pessoas,
       }
     })
@@ -191,12 +194,15 @@ export function posicaoRolagem(
 
 export type Fase = { tipo: 'pagina'; indice: number } | { tipo: 'empresas' }
 
-/** Páginas 1…N → colunas por empresa → volta à página 1 (loop infinito). */
-export function proximaFase(fase: Fase, nPaginas: number): Fase {
+/**
+ * Páginas 1…N → colunas por empresa → volta à página 1 (loop infinito). Sem colunas a
+ * mostrar, volta direto à página 1.
+ */
+export function proximaFase(fase: Fase, nPaginas: number, temColunas = true): Fase {
   if (nPaginas === 0) return { tipo: 'pagina', indice: 0 }
   if (fase.tipo === 'empresas') return { tipo: 'pagina', indice: 0 }
   if (fase.indice + 1 < nPaginas) return { tipo: 'pagina', indice: fase.indice + 1 }
-  return { tipo: 'empresas' }
+  return temColunas ? { tipo: 'empresas' } : { tipo: 'pagina', indice: 0 }
 }
 
 /** Recarga diária da TV às 04:00 no fuso da obra (decisão do M8): quanto falta. */

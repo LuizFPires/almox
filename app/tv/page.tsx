@@ -9,32 +9,38 @@ import { TentarDeNovo } from './TentarDeNovo'
 
 export const metadata: Metadata = { title: 'Painel · Almox' }
 
-/** Painel da TV (F-13): entra pelo token do dispositivo guardado em cookie (sem login). */
-export default function PaginaTv() {
+/** Painel da TV (F-13): entra pela credencial da TV guardada em cookie (sem login). */
+export default function PaginaTv({ searchParams }: PageProps<'/tv'>) {
   return (
     <Suspense fallback={<Moldura obra="">Carregando…</Moldura>}>
-      <Conteudo />
+      <Conteudo searchParams={searchParams} />
     </Suspense>
   )
 }
 
-async function Conteudo() {
+async function Conteudo({ searchParams }: Pick<PageProps<'/tv'>, 'searchParams'>) {
+  const { codigo } = (await searchParams) as { codigo?: string }
   const token = (await cookies()).get(COOKIE_TV)?.value
   const resultado = await lerPainel(token)
   if (resultado.tipo === 'nao_autorizado') {
     return (
       <Moldura obra="">
+        {/* Se foi uma falha passageira, a TV volta sozinha. */}
+        <TentarDeNovo emMs={5 * 60_000} />
         <span className="flex flex-col items-center gap-4 text-center">
-          <span className="text-4xl font-bold text-tv-texto">Dispositivo não autorizado</span>
+          <span className="text-4xl font-bold text-tv-texto">
+            {codigo === 'invalido' ? 'Código vencido ou já usado' : 'Dispositivo não autorizado'}
+          </span>
           <span className="max-w-[900px] text-2xl">
-            O engenheiro cadastra o mini PC em Cadastros › Impressora e abre o endereço
-            “/tv/entrar?t=…” neste navegador uma vez.
+            Em Cadastros › Impressora, o engenheiro toca em “Conectar uma TV” no mini PC e abre o
+            endereço que aparece neste navegador. O código vale 10 minutos e uma vez.
           </span>
         </span>
       </Moldura>
     )
   }
-  if (resultado.tipo === 'erro') {
+  // Sem versão na primeira carga, o painel vem sempre completo ('igual' não acontece aqui).
+  if (resultado.tipo !== 'ok') {
     return (
       <Moldura obra="">
         <TentarDeNovo />

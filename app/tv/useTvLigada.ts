@@ -15,6 +15,7 @@ export function useTvLigada() {
 
     const pedirTela = async () => {
       if (encerrado || document.visibilityState !== 'visible' || !('wakeLock' in navigator)) return
+      if (trava && !trava.released) return // já está pedida
       try {
         trava = await navigator.wakeLock.request('screen')
         if (encerrado) void trava.release()

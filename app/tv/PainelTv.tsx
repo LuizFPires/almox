@@ -1,5 +1,6 @@
 'use client'
 
+import { useEffect, useState } from 'react'
 import { CirculoFerramenta } from '@/components/IconeFerramenta'
 import { ehChaveIcone } from '@/components/icones-ferramenta'
 import { Marca } from '@/components/Marca'
@@ -30,8 +31,8 @@ const GRADES: Record<number, string> = {
 /** Painel da TV em loop: páginas de cartões por pessoa → colunas por empresa → recomeça. */
 export function PainelTv({ inicial }: { inicial: DadosPainel }) {
   useTvLigada()
-  const { painel, semConexaoDesde, naoAutorizado } = usePainel(inicial)
-  const agora = new Date(painel.agora)
+  const { painel, semConexaoDesde, naoAutorizado, diferencaMs } = usePainel(inicial)
+  const agora = useAgora(painel.agora, diferencaMs)
   const cartoes = montarCartoes(painel, agora)
   const porPagina = painel.config.cartoesPorPagina
   const paginas = paginar(cartoes, porPagina)
@@ -39,6 +40,7 @@ export function PainelTv({ inicial }: { inicial: DadosPainel }) {
   const maxOff = deslocamentoMaximo(colunas)
   const { fase, visivel, trilho, progresso } = useLoopTv({
     nPaginas: paginas.length,
+    temColunas: colunas.length > 0,
     maxOff,
     config: painel.config,
   })
@@ -46,7 +48,13 @@ export function PainelTv({ inicial }: { inicial: DadosPainel }) {
   if (naoAutorizado) {
     return (
       <Tela obra={painel.obra} titulo="" subtitulo="" pontos={null} semConexaoDesde={null}>
-        <p className="text-4xl font-bold">Dispositivo não autorizado</p>
+        <p className="flex flex-col items-center gap-4 text-center">
+          <span className="text-4xl font-bold">Dispositivo não autorizado</span>
+          <span className="max-w-[900px] text-2xl text-tv-texto-2">
+            O mini PC foi revogado ou a TV foi conectada em outro lugar. Peça ao engenheiro para
+            conectar esta TV de novo em Cadastros › Impressora.
+          </span>
+        </p>
       </Tela>
     )
   }
@@ -99,6 +107,22 @@ export function PainelTv({ inicial }: { inicial: DadosPainel }) {
       </div>
     </Tela>
   )
+}
+
+/**
+ * "Agora" que anda sozinho (a cada minuto), na hora do servidor: depois da meia-noite a
+ * pendência fica vermelha mesmo sem nenhum lançamento novo.
+ */
+function useAgora(agoraServidor: string, diferencaMs: number): Date {
+  const [minuto, setMinuto] = useState<number | null>(null)
+  useEffect(() => {
+    const atualizar = () => setMinuto(Date.now())
+    atualizar()
+    const intervalo = setInterval(atualizar, 60_000)
+    return () => clearInterval(intervalo)
+  }, [])
+  // Antes de montar (e no servidor), a hora que veio com os dados: sem diferença de hidratação.
+  return minuto === null ? new Date(agoraServidor) : new Date(minuto + diferencaMs)
 }
 
 function Tela({
@@ -247,7 +271,8 @@ function Coluna({ coluna: c }: { coluna: ColunaEmpresa }) {
         {c.nome}
       </h2>
       <ul
-        className={`grid min-h-0 flex-1 content-start gap-x-7 px-[22px] pt-1.5 pb-3.5 ${c.dupla ? 'grid-cols-2' : 'grid-cols-1'}`}
+        className="grid min-h-0 flex-1 content-start gap-x-5 px-[22px] pt-1.5 pb-3.5"
+        style={{ gridTemplateColumns: `repeat(${c.subcolunas}, minmax(0, 1fr))` }}
       >
         {c.pessoas.map((p) => (
           <li key={p.id} className="flex flex-col gap-2.5 border-b border-tv-linha py-3.5">

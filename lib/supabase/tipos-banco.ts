@@ -183,6 +183,36 @@ export type Database = {
           },
         ]
       }
+      codigo_tv: {
+        Row: {
+          codigo_hash: string
+          dispositivo_id: string
+          expira_em: string
+          usado_em: string | null
+        }
+        ComputedFields: never
+        Insert: {
+          codigo_hash: string
+          dispositivo_id: string
+          expira_em: string
+          usado_em?: string | null
+        }
+        Update: {
+          codigo_hash?: string
+          dispositivo_id?: string
+          expira_em?: string
+          usado_em?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: 'codigo_tv_dispositivo_id_fkey'
+            columns: ['dispositivo_id']
+            isOneToOne: false
+            referencedRelation: 'dispositivo_tv'
+            referencedColumns: ['id']
+          },
+        ]
+      }
       config_tv: {
         Row: {
           atualizado_em: string
@@ -230,7 +260,9 @@ export type Database = {
           obra_id: string
           revogado_em: string | null
           token_hash: string
+          tv_token_hash: string | null
           ultimo_ping: string | null
+          ultimo_ping_tv: string | null
         }
         ComputedFields: never
         Insert: {
@@ -240,7 +272,9 @@ export type Database = {
           obra_id: string
           revogado_em?: string | null
           token_hash: string
+          tv_token_hash?: string | null
           ultimo_ping?: string | null
+          ultimo_ping_tv?: string | null
         }
         Update: {
           criado_em?: string
@@ -249,7 +283,9 @@ export type Database = {
           obra_id?: string
           revogado_em?: string | null
           token_hash?: string
+          tv_token_hash?: string | null
           ultimo_ping?: string | null
+          ultimo_ping_tv?: string | null
         }
         Relationships: [
           {
@@ -1050,6 +1086,7 @@ export type Database = {
         Args: { p_motivo: string; p_movimento: string; p_obra: string }
         Returns: string
       }
+      gerar_codigo_tv: { Args: { p_dispositivo: string }; Returns: string }
       identificacao_valida: {
         Args: { p_identificacao: string; p_obra: string }
         Returns: {
@@ -1081,7 +1118,7 @@ export type Database = {
           usuario_id: string
         }[]
       }
-      painel_tv: { Args: { p_token: string }; Returns: Json }
+      painel_tv: { Args: { p_token: string; p_versao?: string }; Returns: Json }
       registrar_devolucao: {
         Args: {
           p_chave?: string
@@ -1116,6 +1153,7 @@ export type Database = {
         }
         Returns: undefined
       }
+      trocar_codigo_tv: { Args: { p_codigo: string }; Returns: string }
     }
     Enums: {
       linguagem_impressora: 'ZPL' | 'TSPL'

@@ -15,6 +15,7 @@ export type Dispositivo = {
   id: string
   nome: string
   ultimo_ping: string | null
+  ultimo_ping_tv: string | null
   revogado_em: string | null
   criado_em: string
 }
@@ -47,7 +48,7 @@ export async function listarDispositivos(obraId: string): Promise<Dispositivo[]>
   const supabase = await criarClienteServidor()
   const { data, error } = await supabase
     .from('dispositivo_tv')
-    .select('id, nome, ultimo_ping, revogado_em, criado_em')
+    .select('id, nome, ultimo_ping, ultimo_ping_tv, revogado_em, criado_em')
     .eq('obra_id', obraId)
     .order('criado_em', { ascending: false })
   if (error) throw new Error('Não foi possível carregar os dispositivos.')

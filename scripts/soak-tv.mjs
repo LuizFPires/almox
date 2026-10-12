@@ -60,14 +60,58 @@ const configurar = (tempo, velocidade, antes, depois) =>
     p_cartoes_por_pagina: 12,
   })
 
+const get = async (caminho) => {
+  const r = await fetch(`${url}/rest/v1/${caminho}`, { headers: cabecalhos })
+  if (!r.ok) throw new Error(`${caminho}: ${await r.text()}`)
+  return r.json()
+}
+
 await configurar(3, 150, 500, 500)
-const token = await rpc('criar_dispositivo', { p_obra: OBRA, p_nome: `Soak ${Date.now()}` })
+const nomeMiniPc = `Soak ${Date.now()}`
+await rpc('criar_dispositivo', { p_obra: OBRA, p_nome: nomeMiniPc })
+const [miniPc] = await get(`dispositivo_tv?select=id&nome=eq.${encodeURIComponent(nomeMiniPc)}`)
+const codigo = await rpc('gerar_codigo_tv', { p_dispositivo: miniPc.id })
+
+// Dados mudando durante o teste (o caminho de re-render que mais poderia vazar): uma peça
+// própria do soak vai e volta da mesma pessoa a cada 20 s.
+const [pessoa] = await get(`pessoa?select=id&obra_id=eq.${OBRA}&nome=eq.Joaquim%20Silva`)
+const prefixo = Array.from({ length: 4 }, () =>
+  String.fromCharCode(65 + Math.floor(Math.random() * 26)),
+).join('')
+const tipoCriado = await fetch(`${url}/rest/v1/tipo_ferramenta?select=id`, {
+  method: 'POST',
+  headers: { ...cabecalhos, Prefer: 'return=representation' },
+  body: JSON.stringify({
+    obra_id: OBRA,
+    nome: `Soak ${prefixo}`,
+    icone: 'regua',
+    prefixo,
+    valor_reposicao: 100,
+  }),
+}).then((r) => r.json())
+const tipo = tipoCriado[0].id
+await rpc('adicionar_unidades', { p_tipo: tipo, p_quantidade: 1 })
+let comEle = false
+const lancamento = (t) =>
+  rpc(t === 'retirada' ? 'registrar_retirada' : 'registrar_devolucao', {
+    p_obra: OBRA,
+    p_pessoa: pessoa.id,
+    p_identificacao: null,
+    p_itens: [{ tipo, quantidade: 1 }],
+    ...(t === 'retirada' ? { p_confirmado: true } : {}),
+  })
+const mudarDados = setInterval(() => {
+  const t = comEle ? 'devolucao' : 'retirada'
+  comEle = !comEle
+  lancamento(t).catch((e) => console.error(`lançamento: ${e.message}`))
+}, 20_000)
+
 const navegador = await chromium.launch()
 try {
   const pagina = await navegador.newPage({ viewport: { width: 1920, height: 1080 } })
   const cdp = await pagina.context().newCDPSession(pagina)
   await cdp.send('Performance.enable')
-  await pagina.goto(`${base}/tv/entrar?t=${token}`)
+  await pagina.goto(`${base}/tv/entrar?c=${codigo}`)
   await pagina.getByText(/Pessoas 1–/).waitFor({ timeout: 60_000 })
 
   const medir = async () => {
@@ -122,6 +166,9 @@ try {
     console.log(`OK: ${minutos} min sem crescimento de memória, nós ou listeners.`)
   }
 } finally {
+  clearInterval(mudarDados)
   await navegador.close()
+  if (comEle) await lancamento('devolucao').catch(() => undefined)
+  await rpc('revogar_dispositivo', { p_dispositivo: miniPc.id })
   await configurar(8, 45, 2500, 3000)
 }

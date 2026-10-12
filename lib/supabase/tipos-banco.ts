@@ -1425,6 +1425,7 @@ export type Database = {
         Returns: string
       }
       remover_inscricao_push: { Args: { p_endpoint: string }; Returns: undefined }
+      resumo_fechamento: { Args: { p_fechamento: string }; Returns: Json }
       revogar_dispositivo: { Args: { p_dispositivo: string }; Returns: undefined }
       salvar_config_tv: {
         Args: {

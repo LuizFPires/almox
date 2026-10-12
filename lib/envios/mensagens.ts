@@ -106,7 +106,7 @@ export function emailAviso(d: DadosAviso): Email {
   const lembrete = d.itens.some((i) => ddmm(i.desde) !== dia)
   const linhas = porPessoa(d.itens)
   const assunto = `Ferramentas não devolvidas · ${d.empresa} · ${dia}`
-  const abertura = `Estas ferramentas retiradas por funcionários da ${d.empresa} não foram devolvidas até o fechamento do dia ${dia}${lembrete ? ' (inclui peças de dias anteriores, que continuam pendentes)' : ''}:`
+  const abertura = `As ferramentas abaixo foram retiradas por funcionários da ${d.empresa} e não foram devolvidas ao almoxarifado até o fechamento do dia ${dia}${lembrete ? ' (inclui peças de dias anteriores, que continuam pendentes)' : ''}:`
   const regra =
     'Esse valor será descontado na próxima medição da ' +
     d.empresa +

@@ -136,6 +136,21 @@ export default async function PaginaInicio() {
           </Link>
         )}
 
+        {/* Quem recebe aviso (PRD §5): engenheiro e a consulta da empreiteira. */}
+        {(obraAtual.perfil === 'engenheiro' || restrita) && (
+          <div className={`grid gap-2 ${obraAtual.perfil === 'engenheiro' ? 'grid-cols-2' : ''}`}>
+            <Link href="/avisos" className={CLASSE_ATALHO}>
+              <IconeInterface nome="warning" tamanho={20} />
+              Avisos
+            </Link>
+            {obraAtual.perfil === 'engenheiro' && (
+              <Link href="/medicao" className={CLASSE_ATALHO}>
+                <IconeInterface nome="history" tamanho={20} />A descontar
+              </Link>
+            )}
+          </div>
+        )}
+
         {pendencias.length > 0 && (
           <section className="flex flex-col gap-2" aria-labelledby="titulo-pendencias">
             <h2

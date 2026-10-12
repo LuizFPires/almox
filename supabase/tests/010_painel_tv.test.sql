@@ -25,11 +25,12 @@ select is(
 );
 select is(
   (select count(*)::int from public.alteracao where tabela = 'config_tv' and campo = 'tempo_pagina_s'
-     and de = '8' and para = '10'),
+     and de = '8' and para = '10' and criado_em = now()),
   1, 'mudança fica no log (de 8 para 10)'
 );
 select is(
-  (select count(*)::int from public.alteracao where tabela = 'config_tv' and campo = 'pausa_depois_ms'),
+  (select count(*)::int from public.alteracao where tabela = 'config_tv' and campo = 'pausa_depois_ms'
+     and criado_em = now()), -- só o que esta transação gravou (o banco local acumula e2e)
   0, 'campo que não mudou não vai para o log'
 );
 select throws_ok(

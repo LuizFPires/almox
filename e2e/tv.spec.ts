@@ -1,5 +1,5 @@
 import { expect, test, type APIRequestContext, type Page } from '@playwright/test'
-import { ambiente, SENHA_SEED, semSeed, USUARIOS } from './apoio'
+import { ambiente, entrarComo, SENHA_SEED, semSeed, USUARIOS } from './apoio'
 
 const OBRA = 'a0000000-0000-4000-8000-000000000001'
 
@@ -109,15 +109,16 @@ test.describe('painel da TV', () => {
       const n = Number((await primeira.textContent())?.match(/de (\d+)/)?.[1])
       expect(n).toBeGreaterThan(12)
       await expect(page.locator('article')).toHaveCount(12)
-      const paginas = Math.ceil(n / 12)
-      for (let i = 1; i < paginas; i++) {
-        await expect(page.getByText(new RegExp(`^Pessoas ${i * 12 + 1}–`))).toBeVisible({
-          timeout: 6_000,
-        })
+      // Segue as páginas que aparecerem (o total muda com os testes do celular rodando).
+      const porEmpresa = page.getByRole('heading', { name: 'POR EMPRESA' })
+      let pagina = 1
+      while (!(await porEmpresa.isVisible()) && pagina < 10) {
+        const proxima = page.getByText(new RegExp(`^Pessoas ${pagina * 12 + 1}–`))
+        await expect(proxima.or(porEmpresa)).toBeVisible({ timeout: 6_000 })
+        if (await proxima.isVisible()) pagina++
       }
-      await expect(page.getByRole('heading', { name: 'POR EMPRESA' })).toBeVisible({
-        timeout: 6_000,
-      })
+      expect(pagina).toBeGreaterThanOrEqual(2)
+      await expect(porEmpresa).toBeVisible()
       await expect(page.getByRole('region', { name: 'Construtora' })).toBeVisible()
       // Sem contagens na TV (só o nome da empresa).
       await expect(page.getByText(/\d+ (itens|pessoas)/)).toHaveCount(0)
@@ -212,5 +213,46 @@ test.describe('painel da TV', () => {
     } finally {
       await configurar(eng, PADRAO)
     }
+  })
+
+  // Aqui, e não num spec do celular: salva na mesma obra que os testes acima (em série).
+  test('Cadastros › Painel da TV: limites, salva e a TV usa', async ({ page, request }, info) => {
+    const eng = await apiEngenheiro(request)
+    try {
+      await entrarComo(page, 'engenheiro', '/inicio')
+      await page.goto('/cadastros/pessoas')
+      await page.getByRole('link', { name: /Painel da TV/ }).click()
+      await expect(page.getByRole('heading', { name: 'Painel da TV' })).toBeVisible()
+
+      await page.getByLabel('Tempo por página (segundos)').fill('2')
+      await page.getByRole('button', { name: 'Salvar' }).click()
+      await expect(page.getByText('De 3 a 30 segundos.')).toBeVisible()
+
+      await page.getByLabel('Tempo por página (segundos)').fill('20')
+      await page.getByLabel('Pausa antes da rolagem (segundos)').fill('1,5')
+      await page.getByText('16', { exact: true }).click()
+      await page.getByRole('button', { name: 'Salvar' }).click()
+      await expect(page.getByText('Configuração salva. A TV muda em até 2 segundos.')).toBeVisible()
+
+      await conectarTv(page, eng, `TV config ${info.project.name}-${Date.now() % 100000}`)
+      const dados = (await (await page.request.get('/tv/dados')).json()) as {
+        config: { tempoPaginaS: number; pausaAntesMs: number; cartoesPorPagina: number }
+      }
+      expect(dados.config).toMatchObject({
+        tempoPaginaS: 20,
+        pausaAntesMs: 1500,
+        cartoesPorPagina: 16,
+      })
+      await expect(page.getByText(/^Pessoas 1–16 de/)).toBeVisible()
+    } finally {
+      await configurar(eng, PADRAO)
+    }
+  })
+
+  test('almoxarife não configura o painel', async ({ page }) => {
+    await entrarComo(page, 'almoxarife', '/inicio')
+    await page.goto('/cadastros/painel-tv')
+    await expect(page.getByText('Só o engenheiro cadastra')).toBeVisible()
+    await expect(page.getByLabel('Tempo por página (segundos)')).toHaveCount(0)
   })
 })

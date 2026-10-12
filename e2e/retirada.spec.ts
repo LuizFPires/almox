@@ -92,6 +92,10 @@ test.describe('retirada', () => {
 
     // Outro celular (engenheiro) olhando o Início: a retirada tem que aparecer sozinha.
     await entrarComo(page, 'engenheiro', '/inicio')
+    const ultimos = page.getByRole('region', { name: 'ÚLTIMOS LANÇAMENTOS' })
+    const antes = await ultimos.innerText()
+    // Marca a página: se ela recarregar, a marca some.
+    await page.evaluate(() => Object.assign(window, { semRecarregar: true }))
 
     const navegador = await navegadorComQr(wagner.token)
     try {
@@ -117,7 +121,10 @@ test.describe('retirada', () => {
     expect(mov?.itens).toHaveLength(3)
     expect(await api.emUso(pa)).toBe(2)
     expect(await api.emUso(furadeira)).toBe(1)
-    await expect(page.getByText('retirou 3 itens').first()).toBeVisible({ timeout: 10_000 })
+    // Ao vivo: a lista mudou sem recarregar. Não dá para exigir a linha do Wagner: o Início
+    // mostra só os 5 últimos e os outros testes lançam ao mesmo tempo.
+    await expect.poll(() => ultimos.innerText(), { timeout: 10_000 }).not.toBe(antes)
+    expect(await page.evaluate(() => 'semRecarregar' in window)).toBe(true)
   })
 
   test('dois celulares na última furadeira: só um leva, o outro recebe "acabou de sair"', async ({

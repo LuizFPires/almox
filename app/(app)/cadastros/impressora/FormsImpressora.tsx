@@ -133,6 +133,24 @@ export function FormDispositivo({ url, chave }: { url: string; chave: string }) 
         >
           {`ALMOX_SUPABASE_URL=${url}\nALMOX_CHAVE_PUBLICA=${chave}\nALMOX_TOKEN_DISPOSITIVO=${estado.token}`}
         </pre>
+        <p className="text-sm">
+          No navegador da TV (no mesmo mini PC), abra este endereço uma vez. Depois o painel abre
+          sozinho em <code className="font-mono">/tv</code>.
+        </p>
+        <pre
+          aria-label="Endereço do painel da TV"
+          className="overflow-x-auto rounded-botao bg-sutil p-3 font-mono text-xs leading-relaxed select-all"
+        >
+          {`${window.location.origin}/tv/entrar?t=${estado.token}`}
+        </pre>
+        <a
+          href={`/tv/entrar?t=${estado.token}`}
+          target="_blank"
+          rel="noreferrer"
+          className="flex min-h-11 items-center justify-center rounded-botao border border-borda bg-cartao font-bold"
+        >
+          Abrir painel nesta TV
+        </a>
       </div>
     )
   }

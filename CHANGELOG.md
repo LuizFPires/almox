@@ -2,6 +2,49 @@
 
 Registro do que foi entregue em cada milestone (ver `PLAN.md`).
 
+## M10 — Offline, auditoria e endurecimento (concluído em 12/10/2026)
+
+### Adicionado
+- **Lançar sem internet** (tela "Lançar sem internet", `/campo`):
+  - a tela fica guardada no celular de quem lança;
+  - lê o QR do capacete contra uma impressão irreversível (SHA-256) do código; o código em si nunca vai para o celular;
+  - retirada, devolução e "Não é ele" ficam numa fila com o selo "aguardando envio" e vão sozinhos quando a rede volta;
+  - no envio, o servidor confere o capacete de novo e escolhe as peças livres;
+  - vale a hora do lançamento no celular (até 24 h, nada no futuro), e o movimento guarda também a hora em que chegou;
+  - sem peça livre ou outro motivo: o item fica "não enviado", com o motivo, para o almoxarife descartar;
+  - avaria não é lançada sem internet (a foto precisa subir).
+- **Histórico e auditoria (engenheiro):** filtros por período, pessoa, empresa, ferramenta, via e tipo de lançamento, com quem lançou e a hora de chegada dos lançados sem internet.
+- **Planilhas (.xlsx):**
+  - o histórico, com os filtros da tela;
+  - os avisos e descontos, uma linha por peça, com o total a descontar.
+  - Datas e valores no padrão brasileiro.
+- **Monitoramento:** erros do app e do agente de impressão vão para o Sentry sem dado pessoal (liga com o DSN). O agente também guarda logs diários por 14 dias.
+- **Política de dados (LGPD)**, rascunho para o jurídico em `POLITICA-DE-DADOS.md`:
+  - fotos de avaria apagadas 12 meses depois do conserto;
+  - fila de e-mails, conferências e impressões apagadas depois de 12 meses;
+  - pessoas anonimizadas 5 anos depois do fim da obra, ou depois de 5 anos inativas sem lançamento; os movimentos ficam, sem nome.
+  - Inclui o texto do termo de responsabilidade.
+- **Segurança:**
+  - testes do banco sobre o catálogo inteiro;
+  - a credencial da TV só lê, e o painel não leva código, e-mail nem valores;
+  - cabeçalhos Permissions-Policy e HSTS.
+- **e2e do fluxo completo:** cadastro → adesivo → retirada → devolução com avaria → fechamento → aviso por e-mail.
+
+### Corrigido
+- **Leitor de QR:**
+  - trocado do zxing-js para o jsQR: o zxing-js não lia cerca de 7% dos capacetes, mesmo com a imagem perfeita;
+  - era a causa do teste de câmera instável desde o M9.
+- **E-mail sem provedor configurado:** fica esperando na fila, sem gastar as tentativas.
+- **Encerramento automático:** ignora obra inativa ou encerrada.
+
+### Revisão
+- **Conferência e hora do celular:**
+  - a conferência do capacete vale só na hora (a hora do celular não a faz voltar a valer);
+  - a hora do celular não fica antes do último lançamento das peças.
+- **Tela sem internet:** abre só para quem está logado no celular, com os dados desse login.
+- **Fila:** um item com erro não trava os outros.
+- **Sentry:** só inicia com o DSN (antes, mesmo desligado, deixava o servidor mais lento).
+
 ## M9 — Fechamento do dia e avisos às empreiteiras (concluído em 12/10/2026)
 
 ### Adicionado

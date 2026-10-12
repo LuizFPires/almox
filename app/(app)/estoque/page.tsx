@@ -44,7 +44,7 @@ export default async function PaginaEstoque() {
             <div key={x.rotulo} className="flex flex-col-reverse">
               <dt className="text-[12px] text-texto-2">{x.rotulo}</dt>
               <dd
-                className={`text-[26px] leading-none font-bold tracking-tight tabular-nums ${x.cor}`}
+                className={`text-[30px] leading-none font-bold tracking-tight tabular-nums ${x.cor}`}
               >
                 {x.valor}
               </dd>
@@ -54,7 +54,7 @@ export default async function PaginaEstoque() {
         <ul aria-label="Legenda" className="flex gap-4 text-[13px] text-texto-2">
           {LEGENDA.map((l) => (
             <li key={l.rotulo} className="flex items-center gap-1.5">
-              <span aria-hidden="true" className={`size-2.5 rounded-full ${l.cor}`} />
+              <span aria-hidden="true" className={`size-3 rounded-[3px] ${l.cor}`} />
               {l.rotulo}
             </li>
           ))}

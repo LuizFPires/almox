@@ -2,7 +2,7 @@
 
 import Link from 'next/link'
 import { useState } from 'react'
-import { IconeFerramenta } from '@/components/IconeFerramenta'
+import { CirculoFerramenta } from '@/components/IconeFerramenta'
 import { ehChaveIcone } from '@/components/icones-ferramenta'
 import { IconeInterface } from '@/components/IconeInterface'
 import { textoDesde } from '@/lib/dominio/ficha'
@@ -57,7 +57,7 @@ export function ListaQuemEsta({ pessoas, empresas, agora }: Props) {
               className="size-3 shrink-0 rounded-full"
               style={{ background: g.empresa.cor }}
             />
-            <span className="flex-1 font-bold">{g.empresa.nome}</span>
+            <span className="flex-1 text-[15px] font-bold">{g.empresa.nome}</span>
             <span className="text-[13px] text-texto-2">
               {resumoGrupo(g.totalItens, g.pessoas.length)}
             </span>
@@ -73,7 +73,10 @@ export function ListaQuemEsta({ pessoas, empresas, agora }: Props) {
                   <span className="truncate font-bold">
                     {p.nome}
                     {p.pendenteDesde && (
-                      <span className="text-erro"> · {textoDesde(p.pendenteDesde, momento)}</span>
+                      <span className="font-semibold text-erro">
+                        {' '}
+                        · {textoDesde(p.pendenteDesde, momento)}
+                      </span>
                     )}
                   </span>
                   <span className="text-[13px] text-texto-2">{p.funcao}</span>
@@ -84,11 +87,12 @@ export function ListaQuemEsta({ pessoas, empresas, agora }: Props) {
                 {p.itens.map((i) => (
                   <span
                     key={i.codigo}
-                    className="flex items-center gap-1.5 rounded-full bg-sutil py-1 pr-3 pl-1"
+                    className="flex min-h-8 items-center gap-1.5 rounded-full bg-sutil py-[3px] pr-2.5 pl-[3px]"
                   >
                     {ehChaveIcone(i.icone) && (
-                      <IconeFerramenta icone={i.icone} nome={i.tipo} tamanho="p" />
+                      <CirculoFerramenta icone={i.icone} circulo="size-[26px]" svg={16} destaque />
                     )}
+                    <span className="text-[13px] font-semibold">{i.tipo}</span>
                     <span className="font-mono text-[11px] text-texto-2">{i.codigo}</span>
                   </span>
                 ))}

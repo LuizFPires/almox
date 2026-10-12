@@ -155,6 +155,12 @@ export default async function PaginaInicio() {
                 Histórico e auditoria
               </Link>
             )}
+            {obraAtual.perfil === 'engenheiro' && (
+              <Link href="/metricas" className={`${CLASSE_ATALHO} col-span-2`}>
+                <IconeInterface nome="history" tamanho={20} />
+                Métricas do piloto
+              </Link>
+            )}
           </div>
         )}
 

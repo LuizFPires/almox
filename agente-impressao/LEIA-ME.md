@@ -46,8 +46,10 @@ leem o `.env`. No Linux o `.env` fica com permissão 600.
 | Token revogado ou mini PC trocado | "Agente nunca conectou" ou offline | Cadastrar o mini PC de novo e trocar o token no `.env`. |
 
 Log do agente:
-- Windows: `logs\agente.log` dentro da pasta;
-- Linux: `journalctl -u almox-agente -f`.
+- em qualquer sistema: `logs/agente-AAAA-MM-DD.log` dentro da pasta, um arquivo por dia,
+  guardados por 14 dias;
+- Windows: também `logs\agente.log` (saída do serviço);
+- Linux: também `journalctl -u almox-agente -f`.
 
 Para remover o serviço: `instalar\windows.ps1 -Remover` ou `sudo sh instalar/linux.sh remover`.
 

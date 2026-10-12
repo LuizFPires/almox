@@ -25,7 +25,7 @@ Fonte da verdade do produto: `PRD.md`. Regras para quem codifica: `CLAUDE.md`.
 | M8 | Painel da TV | ✅ Concluído (soak acelerado no build de produção; falta conferir 60 fps e 72 h no mini PC real) | 12/10/2026 |
 | M9 | Fechamento do dia e avisos às empreiteiras | ✅ Concluído (e-mail real depende da conta no Resend; notificação conferida até a inscrição) | 12/10/2026 |
 | M10 | Offline, auditoria e endurecimento | ✅ Concluído (Sentry liga com o DSN; leitor jsQR e política de dados a validar no piloto e com o jurídico) | 12/10/2026 |
-| M11 | Piloto em obra | ⬜ A fazer | |
+| M11 | Piloto em obra | 🟨 Preparado: código e documentos prontos (13/10/2026); falta o piloto em campo (30 dias) | — |
 | M12 | Conector ioo | ⬜ A fazer | |
 
 Legenda: ⬜ A fazer · 🟨 Em andamento · ✅ Concluído · ⛔ Bloqueado
@@ -288,11 +288,11 @@ Legenda: ⬜ A fazer · 🟨 Em andamento · ✅ Concluído · ⛔ Bloqueado
 **Objetivo:** validar em uso real por 30 dias numa obra.
 
 **Entregas**
-- [ ] Checklist de implantação: TV + mini PC, agente de impressão como serviço, impressora configurada, Wi-Fi testado no almoxarifado
-- [ ] Cadastro inicial de empresas, pessoas e ferramentas; impressão e colagem dos adesivos
-- [ ] Treinamento de 30 min: almoxarife, engenheiro, encarregados
+- [ ] Checklist de implantação (pronto em `docs/IMPLANTACAO.md`; falta executar na obra): TV + mini PC, agente de impressão como serviço, impressora configurada, Wi-Fi testado no almoxarifado
+- [ ] Cadastro inicial de empresas, pessoas e ferramentas; impressão e colagem dos adesivos (importação por planilha e adesivos em lote prontos; cadastro real e colagem na obra)
+- [ ] Treinamento de 30 min: almoxarife, engenheiro, encarregados (roteiro pronto em `docs/TREINAMENTO.md`; falta dar na obra)
 - [ ] Termo de responsabilidade assinado pelos trabalhadores e cláusula de desconto nos contratos das empreiteiras (jurídico)
-- [ ] Coleta das métricas do PRD §3 (tempo de lançamento, % manual, pendências/semana)
+- [x] Coleta das métricas do PRD §3 (tempo de lançamento, % manual, pendências/semana)
 - [ ] Rodada de ajustes a partir do uso real
 
 **Critérios de aceite**
@@ -429,3 +429,9 @@ Legenda: ⬜ A fazer · 🟨 Em andamento · ✅ Concluído · ⛔ Bloqueado
 | 12/10/2026 | M10: a tela **Lançar sem internet** (`/campo`) fica guardada no celular de quem lança; retirada e devolução vão para a fila e o servidor escolhe as unidades quando chegam (se não houver livres, o item fica "não enviado" com o motivo e o almoxarife descarta). **Avaria não é lançada sem internet** (a foto precisa subir): a peça é separada e devolvida quando a rede voltar. "Não é ele" sem internet entra no histórico com a hora em que chegou. Sair do app apaga os dados e a fila do celular (com aviso se houver item não enviado). |
 | 12/10/2026 | M10: leitor de QR trocado do zxing-js para o **jsQR**: o zxing-js 0.23 não lia ~7% dos QR (mesmo perfeitos, em qualquer nível de correção), e cerca de 1 capacete em 14 ficaria ilegível; era também a causa do e2e de câmera instável do M9. Teste unitário lê 100 tokens aleatórios. Lanterna pela restrição `torch` da câmera. |
 | 12/10/2026 | M10 (revisão): a **hora do celular** só vale com o QR lido sem internet ou na lista, nunca com a conferência do lançamento com internet; e **não fica antes** do último lançamento das peças escolhidas (retirada) nem da retirada delas (devolução). "Não é ele" sem internet com chave do celular e hora do celular. A tela sem internet só abre para quem está logado no celular (sessão lida do cookie) e com os dados desse login; outro login apaga os dados do anterior. Fila: resposta 4xx do item vira "não enviado" com o motivo; erro do servidor, depois de 5 vezes. Aceito sem mudar: lançamento com internet pode informar a hora até 24 h para trás (decisão do M10; `recebido_em` mostra a chegada); anonimização nos itens de aviso é pelo nome (homônimo na mesma obra também fica anônimo); sem CSP completa (exige nonce do Next; fica para o piloto). |
+| 12/10/2026 | M11: cadastro inicial do piloto por **planilha modelo (.xlsx)** com prévia e erros linha a linha; grava tudo numa transação no servidor (só o engenheiro). |
+| 12/10/2026 | M11: o tempo "QR lido → retirada registrada" é medido gravando **a conferência usada em cada retirada** (vale daqui para frente). |
+| 12/10/2026 | M11: a obra do piloto é criada **por script no almox-prod, com OK do dono**, com o vínculo do engenheiro; sem tela nem perfil de administrador. |
+| 12/10/2026 | M11: **adesivos em lote** — "Imprimir N adesivos" na empresa e no fim da importação, um trabalho por pessoa na fila do agente. |
+| 13/10/2026 | M11 (revisão): o tempo do piloto conta **da leitura do QR** (o celular informa os segundos entre ler e tocar em "Sim", com o cronômetro dele) até a retirada gravada; a meta usa a **média** do período (critério do M11), com a mediana ao lado, calculadas no banco. "Não devolvidas" compara só **semanas inteiras**. Rastreabilidade aparece como "garantido" (o banco não aceita movimento incompleto). |
+| 13/10/2026 | M11 (revisão): **adesivos em lote = quem ainda não tem adesivo** (da obra ou da empresa), 100 por toque; repetir continua de onde parou e nunca imprime duas vezes; reimpressão continua pela ficha. Importação: até 1000 pessoas e 150 ferramentas por planilha (cabe no tempo da requisição), arquivo até 5 MB, empresa pelo nome exato. Aceito sem mudar: conferência reaproveitada (voltar no navegador) poderia contar o tempo da primeira leitura; a tela não reaproveita. |

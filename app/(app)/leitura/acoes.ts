@@ -54,11 +54,23 @@ export async function lerCapacete(texto: string): Promise<Leitura> {
  * "Sim, é o …": grava a conferência (10 min) e abre a ficha levando o id da identificação;
  * o servidor confere esse id (dono, pessoa, obra, validade) antes de aceitar lançar com QR.
  */
-export async function confirmarPessoa(texto: string): Promise<{ erro: string }> {
+export async function confirmarPessoa(
+  texto: string,
+  segundosDesdeLeitura?: number,
+): Promise<{ erro: string }> {
   const { obraAtual } = await obterSessao()
   const supabase = await criarClienteServidor()
+  // Segundos entre ler o QR e tocar em "Sim" (cronômetro do celular): métrica do piloto (M11).
+  const segundos =
+    typeof segundosDesdeLeitura === 'number' && Number.isFinite(segundosDesdeLeitura)
+      ? Math.min(Math.max(segundosDesdeLeitura, 0), 600)
+      : undefined
   const { data, error } = await supabase
-    .rpc('conferir_pessoa', { p_obra: obraAtual.id, p_token: tokenLido(texto) })
+    .rpc('conferir_pessoa', {
+      p_obra: obraAtual.id,
+      p_token: tokenLido(texto),
+      p_segundos_leitura: segundos,
+    })
     .maybeSingle()
   if (error || !data) return { erro: 'Não foi possível confirmar. Leia o capacete de novo.' }
   redirect(`/pessoa/${data.pessoa_id}?ident=${data.identificacao}`)

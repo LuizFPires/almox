@@ -30,6 +30,8 @@ export type PosseOffline = {
   tipo: string
   via: 'qr' | 'manual'
   quantidade: number
+  /** Quando a peça saiu (uma linha por peça). Ausente em dados antigos, agrupados por via. */
+  desde?: string
 }
 
 /** O que o servidor manda para o celular (`dados_offline`). */
@@ -79,35 +81,48 @@ export function livresComFila(tipos: TipoOffline[], fila: ItemFila[]): Record<st
 }
 
 /**
- * O que a pessoa tem de cada tipo agora, contando a fila. `comQr` = quantas podem voltar com o
- * QR (todas); `semQr` = só as que saíram sem QR (RN-02). Devolução sai primeiro das que
- * podem voltar sem QR quando a devolução é manual.
+ * O que a pessoa tem de cada tipo agora, contando a fila, com a mesma regra do servidor
+ * (`registrar_devolucao`): as peças ficam na ordem em que saíram; devolução com QR leva as mais
+ * antigas, seja qual for a via; sem QR, só as que saíram sem QR (RN-02), também das mais antigas.
+ * `total` = quantas podem voltar com o QR; `semQr` = quantas podem voltar sem ele.
  */
 export function possesComFila(
   dados: Pick<DadosOffline, 'posses'>,
   fila: ItemFila[],
   pessoa: string,
 ): Record<string, { total: number; semQr: number }> {
-  const r: Record<string, { total: number; semQr: number }> = {}
-  const somar = (tipo: string, total: number, semQr: number) => {
-    const atual = r[tipo] ?? { total: 0, semQr: 0 }
-    r[tipo] = {
-      total: Math.max(0, atual.total + total),
-      semQr: Math.max(0, Math.min(atual.total + total, atual.semQr + semQr)),
+  // Peças de cada tipo, da mais antiga para a mais nova (o servidor manda nessa ordem).
+  const pecas: Record<string, ('qr' | 'manual')[]> = {}
+  const sair = (tipo: string, via: 'qr' | 'manual', n: number) => {
+    const lista = (pecas[tipo] ??= [])
+    for (let k = 0; k < n; k++) lista.push(via)
+  }
+  const voltar = (tipo: string, comQr: boolean, n: number) => {
+    const lista = pecas[tipo] ?? []
+    for (let k = 0; k < n; k++) {
+      const i = comQr ? (lista.length > 0 ? 0 : -1) : lista.indexOf('manual')
+      if (i < 0) break
+      lista.splice(i, 1)
     }
   }
-  for (const p of dados.posses) {
-    if (p.pessoa === pessoa) somar(p.tipo, p.quantidade, p.via === 'manual' ? p.quantidade : 0)
-  }
+  const daPessoa = dados.posses
+    .map((p, ordem) => ({ ...p, ordem }))
+    .filter((p) => p.pessoa === pessoa)
+    // Dados antigos do celular vêm agrupados e sem data: ficam na ordem recebida.
+    .sort((a, b) => (a.desde ?? '').localeCompare(b.desde ?? '') || a.ordem - b.ordem)
+  for (const p of daPessoa) sair(p.tipo, p.via, p.quantidade)
   const pendentes = fila
     .filter((i) => i.pessoa === pessoa && i.situacao === 'aguardando')
     .sort((a, b) => a.quando.localeCompare(b.quando))
   for (const item of pendentes) {
     for (const i of item.itens) {
-      if (item.tipo === 'retirada') somar(i.tipo, i.quantidade, item.token ? 0 : i.quantidade)
-      else if (item.tipo === 'devolucao')
-        somar(i.tipo, -i.quantidade, item.token ? 0 : -i.quantidade)
+      if (item.tipo === 'retirada') sair(i.tipo, item.token ? 'qr' : 'manual', i.quantidade)
+      else if (item.tipo === 'devolucao') voltar(i.tipo, item.token !== null, i.quantidade)
     }
+  }
+  const r: Record<string, { total: number; semQr: number }> = {}
+  for (const [tipo, lista] of Object.entries(pecas)) {
+    r[tipo] = { total: lista.length, semQr: lista.filter((v) => v === 'manual').length }
   }
   return r
 }

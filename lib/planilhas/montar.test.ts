@@ -1,6 +1,6 @@
 import ExcelJS from 'exceljs'
 import { describe, expect, it } from 'vitest'
-import { planilhaDescontos, planilhaHistorico, planilhaMetricas } from './montar'
+import { planilhaDescontos, planilhaHistorico } from './montar'
 
 async function ler(buffer: Buffer) {
   const livro = new ExcelJS.Workbook()
@@ -72,46 +72,5 @@ describe('planilhaDescontos', () => {
     expect(aba.getRow(3).getCell(7).value).toBe('Cancelado (devolvida)')
     expect(aba.getRow(4).getCell(7).value).toBe('Total a descontar')
     expect(aba.getRow(4).getCell(6).value).toBe(2890)
-  })
-})
-
-describe('planilhaMetricas', () => {
-  it('metas do período e uma linha por semana', async () => {
-    const livro = new ExcelJS.Workbook()
-    await livro.xlsx.load(
-      (await planilhaMetricas(
-        {
-          semanas: [
-            {
-              semana: '2026-10-05',
-              retiradas: 40,
-              semQr: 2,
-              tempoMedianaS: 11.5,
-              tempoMedioS: 13,
-              tempoAte15s: 30,
-              tempoMedidas: 36,
-              pendencias: 3,
-              pendenciasComAviso: 3,
-              movimentos: 70,
-              movimentosCompletos: 70,
-            },
-          ],
-          total: { tempoMedidas: 36, tempoMedianaS: 11.5, tempoMedioS: 13, tempoAte15s: 30 },
-        },
-        { de: '2026-10-05', ate: '2026-10-11', hoje: '2026-10-13' },
-      )) as unknown as ArrayBuffer,
-    )
-    const metas = livro.getWorksheet('Metas')
-    expect(metas?.getRow(2).values).toEqual([
-      undefined,
-      'Tempo do QR lido até a retirada (média)',
-      '13 s',
-      'até 15 s',
-      'sim',
-    ])
-    expect(metas?.getRow(3).getCell(2).value).toBe('5%')
-    const semana = livro.getWorksheet('Por semana')?.getRow(2)
-    expect(semana?.getCell(4).value).toBe(0.05)
-    expect(semana?.getCell(4).numFmt).toBe('0.0%')
   })
 })

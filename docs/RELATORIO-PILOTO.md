@@ -1,6 +1,6 @@
 # Relatório do piloto do Almox
 
-> Preencha durante os 30 dias. Os números vêm de *Início › Métricas do piloto* (engenheiro),
+> Preencha durante os 30 dias. Os números vêm do *Histórico* e do *A descontar* (engenheiro),
 > e a planilha completa sai em **Baixar relatório do piloto (.xlsx)**.
 
 ## Obra

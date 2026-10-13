@@ -26,6 +26,7 @@ Registro do que foi entregue em cada milestone (ver `PLAN.md`).
 - **Ferramenta própria ou alugada:** locadora com busca, salva para os próximos cadastros; quantidade logo após o nome.
 
 ### Mudado
+- **Métricas do piloto removidas do app** (tela, menu e planilha).
 - **Início mais limpo:** números que abrem cada tela e gestão (avisos, a descontar, histórico, métricas) num ícone no cabeçalho.
 - **Código das peças:** sai do nome da ferramenta, sem o campo de prefixo.
 - **Desempenho:** funções da Vercel em São Paulo e resposta imediata ao toque na barra inferior.

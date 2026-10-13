@@ -1,13 +1,5 @@
 import ExcelJS from 'exceljs'
 import {
-  metaAvisos,
-  metaPerdas,
-  metaRastreabilidade,
-  metaSemQr,
-  metaTempo,
-  type Metricas,
-} from '@/lib/dominio/metricas'
-import {
   resumoItens,
   ROTULO_CATEGORIA,
   textoVia,
@@ -136,82 +128,6 @@ export async function planilhaDescontos(
   if (opcoes.limite && linhas.length >= opcoes.limite) {
     aba.addRow({
       empresa: `Só as ${opcoes.limite} peças mais recentes estão listadas; o total considera todas.`,
-    })
-  }
-  return paraBuffer(livro)
-}
-
-/** Relatório do piloto: as metas do período e as métricas por semana (PRD §3). */
-export async function planilhaMetricas(
-  { semanas, total }: Metricas,
-  periodo: { de: string; ate: string; hoje: string },
-): Promise<Buffer> {
-  const livro = new ExcelJS.Workbook()
-  livro.creator = 'Almox'
-  const resumo = novaAba(livro, 'Metas', [
-    { header: 'Métrica', key: 'metrica', width: 34 },
-    { header: 'Resultado', key: 'resultado', width: 22 },
-    { header: 'Meta (PRD)', key: 'meta', width: 26 },
-    { header: 'Atingida', key: 'ok', width: 10 },
-  ])
-  const tempo = metaTempo(total)
-  const linhas: [string, ReturnType<typeof metaSemQr>, string][] = [
-    ['Tempo do QR lido até a retirada (média)', tempo, 'até 15 s'],
-    ['Retiradas sem QR', metaSemQr(semanas), 'menos de 10%'],
-    [
-      'Ferramentas não devolvidas por semana (semanas inteiras)',
-      metaPerdas(semanas, periodo.de, periodo.hoje),
-      'queda de 50% em 60 dias',
-    ],
-    ['Pendências de empreiteira com aviso', metaAvisos(semanas), '100%'],
-    ['Movimentos com pessoa, almoxarife, hora e via', metaRastreabilidade(semanas), '100%'],
-  ]
-  for (const [metrica, m, meta] of linhas) {
-    resumo.addRow({
-      metrica,
-      resultado: m.texto,
-      meta,
-      ok: m.ok === null ? '—' : m.ok ? 'sim' : 'não',
-    })
-  }
-  resumo.addRow({
-    metrica: 'Tempo do QR lido até a retirada (mediana)',
-    resultado: tempo.mediana === null ? '—' : `${tempo.mediana.toLocaleString('pt-BR')} s`,
-  })
-  resumo.addRow({
-    metrica: 'Retiradas medidas em até 15 s',
-    resultado: tempo.ate15 === null ? '—' : `${tempo.ate15.toLocaleString('pt-BR')}%`,
-  })
-  resumo.addRow({})
-  resumo.addRow({
-    metrica: `Período: ${periodo.de.split('-').reverse().join('/')} a ${periodo.ate.split('-').reverse().join('/')}`,
-  })
-  resumo.addRow({ metrica: 'Atraso até a TV (meta até 3 s): medido na obra com cronômetro.' })
-
-  const aba = novaAba(livro, 'Por semana', [
-    { header: 'Semana (segunda)', key: 'semana', width: 16, style: { numFmt: 'dd/mm/yyyy' } },
-    { header: 'Retiradas', key: 'retiradas', width: 11 },
-    { header: 'Sem QR', key: 'semQr', width: 9 },
-    { header: '% sem QR', key: 'pct', width: 10, style: { numFmt: '0.0%' } },
-    { header: 'Tempo mediano (s)', key: 'mediana', width: 17 },
-    { header: 'Tempo médio (s)', key: 'media', width: 15 },
-    { header: 'Medidas', key: 'medidas', width: 9 },
-    { header: 'Até 15 s', key: 'ate15', width: 9 },
-    { header: 'Não devolvidas', key: 'pendencias', width: 14 },
-    { header: 'Com aviso', key: 'aviso', width: 10 },
-  ])
-  for (const s of semanas) {
-    aba.addRow({
-      semana: new Date(`${s.semana}T12:00:00Z`),
-      retiradas: s.retiradas,
-      semQr: s.semQr,
-      pct: s.retiradas > 0 ? s.semQr / s.retiradas : null,
-      mediana: s.tempoMedianaS,
-      media: s.tempoMedioS,
-      medidas: s.tempoMedidas,
-      ate15: s.tempoAte15s,
-      pendencias: s.pendencias,
-      aviso: s.pendenciasComAviso,
     })
   }
   return paraBuffer(livro)

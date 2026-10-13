@@ -2,7 +2,6 @@ import type { Metadata } from 'next'
 import Link from 'next/link'
 import { notFound } from 'next/navigation'
 import { AdesivoCapacete } from '@/components/AdesivoCapacete'
-import { AtualizarSozinho } from '@/components/AtualizarSozinho'
 import { Botao } from '@/components/Botao'
 import { Cabecalho } from '@/components/Cabecalho'
 import { ErroFormulario } from '@/components/Formulario'
@@ -15,6 +14,7 @@ import { formatarDataHora } from '@/lib/formatos/datas'
 import { obterSessao } from '@/lib/sessao'
 import { alternarAtiva } from '../acoes'
 import { FormPessoa } from '../FormPessoa'
+import { AcompanharImpressao } from './AcompanharImpressao'
 
 export const metadata: Metadata = { title: 'Editar pessoa · Almox' }
 
@@ -58,7 +58,11 @@ export default async function PaginaEditarPessoa({
       />
       {adesivo && (
         <section aria-labelledby="t-adesivo" className="flex flex-col gap-3 px-5 pt-2 pb-6">
-          {trabalhos.some((t) => emAndamento(t.status)) && <AtualizarSozinho segundos={3} />}
+          {trabalhos.some((t) => emAndamento(t.status)) && (
+            <AcompanharImpressao
+              trabalhos={trabalhos.map((t) => ({ id: t.id, status: t.status }))}
+            />
+          )}
           <h2 id="t-adesivo" className="text-[13px] font-bold tracking-[1.2px] text-texto-2">
             ADESIVO DO CAPACETE
           </h2>

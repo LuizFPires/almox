@@ -88,14 +88,22 @@ type MovimentoLinha = {
   via: 'qr' | 'manual'
   criado_em: string
   pessoa: { nome: string } | null
+  usuario: { nome: string } | null
   itens: {
     unidade: { codigo: string; tipo: { nome: string } | null } | null
   }[]
 }
 
-type OcorrenciaLinha = { criado_em: string; pessoa: { nome: string } | null }
+type OcorrenciaLinha = {
+  criado_em: string
+  pessoa: { nome: string } | null
+  usuario: { nome: string } | null
+}
 
-/** Últimos 5 lançamentos: retiradas, devoluções e bloqueios ("Não é ele"). */
+/**
+ * Registro do Início: as 10 últimas movimentações (retiradas, devoluções e "Não é ele"), com o
+ * login que lançou. O nome do login aparece para quem divide a obra com ele (RLS de usuario).
+ */
 export async function ultimosLancamentos(obraId: string): Promise<Lancamento[]> {
   const supabase = await criarClienteServidor()
   const [movimentos, ocorrencias] = await Promise.all([
@@ -103,19 +111,23 @@ export async function ultimosLancamentos(obraId: string): Promise<Lancamento[]> 
       .from('movimento')
       .select(
         'id, tipo, via, criado_em, pessoa:pessoa!movimento_pessoa_id_obra_id_fkey (nome), ' +
+          'usuario:usuario!movimento_usuario_id_fkey (nome), ' +
           'itens:movimento_item!movimento_item_movimento_id_obra_id_fkey (' +
           'unidade:unidade!movimento_item_unidade_id_obra_id_fkey (codigo, tipo:tipo_ferramenta!unidade_tipo_id_obra_id_fkey (nome)))',
       )
       .eq('obra_id', obraId)
       .order('criado_em', { ascending: false })
-      .limit(5)
+      .limit(10)
       .overrideTypes<MovimentoLinha[], { merge: false }>(),
     supabase
       .from('ocorrencia')
-      .select('criado_em, pessoa:pessoa!ocorrencia_pessoa_id_obra_id_fkey (nome)')
+      .select(
+        'criado_em, pessoa:pessoa!ocorrencia_pessoa_id_obra_id_fkey (nome), ' +
+          'usuario:usuario!ocorrencia_usuario_id_fkey (nome)',
+      )
       .eq('obra_id', obraId)
       .order('criado_em', { ascending: false })
-      .limit(5)
+      .limit(10)
       .overrideTypes<OcorrenciaLinha[], { merge: false }>(),
   ])
   if (movimentos.error || ocorrencias.error) {
@@ -128,6 +140,7 @@ export async function ultimosLancamentos(obraId: string): Promise<Lancamento[]> 
       via: m.via,
       quando: m.criado_em,
       pessoa: m.pessoa?.nome ?? '',
+      usuario: m.usuario?.nome ?? null,
       itens: m.itens.map((i) => ({
         nome: i.unidade?.tipo?.nome ?? '',
         codigo: i.unidade?.codigo ?? '',
@@ -137,6 +150,7 @@ export async function ultimosLancamentos(obraId: string): Promise<Lancamento[]> 
       tipo: 'ocorrencia',
       quando: o.criado_em,
       pessoa: o.pessoa?.nome ?? '',
+      usuario: o.usuario?.nome ?? null,
     })),
   ])
 }

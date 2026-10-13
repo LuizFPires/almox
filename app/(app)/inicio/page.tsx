@@ -11,9 +11,8 @@ import { SeloFila } from '@/components/SeloFila'
 import { SeloPerfil } from '@/components/SeloPerfil'
 import { resumoDoDia, ultimosLancamentos } from '@/lib/dados/inicio'
 import { resumoFechamento } from '@/lib/dominio/fechamento'
-import { descreverLancamento } from '@/lib/dominio/lancamentos'
+import { descreverRegistro, quandoCurto } from '@/lib/dominio/lancamentos'
 import { podeLancar } from '@/lib/dominio/permissoes'
-import { formatarHora } from '@/lib/formatos/datas'
 import { obterSessao } from '@/lib/sessao'
 
 export const metadata: Metadata = { title: 'Início · Almox' }
@@ -243,7 +242,7 @@ export default async function PaginaInicio() {
 
         <section className="flex flex-col gap-2" aria-labelledby="titulo-ultimos">
           <h2 id="titulo-ultimos" className="text-[13px] font-bold tracking-[1.2px] text-texto-2">
-            ÚLTIMOS LANÇAMENTOS
+            REGISTRO DE MOVIMENTAÇÕES
           </h2>
           {ultimos.length === 0 ? (
             <Cartao className="py-6 text-center text-[15px] text-texto-2">
@@ -252,12 +251,12 @@ export default async function PaginaInicio() {
           ) : (
             <Cartao className="flex flex-col divide-y divide-borda py-1">
               {ultimos.map((l, i) => {
-                const { texto, alerta } = descreverLancamento(l)
+                const r = descreverRegistro(l)
                 const conteudo = (
                   <>
                     <span
                       aria-hidden="true"
-                      className={`flex size-8 shrink-0 items-center justify-center rounded-full text-sm font-bold ${
+                      className={`mt-0.5 flex size-8 shrink-0 items-center justify-center rounded-full text-sm font-bold ${
                         l.tipo === 'ocorrencia'
                           ? 'bg-erro-claro text-erro'
                           : l.tipo === 'retirada'
@@ -276,20 +275,30 @@ export default async function PaginaInicio() {
                         tamanho={18}
                       />
                     </span>
-                    <span className="flex min-w-0 flex-1 flex-col">
-                      <span className="truncate text-[15px] font-semibold">{l.pessoa}</span>
-                      <span
-                        className={`truncate text-[13px] ${alerta ? 'text-erro' : 'text-texto-2'}`}
-                      >
-                        {texto}
+                    <span className="flex min-w-0 flex-1 flex-col gap-0.5">
+                      <span className="flex items-baseline justify-between gap-2">
+                        <span className="truncate text-[15px] font-semibold">{l.pessoa}</span>
+                        <span className="shrink-0 font-mono text-[12px] text-texto-2">
+                          {quandoCurto(l.quando, agora)}
+                        </span>
                       </span>
-                    </span>
-                    <span className="shrink-0 font-mono text-[13px] text-texto-2">
-                      {formatarHora(l.quando)}
+                      <span
+                        className={`line-clamp-2 text-[13px] ${
+                          l.tipo === 'ocorrencia' ? 'text-erro' : 'text-texto'
+                        }`}
+                      >
+                        <b className="font-semibold">{r.acao}</b> {r.detalhe}
+                      </span>
+                      <span className="text-[12px] text-texto-2">
+                        {r.quem} ·{' '}
+                        <span className={r.alerta ? 'font-semibold text-erro' : ''}>
+                          {r.origem}
+                        </span>
+                      </span>
                     </span>
                   </>
                 )
-                const classe = 'flex min-h-toque items-center gap-3 py-2.5'
+                const classe = 'flex min-h-toque items-start gap-3 py-2.5'
                 return l.tipo !== 'ocorrencia' && l.id ? (
                   <Link key={`${l.quando}-${i}`} href={`/lancamento/${l.id}`} className={classe}>
                     {conteudo}
@@ -301,6 +310,14 @@ export default async function PaginaInicio() {
                 )
               })}
             </Cartao>
+          )}
+          {obraAtual.perfil === 'engenheiro' && (
+            <Link
+              href="/historico"
+              className="flex min-h-toque items-center justify-center gap-1 text-sm font-bold underline"
+            >
+              Ver histórico completo
+            </Link>
           )}
         </section>
       </main>

@@ -101,7 +101,7 @@ test.describe('retirada', () => {
 
     // Outro celular (engenheiro) olhando o Início: a retirada tem que aparecer sozinha.
     await entrarComo(page, 'engenheiro', '/inicio')
-    const ultimos = page.getByRole('region', { name: 'ÚLTIMOS LANÇAMENTOS' })
+    const ultimos = page.getByRole('region', { name: 'REGISTRO DE MOVIMENTAÇÕES' })
     const antes = await ultimos.innerText()
     // Marca a página: se ela recarregar, a marca some.
     await page.evaluate(() => Object.assign(window, { semRecarregar: true }))
@@ -132,9 +132,17 @@ test.describe('retirada', () => {
     expect(mov?.itens).toHaveLength(3)
     expect(await api.emUso(pa)).toBe(2)
     expect(await api.emUso(furadeira)).toBe(1)
-    // Ao vivo: a lista mudou sem recarregar. Não dá para exigir a linha do Wagner: o Início
-    // mostra só os 5 últimos e os outros testes lançam ao mesmo tempo.
+    // Ao vivo: a lista mudou sem recarregar.
     await expect.poll(() => ultimos.innerText(), { timeout: 10_000 }).not.toBe(antes)
+    // Registro: quem lançou, como identificou e todas as ferramentas, com dia e hora.
+    const linha = ultimos
+      .getByRole('link')
+      .filter({ hasText: `Pá ${sufixo}` })
+      .first()
+    await expect(linha).toContainText('Wagner Pinto')
+    await expect(linha).toContainText(`Furadeira ${sufixo}`)
+    await expect(linha).toContainText('por Sebastião Nunes · QR lido')
+    await expect(linha).toContainText(/hoje \d{2}:\d{2}/)
     expect(await page.evaluate(() => 'semRecarregar' in window)).toBe(true)
   })
 

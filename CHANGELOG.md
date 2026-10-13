@@ -19,6 +19,8 @@ Registro do que foi entregue em cada milestone (ver `PLAN.md`).
 - **TV sem mini PC:** a TV mostra um código e um QR; o engenheiro ou o almoxarife conecta pelo celular (*Conectar TV*), e dá para desconectar.
 - **Adesivos em folha A4** na impressora comum da obra, da ficha ou em lote.
 
+- **Registro de movimentações no Início:** quem lançou, funcionário, dia e hora, ferramentas e QR ou lista.
+
 ### Mudado
 - **Início mais limpo:** números que abrem cada tela e gestão (avisos, a descontar, histórico, métricas) num ícone no cabeçalho.
 - **Código das peças:** sai do nome da ferramenta, sem o campo de prefixo.

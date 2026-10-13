@@ -1,6 +1,6 @@
-import QRCode from 'qrcode'
 import type { CSSProperties } from 'react'
 import { layoutAdesivo } from '@/lib/dominio/etiqueta'
+import { caminhoQr } from '@/lib/qr'
 
 type Props = {
   /** Token opaco: única coisa dentro do QR (RN-17). */
@@ -11,22 +11,11 @@ type Props = {
   empresa: string
   obra: string
   matricula: string
-}
-
-/** Desenha o QR como um único path SVG (sem HTML injetado). */
-function caminhoQr(token: string) {
-  // Um segmento só de bytes, como no adesivo impresso (o modo automático pode misturar
-  // segmentos que alguns leitores não leem).
-  const { modules } = QRCode.create([{ data: new TextEncoder().encode(token), mode: 'byte' }], {
-    errorCorrectionLevel: 'M',
-  })
-  let d = ''
-  for (let linha = 0; linha < modules.size; linha++) {
-    for (let coluna = 0; coluna < modules.size; coluna++) {
-      if (modules.get(linha, coluna)) d += `M${coluna} ${linha}h1v1h-1z`
-    }
-  }
-  return { d, tamanho: modules.size }
+  /**
+   * Tamanho real para imprimir na folha A4 (60 × 80 mm, em mm, com linha de corte); sem ele, a
+   * prévia na tela em px.
+   */
+  impressao?: boolean
 }
 
 /** Largura da prévia na tela (px); a altura segue os 60 × 80 mm do adesivo. */
@@ -39,24 +28,31 @@ const LARGURA_PREVIA = 260
 export function AdesivoCapacete(p: Props) {
   const { d, tamanho } = caminhoQr(p.token)
   const l = layoutAdesivo(p)
-  const e = LARGURA_PREVIA / l.largura // px por ponto da impressora
+  // Unidade por ponto da impressora: px na prévia, mm no papel (60 mm de largura).
+  const u = p.impressao ? 'mm' : 'px'
+  const e = (p.impressao ? 60 : LARGURA_PREVIA) / l.largura
+  const m = (pontos: number) => `${pontos * e}${u}`
   const texto = (y: number, altura: number): CSSProperties => ({
-    top: y * e,
-    left: l.margem * e,
-    width: l.larguraTexto * e,
-    fontSize: altura * e,
+    top: m(y),
+    left: m(l.margem),
+    width: m(l.larguraTexto),
+    fontSize: m(altura),
   })
-  const ladoQr = tamanho * l.qr.ampliacao * e
+  const ladoQr = m(tamanho * l.qr.ampliacao)
   return (
     <figure
       aria-label={`Prévia do adesivo de ${p.nomeCapacete}`}
-      className="relative mx-auto shrink-0 overflow-hidden rounded-cartao bg-white text-[#1F2937] shadow-md"
-      style={{ width: LARGURA_PREVIA, height: l.altura * e }}
+      className={`relative shrink-0 overflow-hidden bg-white text-[#1F2937] ${
+        p.impressao
+          ? 'm-0 break-inside-avoid border-[0.2mm] border-dashed border-[#9CA3AF]'
+          : 'mx-auto rounded-cartao shadow-md'
+      }`}
+      style={{ width: m(l.largura), height: m(l.altura) }}
     >
       <svg
         viewBox={`0 0 ${tamanho} ${tamanho}`}
         className="absolute"
-        style={{ left: l.qr.x * e, top: l.qr.y * e, width: ladoQr, height: ladoQr }}
+        style={{ left: m(l.qr.x), top: m(l.qr.y), width: ladoQr, height: ladoQr }}
         role="img"
         aria-label="QR Code do capacete (só o código, sem nome)"
         shapeRendering="crispEdges"
@@ -83,7 +79,7 @@ export function AdesivoCapacete(p: Props) {
       </span>
       <span
         className="absolute border-t-2 border-[#1F2937]"
-        style={{ top: l.linha.y * e, left: l.margem * e, width: l.larguraTexto * e }}
+        style={{ top: m(l.linha.y), left: m(l.margem), width: m(l.larguraTexto) }}
       />
       <span
         className="absolute flex justify-between font-mono leading-none"

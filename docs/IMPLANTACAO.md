@@ -24,10 +24,12 @@ de outra pessoa está indicado.
 
 ### Compras e rede (obra)
 - [ ] TV de 43" ou mais, com entrada HDMI, numa parede visível da fila do almoxarifado.
-- [ ] Mini PC (Windows 10/11 ou Linux), com HDMI para a TV e Wi-Fi ou cabo de rede.
-- [ ] Impressora de etiquetas de rede (ZPL, Zebra; ou TSPL, TSC/Elgin/Argox).
-  - [ ] Rolo 60 × 80 mm de poliéster ou vinil, com ribbon de resina (o adesivo pega chuva e sol).
-  - [ ] IP fixo na rede da obra (reserva no roteador).
+- [ ] TV com **Google TV**, ou um aparelho Google TV ligado nela (ex.: Xiaomi TV Box S, cerca
+      de R$ 350). Sem mini PC (decisão de 13/10/2026).
+- [ ] Folhas **A4 adesivas** (vinil ou papel) para a impressora comum da obra: os adesivos dos
+      capacetes saem 9 por folha.
+- [ ] *Opcional, obras grandes:* impressora de etiquetas de rede (ZPL ou TSPL) com mini PC e o
+      agente de impressão (seção "Opcional" abaixo).
 - [ ] Wi-Fi do almoxarifado (ver o teste da seção 2).
 - [ ] Celular do almoxarife (Android 10+ ou iPhone com iOS 16+), com câmera traseira boa.
 - [ ] Capacetes limpos e secos na frente (onde vai o adesivo).
@@ -49,29 +51,31 @@ Faça o teste **no ponto onde o almoxarife fica** e **junto da TV**, no horário
 Se o sinal cai, o Almox continua funcionando sem internet (veja a seção 4). Mesmo assim, um
 repetidor perto do balcão evita fila de lançamentos para mandar depois.
 
-### Impressora
-- [ ] Ligada na rede, com o IP fixo anotado: `____.____.____.____`, porta `9100`.
-- [ ] No app (engenheiro): *Cadastros › Impressora* → IP, porta e linguagem → **Salvar**.
-
-### Mini PC e agente de impressão
-Siga `agente-impressao/LEIA-ME.md`:
-- [ ] Node.js 24 instalado no mini PC.
-- [ ] *Cadastros › Impressora › Cadastrar mini PC*: copie as três linhas (o token aparece uma vez só).
-- [ ] Pasta do agente copiada e `.env` preenchido (e o `SENTRY_DSN`, se houver).
-- [ ] Instalado como serviço (`instalar\windows.ps1` ou `sudo sh instalar/linux.sh`).
-- [ ] No app aparece **Agente online**.
-- [ ] **Imprimir etiqueta de teste**: a etiqueta sai em segundos e o QR lê no celular.
-- [ ] Desligue e ligue o mini PC: o agente volta sozinho (Agente online de novo).
-
-### TV
-- [ ] Já no mini PC: no app (engenheiro, pode ser no celular), *Cadastros › Impressora ›
-      Conectar uma TV* → aparece um endereço.
-- [ ] Digite esse endereço no navegador do mini PC **em até 10 minutos** (vale uma vez só) → o
-      painel aparece. Passou do prazo: gere outro.
-- [ ] Navegador em tela cheia (F11) e abrindo sozinho com o Windows/Linux, nesse endereço `/tv`.
-- [ ] Desligar a economia de energia da TV e do mini PC (tela não pode apagar).
+### TV (aparelho Google TV)
+- [ ] Aparelho ligado na TV pelo HDMI, no Wi-Fi da obra, com o HDMI-CEC ligado na TV
+      (Anynet+ na Samsung, SimpLink na LG).
+- [ ] **Fully Kiosk Browser** instalado pelo Google Play, com endereço inicial
+      `almox-chi.vercel.app/tv`, "abrir ao iniciar" e "manter a tela ligada".
+- [ ] A TV mostra um código de 6 números e um QR: no celular do engenheiro ou do almoxarife,
+      leia o QR (ou *Início › ícone de grade › Conectar TV*) e toque em **Conectar TV**.
+- [ ] O painel aparece sozinho em poucos segundos.
+- [ ] Desligue a TV da tomada e ligue de novo: volta direto no painel, sem novo código.
 - [ ] Cronômetro: lance uma retirada no celular e conte até aparecer na TV (meta: até 3 s).
 - [ ] Deixe a TV ligada 72 h seguidas antes do piloto e confira que continua passando as páginas.
+
+### Adesivos (folha A4)
+- [ ] *Cadastros › Adesivos em lote › Imprimir em folha A4*: escala **100%** na impressão.
+- [ ] Meça um adesivo: 6 × 8 cm. Recorte na linha tracejada.
+- [ ] Leia o adesivo com *Ler QR do capacete*: abre a pessoa certa.
+
+### Opcional: impressora de etiquetas com mini PC
+Para obras que cadastram muita gente. Siga `agente-impressao/LEIA-ME.md`:
+- [ ] Impressora de rede com IP fixo (porta `9100`); rolo 60 × 80 mm de poliéster ou vinil com
+      ribbon de resina.
+- [ ] *Cadastros › ⚙ › Impressora*: IP, porta e linguagem → **Salvar**; **Cadastrar mini PC** e
+      copie as três linhas (o token aparece uma vez só).
+- [ ] Node.js 24 no mini PC, agente instalado como serviço; no app aparece **Agente online**.
+- [ ] **Imprimir etiqueta de teste**: sai em segundos e o QR lê no celular.
 
 ## 3. Cadastro inicial
 

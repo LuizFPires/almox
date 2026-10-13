@@ -52,7 +52,9 @@ export default async function PaginaAdesivos({ searchParams }: PageProps<'/cadas
             {falhas} não {falhas === 1 ? 'foi' : 'foram'} para a fila. Imprima pela ficha da pessoa.
           </p>
         )}
-        <CartaoImpressora impressora={impressora} agente={agente} href="/cadastros/impressora" />
+        {impressora && (
+          <CartaoImpressora impressora={impressora} agente={agente} href="/cadastros/impressora" />
+        )}
         {faltam.length === 0 ? (
           <p className="rounded-cartao bg-sutil px-4 py-3 text-[15px]">
             Todos já têm adesivo. Para reimprimir, use a ficha da pessoa.
@@ -75,7 +77,18 @@ export default async function PaginaAdesivos({ searchParams }: PageProps<'/cadas
                 </li>
               ))}
             </ul>
-            <BotaoLote quantidade={proximo.length} empresa={empresa} volta={volta} />
+            <Link
+              href={`/cadastros/adesivos/a4?${empresa ? `empresa=${empresa}&` : ''}volta=${encodeURIComponent(
+                `/cadastros/adesivos${empresa ? `?empresa=${empresa}` : ''}`,
+              )}`}
+              className="flex min-h-14 items-center justify-center rounded-cartao bg-amarelo px-5 text-lg font-bold text-escuro"
+            >
+              Imprimir em folha A4 ({Math.min(faltam.length, 99)})
+            </Link>
+            {/* Impressora de etiquetas (mini PC): só quando a obra tem uma. */}
+            {impressora && (
+              <BotaoLote quantidade={proximo.length} empresa={empresa} volta={volta} />
+            )}
           </>
         )}
         {enviados !== null && (

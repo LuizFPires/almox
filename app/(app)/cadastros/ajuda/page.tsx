@@ -3,7 +3,7 @@ import Link from 'next/link'
 import type { ReactNode } from 'react'
 import { Cabecalho } from '@/components/Cabecalho'
 
-export const metadata: Metadata = { title: 'Passo a passo: impressora e TV · Almox' }
+export const metadata: Metadata = { title: 'Passo a passo: TV e adesivos · Almox' }
 
 const AGENTE = 'https://github.com/LuizFPires/almox/tree/main/agente-impressao'
 
@@ -31,93 +31,68 @@ function Secao({ titulo, children }: { titulo: string; children: ReactNode }) {
 }
 
 /**
- * Passo a passo para ligar a impressora do adesivo (agente no mini PC) e o painel da TV.
- * Só o engenheiro vê (layout de Cadastros). Detalhes técnicos: agente-impressao/LEIA-ME.md.
+ * Passo a passo para deixar o painel na TV e os adesivos funcionando, sem mini PC (decisão
+ * de 13/10/2026): aparelho Google TV com navegador de quiosque e adesivos em folha A4.
+ * A impressora de etiquetas com mini PC fica como opção no fim.
  */
 export default function PaginaAjuda() {
   return (
     <>
       <Cabecalho
-        titulo="Impressora e TV"
+        titulo="TV e adesivos"
         subtitulo="Passo a passo para deixar funcionando"
         voltarPara="/cadastros/pessoas"
       />
       <main className="flex flex-1 flex-col gap-3.5 px-5 pt-2 pb-8">
         <p className="rounded-cartao bg-sutil px-4 py-3 text-[15px]">
-          Tudo fica no almoxarifado: a <b>impressora de etiquetas</b> e um <b>mini PC</b> ligado na
-          TV, os dois na mesma rede (Wi-Fi ou cabo). O mini PC faz duas coisas: mostra o painel na
-          TV e manda os adesivos para a impressora.
+          No almoxarifado basta uma <b>TV com Google TV</b> (ou um aparelho Google TV ligado na TV,
+          como o Xiaomi TV Box S) e o Wi-Fi da obra. Os adesivos dos capacetes saem na{' '}
+          <b>impressora comum da obra</b>, em folha A4.
         </p>
 
-        <Secao titulo="1. Impressora de etiquetas">
+        <Secao titulo="1. Painel na TV">
           <Passo n={1}>
-            Ligue a impressora na rede da obra e deixe com <b>IP fixo</b> (peça a reserva no
-            roteador). Anote o IP, por exemplo 192.168.0.50.
+            Ligue o aparelho Google TV na TV pelo HDMI e conecte no Wi-Fi da obra. Na TV, ative o
+            HDMI-CEC (Anynet+ na Samsung, SimpLink na LG) para ligarem juntos.
           </Passo>
           <Passo n={2}>
-            Use rolo <b>60 × 80 mm</b> de poliéster ou vinil, com ribbon de resina (aguenta chuva e
-            sol).
+            Na loja da TV (Google Play), instale o <b>Fully Kiosk Browser</b>. Nas configurações
+            dele, ponha o endereço inicial:
+            <span className="rounded-botao bg-sutil px-3 py-2 font-mono text-[13px] break-all">
+              almox-chi.vercel.app/tv
+            </span>
+            e ligue “abrir ao iniciar” e “manter a tela ligada”. Dica: o app <b>Google TV</b> no
+            celular vira teclado da TV.
           </Passo>
           <Passo n={3}>
-            Aqui no app: <b>Cadastros › Impressora</b> → preencha o IP, a porta (quase sempre{' '}
-            <b>9100</b>) e a linguagem (<b>ZPL</b> para Zebra; <b>TSPL</b> para TSC, Elgin ou Argox)
-            → <b>Salvar impressora</b>.
+            A TV mostra um <b>código de 6 números</b> e um QR. No celular do engenheiro ou do
+            almoxarife, leia o QR com a câmera (ou abra Início › ícone de grade › <b>Conectar TV</b>{' '}
+            e digite o código) e toque em <b>Conectar TV</b>.
+          </Passo>
+          <Passo n={4}>
+            Em poucos segundos o painel aparece. Depois disso a TV fica lembrada: se faltar luz,
+            volta sozinha. O tempo das páginas e a rolagem ficam em{' '}
+            <b>Cadastros › ⚙ › Painel da TV</b>.
           </Passo>
         </Secao>
 
-        <Secao titulo="2. Agente de impressão no mini PC">
+        <Secao titulo="2. Adesivos dos capacetes">
           <Passo n={1}>
-            No mini PC (Windows ou Linux), instale o <b>Node.js 24</b> (nodejs.org).
+            Compre folha <b>A4 adesiva</b> (vinil ou papel, de papelaria) para a impressora da obra.
+            Dura bem mais no capacete do que papel comum com fita.
           </Passo>
           <Passo n={2}>
-            Aqui no app: <b>Cadastros › Impressora › Cadastrar mini PC</b>. Aparece a{' '}
-            <b>Configuração do agente</b> com três linhas.{' '}
-            <b>Copie agora: o código aparece uma vez só.</b>
+            Uma pessoa: na ficha dela, <b>Imprimir › Imprimir em folha A4</b>. Várias:{' '}
+            <b>Adesivos em lote › Imprimir em folha A4</b> (quem ainda não tem adesivo, 9 por
+            folha).
           </Passo>
           <Passo n={3}>
-            Baixe a pasta do agente (
-            <a href={AGENTE} target="_blank" rel="noreferrer" className="font-semibold underline">
-              agente-impressao
-            </a>
-            ) para o mini PC, crie o arquivo <code className="font-mono text-sm">.env</code> e cole
-            as três linhas.
+            Na janela de impressão, escala <b>100%</b> (“tamanho real”), sem “ajustar à página”.
+            Recorte na linha tracejada e cole no capacete limpo e seco.
           </Passo>
           <Passo n={4}>
-            Instale como serviço, para ligar sozinho com o mini PC:
-            <span className="rounded-botao bg-sutil px-3 py-2 font-mono text-[13px] break-all">
-              Windows (PowerShell como administrador, dentro da pasta):
-              <br />
-              powershell -ExecutionPolicy Bypass -File instalar\windows.ps1
-            </span>
-            <span className="rounded-botao bg-sutil px-3 py-2 font-mono text-[13px] break-all">
-              Linux: sudo sh instalar/linux.sh
-            </span>
-          </Passo>
-          <Passo n={5}>
-            Volte em <b>Cadastros › Impressora</b>: deve aparecer <b>Agente online</b>. Toque em{' '}
-            <b>Imprimir etiqueta de teste</b> e leia o QR da etiqueta com o celular.
-          </Passo>
-        </Secao>
-
-        <Secao titulo="3. Painel na TV">
-          <Passo n={1}>
-            Ligue o mini PC na TV pelo HDMI e abra o navegador (Chrome ou Edge) no mini PC.
-          </Passo>
-          <Passo n={2}>
-            Aqui no app (pode ser no celular): <b>Cadastros › Impressora › Conectar uma TV</b>.
-            Aparece um endereço.
-          </Passo>
-          <Passo n={3}>
-            Digite esse endereço no navegador do mini PC <b>em até 10 minutos</b> (vale uma vez só).
-            O painel aparece; passou do prazo, gere outro.
-          </Passo>
-          <Passo n={4}>
-            Deixe o navegador em <b>tela cheia (F11)</b>, abrindo sozinho com o mini PC, e desligue
-            a economia de energia da TV e do mini PC (a tela não pode apagar).
-          </Passo>
-          <Passo n={5}>
-            Teste: faça uma retirada no celular e conte até aparecer na TV (até 3 segundos). O tempo
-            das páginas e a rolagem ficam em <b>Cadastros › Painel da TV</b>.
+            Teste: leia o adesivo com o celular em <b>Ler QR do capacete</b>. Tem que abrir a pessoa
+            certa.
           </Passo>
         </Secao>
 
@@ -127,26 +102,47 @@ export default function PaginaAjuda() {
         >
           <h2 className="text-lg font-bold text-aviso">Se algo não funcionar</h2>
           <p>
-            <b>“Agente offline” ou “nunca conectou”:</b> ligue o mini PC e confira a internet. A
-            fila imprime sozinha quando ele volta.
+            <b>TV mostra o código de novo:</b> ela foi desconectada (ou trocada). Conecte de novo
+            pelo código.
           </p>
           <p>
-            <b>“Impressora sem resposta”:</b> confira se a impressora está ligada, com papel e no
-            mesmo IP cadastrado; depois toque em <b>Reimprimir</b> na ficha da pessoa.
+            <b>Código não encontrado:</b> confira os 6 números; o código vale 10 minutos e depois a
+            TV mostra outro sozinha.
           </p>
           <p>
-            <b>Trocou o mini PC ou perdeu o código:</b> em <b>Cadastros › Impressora</b>,{' '}
-            <b>Revogar</b> o antigo e <b>Cadastrar mini PC</b> de novo.
+            <b>Adesivo saiu pequeno ou grande:</b> imprima de novo com escala 100%; o adesivo certo
+            mede 6 × 8 cm.
           </p>
           <p>
-            <b>TV parada ou “Dispositivo não autorizado”:</b> gere um novo endereço em{' '}
-            <b>Conectar uma TV</b> e abra no mini PC.
+            <b>Trocar ou tirar uma TV:</b> Início › ícone de grade › Conectar TV ›{' '}
+            <b>Desconectar</b>.
           </p>
         </section>
 
-        <Link href="/cadastros/impressora" className="text-center font-bold underline">
-          Abrir Cadastros › Impressora
+        <Link href="/conectar-tv" className="text-center font-bold underline">
+          Conectar uma TV agora
         </Link>
+
+        <details className="rounded-cartao bg-cartao px-4 py-3 text-[15px]">
+          <summary className="min-h-toque cursor-pointer content-center font-bold">
+            Opcional: impressora de etiquetas com mini PC
+          </summary>
+          <div className="flex flex-col gap-2 pt-2 text-texto-2">
+            <p>
+              Para obras grandes, que cadastram muita gente: impressora térmica de etiquetas (ZPL ou
+              TSPL) ligada num mini PC com o{' '}
+              <a href={AGENTE} target="_blank" rel="noreferrer" className="font-semibold underline">
+                agente de impressão
+              </a>
+              , na rede da obra.
+            </p>
+            <p>
+              Configure em <b>Cadastros › ⚙ › Impressora</b>: IP, porta (quase sempre 9100),
+              linguagem e “Cadastrar mini PC”. Com ela configurada, a ficha da pessoa e o lote
+              mostram também “Imprimir etiqueta”.
+            </p>
+          </div>
+        </details>
       </main>
     </>
   )

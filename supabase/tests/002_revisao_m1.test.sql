@@ -7,7 +7,8 @@ select plan(17);
 select is(
   (select count(*)::int from pg_proc p join pg_namespace n on n.oid = p.pronamespace
     where n.nspname in ('public', 'privado') and has_function_privilege('anon', p.oid, 'execute')
-      and p.proname not in ('agente_ping', 'agente_proximos', 'agente_concluir', 'painel_tv', 'trocar_codigo_tv')),
+      and p.proname not in ('agente_ping', 'agente_proximos', 'agente_concluir', 'painel_tv', 'trocar_codigo_tv',
+        'consultar_pareamento_tv')),
   0, 'anon só executa as funções do agente e do painel da TV (que exigem o token do dispositivo)'
 );
 select is(

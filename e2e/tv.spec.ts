@@ -103,7 +103,7 @@ test.describe('painel da TV', () => {
     try {
       const telaTv = await tv.newPage()
       await telaTv.goto('/tv')
-      await expect(telaTv.getByText('Dispositivo não autorizado')).toBeVisible()
+      await expect(telaTv.getByText('Conectar esta TV ao Almox')).toBeVisible()
       await telaTv.goto(`${url.pathname}${url.search}`)
       await expect(telaTv).toHaveURL(/\/tv$/)
       await expect(telaTv.getByText('Obra Demonstração')).toBeVisible()
@@ -111,16 +111,70 @@ test.describe('painel da TV', () => {
       // O mesmo código não serve uma segunda vez.
       const segunda = await outra.newPage()
       await segunda.goto(`${url.pathname}${url.search}`)
-      await expect(segunda.getByText('Código vencido ou já usado')).toBeVisible()
+      await expect(
+        segunda.getByText('O endereço antigo venceu. Use o código abaixo.'),
+      ).toBeVisible()
       expect((await outra.cookies()).some((c) => c.name === 'almox_tv')).toBe(false)
 
       // Revogar o mini PC desliga a TV aberta no próximo ciclo.
       await eng.rpc('revogar_dispositivo', { p_dispositivo: miniPc.id })
       expect((await telaTv.request.get('/tv/dados')).status()).toBe(401)
-      await expect(telaTv.getByText('Dispositivo não autorizado')).toBeVisible({ timeout: 6_000 })
+      await expect(telaTv.getByText('Esta TV foi desconectada.')).toBeVisible({ timeout: 6_000 })
     } finally {
       await tv.close()
       await outra.close()
+    }
+  })
+
+  test('TV mostra o código, o almoxarife conecta pelo celular e desconectar volta o código', async ({
+    page,
+    browser,
+    baseURL,
+  }, info) => {
+    const tv = await browser.newContext({ baseURL, viewport: { width: 1920, height: 1080 } })
+    try {
+      const telaTv = await tv.newPage()
+      await telaTv.goto('/tv')
+      const rotulo = telaTv.getByLabel(/^Código \d/)
+      await expect(rotulo).toBeVisible()
+      const codigo = ((await rotulo.getAttribute('aria-label')) ?? '').replace(/\D/g, '')
+      expect(codigo).toMatch(/^\d{6}$/)
+      // Recarregar a TV não troca o número que alguém pode estar digitando.
+      await telaTv.reload()
+      await expect(telaTv.getByLabel(`Código ${codigo.split('').join(' ')}`)).toBeVisible()
+      await expect(
+        telaTv.getByRole('img', { name: 'QR para conectar esta TV pelo celular' }),
+      ).toBeVisible()
+
+      const nome = `TV código ${info.project.name}-${Date.now() % 100000}`
+      await entrarComo(page, 'almoxarife', '/inicio')
+      await page.goto(`/conectar-tv/${codigo}`)
+      await expect(page.getByLabel('Código que aparece na TV')).toHaveValue(codigo)
+      await page.getByLabel('Nome da TV (opcional)').fill(nome)
+      await page.getByRole('button', { name: 'Conectar TV' }).click()
+      await expect(page.getByText(`“${nome}” conectada`)).toBeVisible()
+      // A TV sai do código sozinha e mostra o painel da obra.
+      await expect(telaTv.getByText('Obra Demonstração')).toBeVisible({ timeout: 8_000 })
+      await expect(telaTv.getByText('Conectar esta TV ao Almox')).toHaveCount(0)
+
+      // Código já usado não conecta outra TV.
+      await page.goto(`/conectar-tv/${codigo}`)
+      await page.getByRole('button', { name: 'Conectar TV' }).click()
+      await expect(page.getByText(/Código não encontrado ou vencido/)).toBeVisible()
+
+      // Desconectar: a TV volta a mostrar um código.
+      await page.goto('/conectar-tv')
+      await page
+        .locator('div')
+        .filter({ hasText: nome })
+        .filter({ has: page.getByRole('button', { name: 'Desconectar' }) })
+        .last()
+        .getByRole('button', { name: 'Desconectar' })
+        .click()
+      await expect(page.getByText(nome)).toHaveCount(0)
+      await expect(telaTv.getByText('Esta TV foi desconectada.')).toBeVisible({ timeout: 8_000 })
+    } finally {
+      await tv.close()
     }
   })
 
@@ -132,7 +186,7 @@ test.describe('painel da TV', () => {
       .context()
       .addCookies([{ name: 'almox_tv', value: agente, domain: hostname, path: '/tv' }])
     await page.goto('/tv')
-    await expect(page.getByText('Dispositivo não autorizado')).toBeVisible()
+    await expect(page.getByText('Conectar esta TV ao Almox')).toBeVisible()
     expect((await page.request.get('/tv/dados')).status()).toBe(401)
   })
 

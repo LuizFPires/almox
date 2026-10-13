@@ -3,8 +3,8 @@ import { IconeImpressora } from './IconeImpressora'
 import { IconeInterface } from './IconeInterface'
 
 type Props = {
-  /** Impressora escolhida e agente do mini PC online. */
-  pronta: boolean
+  /** Impressora de etiquetas pronta (escolhida e agente online); null: a obra não usa (opcional). */
+  pronta: boolean | null
   /** Linha de situação da impressora (ex.: "Zebra ZD421 · agente online"). */
   situacao: string
 }
@@ -37,9 +37,9 @@ function Engrenagem() {
 export function MenuAparelhos({ pronta, situacao }: Props) {
   return (
     <Gaveta
-      rotulo={`Impressora, TV e planilha${pronta ? '' : ' (impressora com problema)'}`}
+      rotulo={`Impressora, TV e planilha${pronta === false ? ' (impressora com problema)' : ''}`}
       icone={<Engrenagem />}
-      marca={pronta ? 'ok' : 'erro'}
+      marca={pronta === null ? undefined : pronta ? 'ok' : 'erro'}
       titulo="Impressora, TV e planilha"
       itens={[
         {
@@ -47,11 +47,17 @@ export function MenuAparelhos({ pronta, situacao }: Props) {
           icone: <IconeImpressora tamanho={20} />,
           titulo: 'Impressora',
           detalhe: situacao,
-          tom: pronta ? 'ok' : 'erro',
+          tom: pronta === null ? 'neutro' : pronta ? 'ok' : 'erro',
+        },
+        {
+          href: '/conectar-tv',
+          icone: <IconeInterface nome="dashboard" tamanho={20} />,
+          titulo: 'Conectar TV',
+          detalhe: 'Código que aparece na TV',
         },
         {
           href: '/cadastros/painel-tv',
-          icone: <IconeInterface nome="dashboard" tamanho={20} />,
+          icone: <IconeInterface nome="clock" tamanho={20} />,
           titulo: 'Painel da TV',
           detalhe: 'Tempo por página e rolagem',
         },
@@ -64,7 +70,7 @@ export function MenuAparelhos({ pronta, situacao }: Props) {
         {
           href: '/cadastros/ajuda',
           icone: <IconeInterface nome="info" tamanho={20} />,
-          titulo: 'Passo a passo: impressora e TV',
+          titulo: 'Passo a passo: TV e adesivos',
           tom: 'info',
         },
       ]}

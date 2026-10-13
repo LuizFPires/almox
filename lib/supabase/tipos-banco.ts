@@ -390,6 +390,7 @@ export type Database = {
           nome: string
           obra_id: string
           revogado_em: string | null
+          so_painel: boolean
           token_hash: string
           tv_token_hash: string | null
           ultimo_ping: string | null
@@ -402,6 +403,7 @@ export type Database = {
           nome: string
           obra_id: string
           revogado_em?: string | null
+          so_painel?: boolean
           token_hash: string
           tv_token_hash?: string | null
           ultimo_ping?: string | null
@@ -413,6 +415,7 @@ export type Database = {
           nome?: string
           obra_id?: string
           revogado_em?: string | null
+          so_painel?: boolean
           token_hash?: string
           tv_token_hash?: string | null
           ultimo_ping?: string | null
@@ -971,8 +974,74 @@ export type Database = {
           },
         ]
       }
+      pareamento_tv: {
+        Row: {
+          aprovado_em: string | null
+          aprovado_por: string | null
+          codigo: string
+          criado_em: string
+          dispositivo_id: string | null
+          entregue_em: string | null
+          expira_em: string
+          id: string
+          ip: string | null
+          obra_id: string | null
+          segredo_hash: string
+        }
+        ComputedFields: never
+        Insert: {
+          aprovado_em?: string | null
+          aprovado_por?: string | null
+          codigo: string
+          criado_em?: string
+          dispositivo_id?: string | null
+          entregue_em?: string | null
+          expira_em: string
+          id?: string
+          ip?: string | null
+          obra_id?: string | null
+          segredo_hash: string
+        }
+        Update: {
+          aprovado_em?: string | null
+          aprovado_por?: string | null
+          codigo?: string
+          criado_em?: string
+          dispositivo_id?: string | null
+          entregue_em?: string | null
+          expira_em?: string
+          id?: string
+          ip?: string | null
+          obra_id?: string | null
+          segredo_hash?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: 'pareamento_tv_aprovado_por_fkey'
+            columns: ['aprovado_por']
+            isOneToOne: false
+            referencedRelation: 'usuario'
+            referencedColumns: ['id']
+          },
+          {
+            foreignKeyName: 'pareamento_tv_dispositivo_id_fkey'
+            columns: ['dispositivo_id']
+            isOneToOne: false
+            referencedRelation: 'dispositivo_tv'
+            referencedColumns: ['id']
+          },
+          {
+            foreignKeyName: 'pareamento_tv_obra_id_fkey'
+            columns: ['obra_id']
+            isOneToOne: false
+            referencedRelation: 'obra'
+            referencedColumns: ['id']
+          },
+        ]
+      }
       pessoa: {
         Row: {
+          adesivo_impresso_em: string | null
           anonimizada_em: string | null
           ativa: boolean
           criado_em: string
@@ -987,6 +1056,7 @@ export type Database = {
         }
         ComputedFields: never
         Insert: {
+          adesivo_impresso_em?: string | null
           anonimizada_em?: string | null
           ativa?: boolean
           criado_em?: string
@@ -1000,6 +1070,7 @@ export type Database = {
           qr_token?: string
         }
         Update: {
+          adesivo_impresso_em?: string | null
           anonimizada_em?: string | null
           ativa?: boolean
           criado_em?: string
@@ -1338,6 +1409,10 @@ export type Database = {
           porta: number
         }[]
       }
+      aprovar_pareamento_tv: {
+        Args: { p_codigo: string; p_nome?: string; p_obra: string }
+        Returns: string
+      }
       concluir_envio: {
         Args: { p_envio: string; p_erro?: string; p_ok: boolean; p_sem_destino?: boolean }
         Returns: undefined
@@ -1353,6 +1428,7 @@ export type Database = {
           pessoa_id: string
         }[]
       }
+      consultar_pareamento_tv: { Args: { p_segredo: string }; Returns: Json }
       criar_dispositivo: { Args: { p_nome: string; p_obra: string }; Returns: string }
       dados_adesivo: {
         Args: { p_pessoa: string }
@@ -1366,9 +1442,23 @@ export type Database = {
           token: string
         }[]
       }
+      dados_adesivos: {
+        Args: { p_obra: string; p_pessoas: string[] }
+        Returns: {
+          empresa: string
+          funcao: string
+          matricula: string
+          nome: string
+          nome_capacete: string
+          obra: string
+          pessoa_id: string
+          token: string
+        }[]
+      }
       dados_envio: { Args: { p_envio: string }; Returns: Json }
       dados_offline: { Args: { p_obra: string }; Returns: Json }
       definir_indenizacao: { Args: { p_avaria: string; p_valor?: number }; Returns: undefined }
+      desconectar_tv: { Args: { p_dispositivo: string }; Returns: undefined }
       encerrar_dia: { Args: { p_obra: string }; Returns: string }
       enfileirar_impressao: {
         Args: {
@@ -1438,9 +1528,11 @@ export type Database = {
           usuario_id: string
         }[]
       }
+      marcar_adesivos_impressos: { Args: { p_obra: string; p_pessoas: string[] }; Returns: number }
       marcar_fotos_apagadas: { Args: { p_caminhos: string[] }; Returns: number }
       metricas_piloto: { Args: { p_ate: string; p_de: string; p_obra: string }; Returns: Json }
       painel_tv: { Args: { p_token: string; p_versao?: string }; Returns: Json }
+      pedir_pareamento_tv: { Args: { p_ip?: string; p_segredo: string }; Returns: string }
       pegar_envios: {
         Args: { p_canais?: Database['public']['Enums']['canal_envio'][]; p_limite?: number }
         Returns: {

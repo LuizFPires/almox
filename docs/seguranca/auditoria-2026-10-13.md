@@ -33,9 +33,9 @@ Legenda da origem: **DB** banco · **APP** aplicação e acesso · **INF** infra
 | ID | Achado | Correção | Onda |
 |---|---|---|---|
 | DB-01 | Engenheiro faz `UPDATE` em **todas** as colunas de `obra` (inclusive `ativa`, `encerrada_em`), sem log. `ativa=false` desliga o encerramento e os avisos; `encerrada_em` antigo dispara a anonimização irreversível no dia 1º. Confirmado no banco local. | Só `nome` e `endereco` editáveis; gatilho de alterações em `obra`; teste pgTAP. | **1 (feito)** |
-| APP-02 / INF-06 | Trocar a senha só pede a sessão (celular desbloqueado na obra ⇒ conta tomada); `secure_password_change = false`; não derruba outras sessões. | Troca e recuperação **pelo código de 8 dígitos no e-mail** (como o revel), `secure_password_change = true`, salvar a senha encerra as outras sessões. | **1 (feito)** |
+| APP-02 / INF-06 | Trocar a senha só pede a sessão (celular desbloqueado na obra ⇒ conta tomada); `secure_password_change = false`; não derruba outras sessões. | Troca e recuperação **pelo código de 8 dígitos no e-mail** (como o revel), `secure_password_change = true`, salvar a senha (também a provisória) encerra as outras sessões. **Risco residual:** a API do Auth ainda aceita `PUT /auth/v1/user` com uma sessão de menos de 24 h sem código (limite do Supabase, conferido no Auth local); mitigado pelo e-mail "senha trocada" e pelo JWT curto/MFA da onda 2. | **1 (feito no app)** · 2 (residual) |
 | APP-01 / INF-10 | Sem Content-Security-Policy nas páginas; cookie de sessão legível por JS (exigência do `@supabase/ssr` e do modo offline). Um XSS futuro levaria a sessão. | Já aplicada: `frame-ancestors`, `object-src`, `base-uri`, `form-action`. Em **Report-Only**: scripts, conexões, imagens e fontes só do site, do Supabase e do Sentry (0 violações em 10 telas). Nonce descartado: com o pré-render parcial só 6 de 18 scripts o recebiam. Cookie `Secure` na Vercel. | **1 (feito)** · 2 (aplicar) |
-| APP-03 | Login e link mágico sem CAPTCHA; o limite do Supabase enxerga o IP da Vercel (todos os usuários juntos). Link mágico repetido esgota a cota de e-mails. | Sai o link mágico (o código substitui); CAPTCHA (Turnstile) e regra no Vercel Firewall para `POST /login`. | **1 (link sai)** · 2 (CAPTCHA) |
+| APP-03 | Login e link mágico sem CAPTCHA; o limite do Supabase enxerga o IP da Vercel (todos os usuários juntos). Link mágico repetido esgota a cota de e-mails. | Sai o link mágico da tela e o pedido de código responde igual sempre (sem enumeração). **Não mitigado ainda:** `/auth/v1/otp` e `/recover` seguem abertos com a chave pública, e o limite de verificação de código conta o IP da Vercel. CAPTCHA (Turnstile) e regra no Vercel Firewall. | **1 (parcial)** · 2 (CAPTCHA) |
 | APP-04 / DB-02 | Aprovar TV por código de 6 dígitos: phishing ("aprova essa TV: link") ou erro de digitação aprovam o aparelho de outra pessoa, que passa a ver o painel (nomes) por tempo indeterminado. Limite por IP contornável com IPv6. | Mostrar há quanto tempo o pedido foi feito e recusar pedido velho; push ao engenheiro quando uma TV entra; limite por /64; credencial "só painel" com validade. | 2 |
 | INF-03 | Banco de produção: SSL **não** obrigatório e conexões diretas liberadas para `0.0.0.0/0`. A senha do Postgres é a única barreira (ignora RLS). | Ligar "Enforce SSL" e restringir as redes (o app usa só a API). | 1 (painel) |
 | INF-04 | Falha nos envios (e-mail/push de aviso) e no cron fica invisível: ninguém confere a resposta do processador nem os jobs. | Registro do último processamento e alerta; Sentry configurado em prod. | 2 |
@@ -46,7 +46,7 @@ Legenda da origem: **DB** banco · **APP** aplicação e acesso · **INF** infra
 
 | ID | Achado | Correção | Onda |
 |---|---|---|---|
-| DB-03 | `usuario.nome` editável pelo próprio usuário, sem limite; o histórico mostra o nome atual (o almoxarife pode se renomear como a engenheira). | Nome só pelo engenheiro (o usuário não edita), 2 a 80 caracteres. | **1 (feito)** |
+| DB-03 | `usuario.nome` editável pelo próprio usuário, sem limite; o histórico mostra o nome atual (o almoxarife pode se renomear como a engenheira). | O usuário não edita o próprio nome; até 120 caracteres. Corrigir o nome de um login hoje só pelo administrador; RPC do engenheiro com log na onda 2. | **1 (feito)** · 2 (RPC) |
 | DB-04 | Consulta restrita de empreiteira vê os nomes de todos os logins da obra. | Restringir à própria empresa. | **1 (feito)** |
 | DB-05 | `inscricao_push` sem limite de tamanho nem de quantidade (amplificação de envios). | Tamanhos e no máximo 10 por usuário. | **1 (feito)** |
 | DB-06 | Visibilidade e desconto seguem a empresa **atual** da pessoa (troca no meio do dia com ferramenta na mão). | Barrar a troca de empresa com posse aberta. | 2 |
@@ -117,9 +117,20 @@ Legenda da origem: **DB** banco · **APP** aplicação e acesso · **INF** infra
    modelos de e-mail com o código (`{{ .Token }}`), **SMTP próprio (Resend)** — sem ele o código só chega aos membros
    da organização do Supabase (INF-07).
 
+### Revisão independente da onda 1
+
+Um revisor separado leu o diff inteiro. Corrigido antes do PR:
+- **Enumeração pelo pedido de código:** o segundo pedido em 60 s (ou a falha de envio) só acontece
+  para quem tem login; agora a tela segue para o código em qualquer caso.
+- **Senha provisória:** a marca "provisória" é lida do cadastro (não do token antigo) e salvar a
+  senha derruba as outras sessões (quem viu a senha provisória e entrou antes).
+- Tela do código sem erro antigo nem piscada; limites de tamanho com mensagem clara nas telas de
+  cadastro; o histórico da obra guarda o nome de quem alterou; `/api/csp` só aceita relatório
+  pequeno, do tipo certo, e registra uma linha limpa.
+
 ### Onda 2 — antes de abrir para várias obras
 
-CSP aplicada (sai do Report-Only), CAPTCHA no login, TV com pedido recente + aviso ao engenheiro, monitor de envios e
+CSP aplicada (sai do Report-Only), CAPTCHA no login e na recuperação, JWT de 15 min e MFA para o engenheiro (fecha o residual do APP-02), RPC para o engenheiro corrigir o nome de um login, TV com pedido recente + aviso ao engenheiro, monitor de envios e
 Sentry, teste de restauração e decisão de PITR, trocar QR perdido, retenção completa, limite de inatividade da sessão,
 dados offline com validade, senha provisória com validade, troca de empresa com posse aberta barrada, isolamento do
 agente no Linux.

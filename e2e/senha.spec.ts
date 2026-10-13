@@ -110,6 +110,18 @@ test.describe('senha pelo código do e-mail', () => {
     await expect(page.getByText(/Se houver acesso para/)).toBeVisible()
   })
 
+  test('pedir o código duas vezes não revela que o e-mail tem login', async ({ page, request }) => {
+    const email = await criarLogin(request, 'duas-vezes')
+    for (let vez = 0; vez < 2; vez++) {
+      await page.goto('/recuperar-senha')
+      await page.getByLabel('E-mail').filter({ visible: true }).fill(email)
+      await page.getByRole('button', { name: 'Enviar código' }).click()
+      // O 2º pedido cai no limite de 1 por minuto do Auth, mas a tela é a mesma.
+      await expect(page.getByLabel('Código do e-mail')).toBeVisible()
+      await expect(page.getByText(/Se houver acesso para/)).toBeVisible()
+    }
+  })
+
   test('trocar a senha na Conta também pede o código do e-mail', async ({ page, request }) => {
     const email = await criarLogin(request, 'trocar')
     await entrarCom(page, email, 'senha-antiga-123')

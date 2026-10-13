@@ -6,7 +6,6 @@ import {
   limparCodigo,
   mensagemErroCodigo,
   mensagemErroNovaSenha,
-  mensagemErroPedirCodigo,
   provouCodigoRecente,
   validarNovaSenha,
 } from '@/lib/dominio/senha'
@@ -44,13 +43,10 @@ export async function pedirCodigo(_: EstadoRecuperar, form: FormData): Promise<E
       .toLowerCase()
   if (!EMAIL.test(email)) return { passo: 'email', email, erro: 'Informe um e-mail válido.' }
 
-  // O Auth responde igual exista ou não o login: a tela não revela quem tem acesso.
+  // Sempre segue para o código, com ou sem erro: limite de envio (só acontece para quem tem
+  // login) ou falha de e-mail revelariam quem tem acesso. Registra só o código do erro.
   const { error } = await supabase.auth.resetPasswordForEmail(email)
-  if (error) {
-    // Registra só o código do erro, nunca o e-mail.
-    console.error('Pedido de código falhou:', error.code ?? error.status)
-    return { passo: 'email', email, erro: mensagemErroPedirCodigo(error) }
-  }
+  if (error) console.error('Pedido de código falhou:', error.code ?? error.status)
   return { passo: 'codigo', email }
 }
 

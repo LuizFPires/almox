@@ -15,13 +15,17 @@ declare
   antes jsonb := to_jsonb(old);
   depois jsonb := to_jsonb(new);
   coluna text;
+  v_usuario public.usuario;
 begin
+  -- Como privado.registrar_alteracoes: guarda o nome (legível se a pessoa sair da obra).
+  select * into v_usuario from public.usuario where id = (select auth.uid());
   foreach coluna in array array['nome', 'endereco', 'ativa', 'encerrada_em'] loop
     if (antes ->> coluna) is distinct from (depois ->> coluna) then
-      insert into public.alteracao (obra_id, tabela, registro_id, campo, de, para, usuario_id)
+      insert into public.alteracao
+        (obra_id, tabela, registro_id, campo, de, para, usuario_id, usuario_nome)
       values (
         new.id, 'obra', new.id, coluna, antes ->> coluna, depois ->> coluna,
-        (select id from public.usuario where id = (select auth.uid()))
+        v_usuario.id, nullif(v_usuario.nome, '')
       );
     end if;
   end loop;

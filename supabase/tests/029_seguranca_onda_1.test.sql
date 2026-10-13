@@ -1,7 +1,7 @@
 -- Segurança · onda 1: colunas da obra, nome do login, logins visíveis à consulta restrita,
 -- inscrições de notificação e limites de tamanho.
 begin;
-select plan(15);
+select plan(16);
 
 -- DB-01 · obra: engenheiro só muda nome e endereço; a mudança vai para o histórico.
 select ok(has_column_privilege('authenticated', 'public.obra', 'nome', 'UPDATE'), 'nome da obra editável');
@@ -24,6 +24,11 @@ select is(
   (select para from public.alteracao where tabela = 'obra' and campo = 'endereco'
     and registro_id = 'a0000000-0000-4000-8000-000000000001'),
   'Rua Nova, 10', 'mudança de endereço registrada no histórico'
+);
+select is(
+  (select usuario_nome from public.alteracao where tabela = 'obra' and campo = 'endereco'
+    and registro_id = 'a0000000-0000-4000-8000-000000000001'),
+  'Helena Duarte', 'o histórico guarda quem alterou'
 );
 
 -- DB-03 · o próprio usuário não troca o nome do login.

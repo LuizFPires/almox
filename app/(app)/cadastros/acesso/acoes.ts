@@ -43,6 +43,7 @@ export async function darAcesso(_: EstadoAcesso, form: FormData): Promise<Estado
 
   const campos: EstadoAcesso['campos'] = {}
   if (nome.length < 2) campos.nome = 'Informe o nome.'
+  else if (nome.length > 120) campos.nome = 'Use até 120 caracteres.'
   const erroEmail = validarEmail(email, true)
   if (erroEmail) campos.email = erroEmail
   if (!PERFIS.includes(perfil)) campos.perfil = 'Escolha o perfil.'

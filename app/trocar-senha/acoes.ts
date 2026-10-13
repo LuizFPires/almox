@@ -18,9 +18,11 @@ export async function trocarSenha(_: EstadoSenha, form: FormData): Promise<Estad
   const id = claims?.claims?.sub
   if (!id) redirect('/login')
   // Aqui só a senha provisória do convite (a pessoa acabou de entrar com ela). Fora disso,
-  // trocar a senha exige o código do e-mail (/recuperar-senha).
-  const appMetadata = claims.claims.app_metadata as Record<string, unknown> | undefined
-  if (!appMetadata?.trocar_senha) redirect('/recuperar-senha')
+  // trocar a senha exige o código do e-mail (/recuperar-senha). Lê a marca do cadastro,
+  // não do token: uma sessão antiga ainda diria "provisória" por até 1 h depois da troca.
+  const admin = criarClienteAdmin()
+  const { data: atual } = await admin.auth.admin.getUserById(id)
+  if (!atual.user?.app_metadata?.trocar_senha) redirect('/recuperar-senha')
 
   const { error } = await supabase.auth.updateUser({ password: senha })
   if (error) {
@@ -34,7 +36,7 @@ export async function trocarSenha(_: EstadoSenha, form: FormData): Promise<Estad
 
   // Tira a marca de troca obrigatória (app_metadata só o administrador altera) e
   // renova a sessão para o token novo já vir sem ela.
-  const { error: erroAdmin } = await criarClienteAdmin().auth.admin.updateUserById(id, {
+  const { error: erroAdmin } = await admin.auth.admin.updateUserById(id, {
     app_metadata: { trocar_senha: false },
   })
   if (erroAdmin) return { erro: 'Senha trocada, mas não foi possível concluir. Entre de novo.' }
@@ -44,5 +46,7 @@ export async function trocarSenha(_: EstadoSenha, form: FormData): Promise<Estad
     await supabase.auth.signOut()
     redirect('/login?senha=trocada')
   }
+  // Quem entrou com a senha provisória em outro aparelho (ex.: quem a viu na tela) sai.
+  await supabase.auth.signOut({ scope: 'others' })
   redirect('/inicio')
 }

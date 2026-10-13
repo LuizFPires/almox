@@ -56,12 +56,6 @@ export function mensagemErroLogin(erro: ErroAuth): string {
   return 'E-mail ou senha incorretos.'
 }
 
-/** Mensagem ao pedir o código (o Supabase responde igual exista ou não o e-mail). */
-export function mensagemErroPedirCodigo(erro: ErroAuth): string {
-  if (muitasTentativas(erro)) return 'Muitos pedidos de código. Aguarde 1 minuto e peça de novo.'
-  return 'Não foi possível enviar o código. Aguarde alguns minutos e tente de novo.'
-}
-
 export function mensagemErroCodigo(erro: ErroAuth): string {
   if (muitasTentativas(erro)) return MENSAGEM_MUITAS_TENTATIVAS
   return 'Código inválido ou vencido. Confira o e-mail ou peça outro código.'

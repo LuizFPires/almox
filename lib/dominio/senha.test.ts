@@ -6,7 +6,6 @@ import {
   mensagemErroCodigo,
   mensagemErroLogin,
   mensagemErroNovaSenha,
-  mensagemErroPedirCodigo,
   provouCodigoRecente,
   validarNovaSenha,
 } from './senha'
@@ -82,10 +81,7 @@ describe('mensagens do acesso', () => {
     expect(mensagemErroNovaSenha({ code: 'same_password' })).toContain('diferente')
   })
 
-  it('código: excesso de pedidos e código errado', () => {
-    expect(mensagemErroPedirCodigo({ code: 'over_email_send_rate_limit', status: 429 })).toContain(
-      'Aguarde 1 minuto',
-    )
+  it('código errado ou vencido', () => {
     expect(mensagemErroCodigo({ code: 'otp_expired', status: 403 })).toContain('vencido')
   })
 })

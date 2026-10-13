@@ -25,7 +25,8 @@ export function FormRecuperar({ emailDaConta }: Props) {
   const [ultima, setUltima] = useState<'pedido' | 'salvo'>('pedido')
   const [outroCodigo, setOutroCodigo] = useState(false)
   const estado = ultima === 'salvo' ? salvo : pedido
-  const passo = outroCodigo ? 'email' : estado.passo
+  // Enquanto o pedido vai, fica no e-mail (não mostra o passo do código com o estado antigo).
+  const passo = outroCodigo || pedindo ? 'email' : estado.passo
   const email = estado.email ?? pedido.email ?? emailDaConta ?? ''
 
   const [codigo, setCodigo] = useState('')
@@ -87,7 +88,7 @@ export function FormRecuperar({ emailDaConta }: Props) {
         <>
           <p role="status" className="text-texto-2">
             Se houver acesso para <strong className="text-texto">{email}</strong>, o código chega em
-            instantes. Vale 15 minutos. Confira também o spam.
+            instantes. Vale 15 minutos. Confira também o spam. Pediu mais de um? Vale o último.
           </p>
           <Campo
             rotulo="Código do e-mail"
@@ -147,6 +148,7 @@ export function FormRecuperar({ emailDaConta }: Props) {
           onClick={() => {
             setCodigo('')
             setOutroCodigo(true)
+            setUltima('pedido')
           }}
           className="flex min-h-toque items-center justify-center font-semibold underline"
         >

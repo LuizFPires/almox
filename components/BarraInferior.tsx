@@ -43,11 +43,12 @@ type Props = {
   podeLancar: boolean
 }
 
+/** Presa ao pé da tela (sticky): não some ao rolar listas compridas. */
 export function BarraInferior({ ativa, podeLancar }: Props) {
   return (
     <nav
       aria-label="Navegação principal"
-      className="flex h-[calc(76px+env(safe-area-inset-bottom))] border-t border-borda bg-cartao pb-[max(0.5rem,env(safe-area-inset-bottom))]"
+      className="sticky bottom-0 z-20 mt-auto flex h-[calc(76px+env(safe-area-inset-bottom))] shrink-0 border-t border-borda bg-cartao pb-[max(0.5rem,env(safe-area-inset-bottom))]"
     >
       {ITENS.filter((item) => podeLancar || !item.lanca).map((item) => {
         const atual = item.chave === ativa

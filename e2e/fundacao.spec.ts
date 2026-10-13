@@ -62,6 +62,18 @@ test.describe('app no celular', () => {
     ])
   })
 
+  test('a barra inferior fica presa no pé da tela ao rolar', async ({ page }) => {
+    await page.goto('/lista')
+    await page.evaluate(() => window.scrollTo(0, 5000))
+    const barra = page.getByRole('navigation', { name: 'Navegação principal' })
+    await expect
+      .poll(async () => {
+        const caixa = await barra.boundingBox()
+        return caixa ? Math.round(caixa.y + caixa.height) : -1
+      })
+      .toBe(page.viewportSize()!.height)
+  })
+
   test('a barra inferior navega entre as abas', async ({ page }) => {
     await page.getByRole('link', { name: 'Estoque' }).click()
     await expect(page).toHaveURL(/\/estoque$/)

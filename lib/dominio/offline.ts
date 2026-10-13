@@ -91,38 +91,42 @@ export function possesComFila(
   fila: ItemFila[],
   pessoa: string,
 ): Record<string, { total: number; semQr: number }> {
-  // Peças de cada tipo, da mais antiga para a mais nova (o servidor manda nessa ordem).
-  const pecas: Record<string, ('qr' | 'manual')[]> = {}
-  const sair = (tipo: string, via: 'qr' | 'manual', n: number) => {
+  // Peças de cada tipo com a hora de saída. O servidor grava a retirada da fila com a hora do
+  // celular, então ela entra na ordem por essa hora (não sempre no fim).
+  type Peca = { via: 'qr' | 'manual'; desde: number; ordem: number }
+  const pecas: Record<string, Peca[]> = {}
+  let ordem = 0
+  const sair = (tipo: string, via: 'qr' | 'manual', n: number, desde: number) => {
     const lista = (pecas[tipo] ??= [])
-    for (let k = 0; k < n; k++) lista.push(via)
+    for (let k = 0; k < n; k++) lista.push({ via, desde, ordem: ordem++ })
+    lista.sort((a, b) => a.desde - b.desde || a.ordem - b.ordem)
   }
   const voltar = (tipo: string, comQr: boolean, n: number) => {
     const lista = pecas[tipo] ?? []
     for (let k = 0; k < n; k++) {
-      const i = comQr ? (lista.length > 0 ? 0 : -1) : lista.indexOf('manual')
+      const i = comQr ? (lista.length > 0 ? 0 : -1) : lista.findIndex((p) => p.via === 'manual')
       if (i < 0) break
       lista.splice(i, 1)
     }
   }
-  const daPessoa = dados.posses
-    .map((p, ordem) => ({ ...p, ordem }))
-    .filter((p) => p.pessoa === pessoa)
-    // Dados antigos do celular vêm agrupados e sem data: ficam na ordem recebida.
-    .sort((a, b) => (a.desde ?? '').localeCompare(b.desde ?? '') || a.ordem - b.ordem)
-  for (const p of daPessoa) sair(p.tipo, p.via, p.quantidade)
+  // Dados antigos do celular vêm agrupados e sem data: ficam na ordem recebida.
+  const hora = (iso: string | undefined) => (iso ? Date.parse(iso) : Number.NEGATIVE_INFINITY)
+  for (const p of dados.posses) {
+    if (p.pessoa === pessoa) sair(p.tipo, p.via, p.quantidade, hora(p.desde))
+  }
   const pendentes = fila
     .filter((i) => i.pessoa === pessoa && i.situacao === 'aguardando')
-    .sort((a, b) => a.quando.localeCompare(b.quando))
+    .sort((a, b) => Date.parse(a.quando) - Date.parse(b.quando))
   for (const item of pendentes) {
     for (const i of item.itens) {
-      if (item.tipo === 'retirada') sair(i.tipo, item.token ? 'qr' : 'manual', i.quantidade)
+      if (item.tipo === 'retirada')
+        sair(i.tipo, item.token ? 'qr' : 'manual', i.quantidade, Date.parse(item.quando))
       else if (item.tipo === 'devolucao') voltar(i.tipo, item.token !== null, i.quantidade)
     }
   }
   const r: Record<string, { total: number; semQr: number }> = {}
   for (const [tipo, lista] of Object.entries(pecas)) {
-    r[tipo] = { total: lista.length, semQr: lista.filter((v) => v === 'manual').length }
+    r[tipo] = { total: lista.length, semQr: lista.filter((p) => p.via === 'manual').length }
   }
   return r
 }

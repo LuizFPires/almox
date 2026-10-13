@@ -85,6 +85,8 @@ export async function salvarFerramenta(
       return { campos: { nome: 'Já existe ferramenta com esse nome.' }, valores }
     if (error.code === 'P0002') return { erro: error.message, valores }
     if (error.code === 'AL012') return { campos: { nome: error.message }, valores }
+    // Tela reaproveitada pelo "voltar" do navegador com outros dados: pede para abrir de novo.
+    if (error.code === 'AL013') return { erro: error.message, valores }
     return { erro: 'Não foi possível salvar. Nada foi gravado: tente de novo.', valores }
   }
 

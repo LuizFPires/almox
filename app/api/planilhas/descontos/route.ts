@@ -40,7 +40,8 @@ export async function GET() {
             .range(de, ate)
             .overrideTypes<LinhaDesconto[], { merge: false }>(),
         'Não foi possível carregar os descontos.',
-      ).then((linhas) => linhas.slice(0, LIMITE)),
+        LIMITE,
+      ),
       // O total a descontar vem de todos os abertos, não só das linhas listadas.
       buscarTodas(
         (de, ate) =>

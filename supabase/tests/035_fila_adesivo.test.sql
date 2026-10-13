@@ -1,6 +1,6 @@
 -- Plano · bloco 2, pontos 11 e 17: um adesivo pendente por pessoa; lote numa chamada.
 begin;
-select plan(6);
+select plan(8);
 
 delete from public.trabalho_impressao;
 insert into public.impressora (obra_id, nome, ip, porta, linguagem, ativa)
@@ -21,6 +21,18 @@ select is(
     (select valor::uuid from t_ctx where chave = 'p1'))::text,
   (select valor from t_ctx where chave = 't1'), 'pedir de novo devolve o mesmo trabalho da fila'
 );
+select is(
+  public.enfileirar_impressao('a0000000-0000-4000-8000-000000000001', 'adesivo', 'x', '^XA^PQ3^XZ', 3,
+    (select valor::uuid from t_ctx where chave = 'p1'))::text,
+  (select valor from t_ctx where chave = 't1'), 'reimprimir 3 cópias enquanto espera: mesmo trabalho...'
+);
+reset role;
+select is(
+  (select copias from public.trabalho_impressao where id = (select valor::uuid from t_ctx where chave = 't1')),
+  3, '...com as 3 cópias do pedido novo'
+);
+set local role authenticated;
+select set_config('request.jwt.claims', '{"sub":"b0000000-0000-4000-8000-000000000001","role":"authenticated"}', true);
 select is(
   public.enfileirar_adesivos('a0000000-0000-4000-8000-000000000001', jsonb_build_array(
     jsonb_build_object('pessoa', (select valor from t_ctx where chave = 'p1'), 'payload', '^XA^XZ'),

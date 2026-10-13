@@ -9,6 +9,9 @@ create table privado.operacao_cadastro (
   chave uuid primary key,
   obra_id uuid not null references public.obra (id),
   registro_id uuid not null,
+  -- Impressão dos dados enviados: a mesma chave com dados diferentes (tela reaproveitada pelo
+  -- "voltar" do navegador) não pode devolver o cadastro anterior como se fosse o novo.
+  assinatura text not null,
   criado_em timestamptz not null default now()
 );
 alter table privado.operacao_cadastro enable row level security;
@@ -73,7 +76,9 @@ as $$
 declare
   v_tipo uuid;
   v_locadora uuid;
-  v_antes uuid;
+  v_antes privado.operacao_cadastro;
+  v_assinatura text := md5(concat_ws('|', p_id, p_nome, p_icone, p_valor, p_alto_valor, p_propriedade,
+    p_locadora_id, p_locadora_nova, p_quantidade));
 begin
   if not privado.eh_engenheiro(p_obra) then
     raise exception 'Só o engenheiro cadastra ferramentas.' using errcode = '42501';
@@ -83,15 +88,19 @@ begin
   end if;
   -- Mesma chave: a operação já foi feita (resposta perdida e o engenheiro salvou de novo).
   -- Duas chamadas juntas com a mesma chave: a segunda espera a primeira na chave primária.
-  insert into privado.operacao_cadastro (chave, obra_id, registro_id)
-  values (p_chave, p_obra, coalesce(p_id, '00000000-0000-0000-0000-000000000000'))
+  insert into privado.operacao_cadastro (chave, obra_id, registro_id, assinatura)
+  values (p_chave, p_obra, coalesce(p_id, '00000000-0000-0000-0000-000000000000'), v_assinatura)
   on conflict (chave) do nothing;
   if not found then
-    select registro_id into v_antes from privado.operacao_cadastro where chave = p_chave and obra_id = p_obra;
-    if v_antes is null then
+    select * into v_antes from privado.operacao_cadastro where chave = p_chave;
+    if v_antes.obra_id is distinct from p_obra then
       raise exception 'Operação de outra obra.' using errcode = '42501';
     end if;
-    return v_antes;
+    if v_antes.assinatura <> v_assinatura then
+      raise exception 'Esta tela já foi usada para salvar. Abra o cadastro de novo para salvar outra ferramenta.'
+        using errcode = 'AL013';
+    end if;
+    return v_antes.registro_id;
   end if;
   if p_quantidade is null or p_quantidade < 0 or p_quantidade > 200 then
     raise exception 'Quantidade de 0 a 200.' using errcode = '22023';

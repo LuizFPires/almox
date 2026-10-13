@@ -1,36 +1,97 @@
 -- Plano de correção · bloco 2, ponto 7 (complemento): o histórico fica com a empresa da época.
 -- Quem via um lançamento era decidido pela empresa ATUAL da pessoa: ao trocar de empresa, a
 -- empreiteira antiga perdia o histórico do tempo em que a pessoa era dela, e a nova passava a
--- vê-lo. Os movimentos são imutáveis, então a empresa de cada data vem do registro de alterações
--- (`alteracao`, campo `empresa_id` da pessoa, gravado desde o cadastro): sem gravar nada novo
--- em `movimento` e sem supor a empresa de lançamentos antigos.
+-- vê-lo. Os movimentos são imutáveis, então a empresa de cada data vem dos períodos da pessoa
+-- em cada empresa, montados do registro de alterações (`alteracao`, gravado desde o cadastro):
+-- sem gravar nada novo em `movimento` e sem supor a empresa de lançamentos antigos.
 
--- Empresa da pessoa num momento: a última troca até ali; antes da primeira troca registrada,
--- a empresa de onde ela saiu; sem registro, a atual.
+-- Períodos de cada pessoa em cada empresa, montados do registro de alterações (cadastro e
+-- trocas) e mantidos por gatilho. Tabela com índice: a regra de leitura por linha fica barata.
+create table privado.pessoa_empresa_periodo (
+  pessoa_id uuid not null references public.pessoa (id) on delete cascade,
+  empresa_id uuid not null,
+  de timestamptz not null,
+  ate timestamptz,
+  primary key (pessoa_id, de)
+);
+create index pessoa_empresa_periodo_busca on privado.pessoa_empresa_periodo (pessoa_id, empresa_id, de);
+alter table privado.pessoa_empresa_periodo enable row level security;
+revoke all on privado.pessoa_empresa_periodo from public, anon, authenticated;
+
+-- Histórico existente: cada registro de empresa abre um período, que vai até o seguinte. O
+-- primeiro começa em -infinity (lançamento com hora do celular antes do cadastro). Sem registro,
+-- um período só, com a empresa atual.
+insert into privado.pessoa_empresa_periodo (pessoa_id, empresa_id, de, ate)
+select registro_id, para::uuid,
+       case when row_number() over w = 1 then '-infinity'::timestamptz else criado_em end,
+       lead(criado_em) over w
+  from public.alteracao
+ where tabela = 'pessoa' and campo = 'empresa_id' and para is not null
+   and registro_id in (select id from public.pessoa)
+window w as (partition by registro_id order by criado_em, id)
+on conflict do nothing;
+insert into privado.pessoa_empresa_periodo (pessoa_id, empresa_id, de, ate)
+select pe.id, pe.empresa_id, '-infinity', null
+  from public.pessoa pe
+ where not exists (select 1 from privado.pessoa_empresa_periodo pp where pp.pessoa_id = pe.id);
+
+create function privado.registrar_periodo_empresa() returns trigger
+language plpgsql
+security definer
+set search_path = ''
+as $$
+begin
+  if tg_op = 'INSERT' then
+    insert into privado.pessoa_empresa_periodo (pessoa_id, empresa_id, de, ate)
+    values (new.id, new.empresa_id, '-infinity', null);
+  elsif new.empresa_id is distinct from old.empresa_id then
+    update privado.pessoa_empresa_periodo set ate = now()
+     where pessoa_id = new.id and ate is null;
+    insert into privado.pessoa_empresa_periodo (pessoa_id, empresa_id, de, ate)
+    values (new.id, new.empresa_id, now(), null)
+    on conflict (pessoa_id, de) do update set empresa_id = excluded.empresa_id, ate = null;
+  end if;
+  return null;
+end;
+$$;
+revoke all on function privado.registrar_periodo_empresa() from public, anon, authenticated;
+create trigger pessoa_periodo_empresa
+  after insert or update of empresa_id on public.pessoa
+  for each row execute function privado.registrar_periodo_empresa();
+
+-- Empresa da pessoa num momento (o período que contém a data; sem período, a atual).
 create function privado.empresa_na_data(p_pessoa uuid, p_quando timestamptz) returns uuid
 language sql stable security definer
 set search_path = ''
 as $$
   select coalesce(
-    (select a.para::uuid from public.alteracao a
-      where a.tabela = 'pessoa' and a.registro_id = p_pessoa and a.campo = 'empresa_id'
-        and a.para is not null and a.criado_em <= p_quando
-      order by a.criado_em desc limit 1),
-    (select a.de::uuid from public.alteracao a
-      where a.tabela = 'pessoa' and a.registro_id = p_pessoa and a.campo = 'empresa_id'
-        and a.de is not null and a.criado_em > p_quando
-      order by a.criado_em limit 1),
+    (select pp.empresa_id from privado.pessoa_empresa_periodo pp
+      where pp.pessoa_id = p_pessoa and pp.de <= p_quando and (pp.ate is null or p_quando < pp.ate)
+      order by pp.de desc limit 1),
     (select pe.empresa_id from public.pessoa pe where pe.id = p_pessoa))
 $$;
 
--- O lançamento é visível: acesso à obra e, para consulta restrita, a empresa da época.
+-- O lançamento é visível: acesso à obra e, para consulta restrita, a pessoa era da empresa dela
+-- na data. Quem não é restrito não paga a busca do período.
 create function privado.ve_lancamento(p_obra uuid, p_pessoa uuid, p_quando timestamptz) returns boolean
-language sql stable security definer
+language plpgsql stable security definer
 set search_path = ''
 as $$
-  select privado.tem_acesso(p_obra)
-     and (privado.empresa_restrita(p_obra) is null
-          or privado.empresa_na_data(p_pessoa, p_quando) = privado.empresa_restrita(p_obra))
+declare
+  v_restrita uuid;
+begin
+  if not privado.tem_acesso(p_obra) then
+    return false;
+  end if;
+  v_restrita := privado.empresa_restrita(p_obra);
+  if v_restrita is null then
+    return true;
+  end if;
+  return exists (
+    select 1 from privado.pessoa_empresa_periodo pp
+     where pp.pessoa_id = p_pessoa and pp.empresa_id = v_restrita
+       and pp.de <= p_quando and (pp.ate is null or p_quando < pp.ate));
+end;
 $$;
 
 revoke all on function privado.empresa_na_data(uuid, timestamptz) from public, anon;

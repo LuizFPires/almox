@@ -267,8 +267,8 @@ begin
 end;
 $$;
 
--- Anonimização pelo id; aviso antigo sem id (sem desconto ligado) só pelo nome dentro da
--- própria empresa da pessoa.
+-- Anonimização pelo id; aviso antigo sem id (sem desconto ligado) só pelo nome, e só se a
+-- pessoa era da empresa do aviso na data dele (empresa_na_data vem na migration seguinte).
 create or replace function privado.anonimizar_pessoa(p_pessoa uuid) returns void
 language plpgsql
 security definer
@@ -284,13 +284,13 @@ begin
   update public.aviso a
      set itens = (select jsonb_agg(case when i ->> 'pessoaId' = v.id::text
                                           or (not i ? 'pessoaId' and i ->> 'pessoa' = v.nome
-                                              and a.empresa_id = v.empresa_id)
+                                              and a.empresa_id = privado.empresa_na_data(v.id, a.enviado_em))
                                         then i || jsonb_build_object('pessoa', 'Pessoa anonimizada')
                                         else i end order by n)
                     from jsonb_array_elements(a.itens) with ordinality as x(i, n))
    where a.obra_id = v.obra_id
      and (a.itens @> jsonb_build_array(jsonb_build_object('pessoaId', v.id::text))
-          or (a.empresa_id = v.empresa_id
+          or (a.empresa_id = privado.empresa_na_data(v.id, a.enviado_em)
               and a.itens @> jsonb_build_array(jsonb_build_object('pessoa', v.nome))));
   delete from public.trabalho_impressao where pessoa_id = v.id;
   update public.pessoa

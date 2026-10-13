@@ -110,7 +110,12 @@ export async function enfileirarLoteAdesivos(
     .eq('ativa', true)
     .maybeSingle()
   if (!impressora) return { ok: false, motivo: 'sem-impressora' }
-  const dados = await dadosAdesivos(obraId, pessoas)
+  let dados: Awaited<ReturnType<typeof dadosAdesivos>>
+  try {
+    dados = await dadosAdesivos(obraId, pessoas)
+  } catch {
+    return { ok: false, motivo: 'falhou' }
+  }
   const { data, error } = await supabase.rpc('enfileirar_adesivos', {
     p_obra: obraId,
     p_itens: dados.map((d) => ({

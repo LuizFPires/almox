@@ -11,12 +11,14 @@ type Resposta<T> = { data: T[] | null; error: unknown }
 export async function buscarTodas<T>(
   pagina: (de: number, ate: number) => PromiseLike<Resposta<T>>,
   mensagemErro: string,
+  maximo = Number.POSITIVE_INFINITY,
 ): Promise<T[]> {
   const todas: T[] = []
-  for (let de = 0; ; de += PAGINA) {
-    const { data, error } = await pagina(de, de + PAGINA - 1)
+  for (let de = 0; de < maximo; de += PAGINA) {
+    const { data, error } = await pagina(de, Math.min(de + PAGINA, maximo) - 1)
     if (error || !data) throw new Error(mensagemErro)
     todas.push(...data)
-    if (data.length < PAGINA) return todas
+    if (data.length < Math.min(PAGINA, maximo - de)) return todas
   }
+  return todas
 }

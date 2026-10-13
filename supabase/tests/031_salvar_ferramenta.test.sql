@@ -1,7 +1,7 @@
 -- Plano · bloco 2, pontos 6 e 15: cadastro de ferramenta numa transação, repetição sem
 -- duplicar e prefixo sempre livre.
 begin;
-select plan(10);
+select plan(11);
 
 create temp table t_ctx (chave text primary key, valor text) on commit drop;
 grant all on t_ctx to authenticated;
@@ -36,6 +36,11 @@ select is(
 select is(
   (select count(*)::int from public.unidade where tipo_id = (select valor::uuid from t_ctx where chave = 'tipo')),
   3, 'repetir não cria unidades de novo'
+);
+-- Tela reaproveitada pelo "voltar" com outra ferramenta: erro, não devolve a anterior.
+select throws_ok(
+  $$select pg_temp.salvar('11111111-1111-4111-8111-000000000002', 'Enxada nova', 3, 'EN')$$,
+  'AL013', null, 'mesma chave com outros dados: recusado'
 );
 -- Edição que adiciona 2 unidades, repetida: só 2 a mais.
 select pg_temp.salvar('11111111-1111-4111-8111-000000000003', 'Cunha de aço', 2, null,

@@ -146,7 +146,8 @@ export async function ultimosLancamentos(obraId: string): Promise<Lancamento[]> 
       tipo: m.tipo,
       via: m.via,
       quando: m.criado_em,
-      pessoa: m.pessoa?.nome ?? '',
+      // Sem nome: a pessoa passou para outra empresa (o lançamento é do tempo da sua).
+      pessoa: m.pessoa?.nome ?? 'Pessoa transferida',
       usuario: m.usuario?.nome ?? null,
       itens: m.itens.map((i) => ({
         nome: i.unidade?.tipo?.nome ?? '',
@@ -156,7 +157,7 @@ export async function ultimosLancamentos(obraId: string): Promise<Lancamento[]> 
     ...ocorrencias.data.map((o): Lancamento => ({
       tipo: 'ocorrencia',
       quando: o.criado_em,
-      pessoa: o.pessoa?.nome ?? '',
+      pessoa: o.pessoa?.nome ?? 'Pessoa transferida',
       usuario: o.usuario?.nome ?? null,
     })),
   ])

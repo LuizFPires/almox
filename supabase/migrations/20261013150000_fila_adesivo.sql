@@ -1,21 +1,29 @@
 -- Plano de correção · bloco 2, pontos 11 e 17: fila da impressora de etiquetas.
 -- Ponto 11: dois pedidos do mesmo adesivo (dois engenheiros, lote repetido) viravam dois
--- trabalhos na fila. Agora há no máximo um adesivo pendente por pessoa: pedir de novo devolve o
--- trabalho que já está na fila. Reimprimir de propósito continua valendo depois que ele sai.
+-- trabalhos na fila. Agora há no máximo um adesivo pendente por pessoa: pedir de novo atualiza
+-- o que está esperando (cópias e conteúdo do pedido novo). Reimprimir depois que saiu vale.
 -- Ponto 17: o lote mandava ~3 pedidos ao banco por pessoa; agora enfileira tudo de uma vez.
 
--- Duplicados que já estejam na fila: fica o mais antigo de cada pessoa.
-update public.trabalho_impressao t
-   set status = 'erro', erro = 'duplicado na fila (ficou o pedido mais antigo)', payload = '',
-       atualizado_em = now()
- where t.tipo = 'adesivo' and t.pessoa_id is not null and t.status in ('pendente', 'enviando')
-   and exists (
-     select 1 from public.trabalho_impressao o
-      where o.tipo = 'adesivo' and o.pessoa_id = t.pessoa_id and o.status in ('pendente', 'enviando')
-        and (o.criado_em, o.id) < (t.criado_em, t.id));
+-- Duplicados que já estejam na fila: fica o que o agente já está mandando, senão o mais antigo.
+-- A tabela fica travada até o índice existir (nenhum pedido novo entra no meio): num bloco só,
+-- que é uma transação.
+do $migracao$
+begin
+  lock table public.trabalho_impressao in share row exclusive mode;
+  update public.trabalho_impressao t
+     set status = 'erro', erro = 'duplicado na fila (ficou o outro pedido desta pessoa)', payload = '',
+         atualizado_em = now()
+   where t.tipo = 'adesivo' and t.pessoa_id is not null and t.status in ('pendente', 'enviando')
+     and exists (
+       select 1 from public.trabalho_impressao o
+        where o.tipo = 'adesivo' and o.pessoa_id = t.pessoa_id and o.status in ('pendente', 'enviando')
+          and ((o.status = 'enviando')::int, -extract(epoch from o.criado_em), o.id::text)
+            > ((t.status = 'enviando')::int, -extract(epoch from t.criado_em), t.id::text));
 
-create unique index trabalho_impressao_adesivo_unico on public.trabalho_impressao (pessoa_id)
-  where tipo = 'adesivo' and status in ('pendente', 'enviando');
+  create unique index trabalho_impressao_adesivo_unico on public.trabalho_impressao (pessoa_id)
+    where tipo = 'adesivo' and status in ('pendente', 'enviando');
+end
+$migracao$;
 
 create or replace function public.enfileirar_impressao(p_obra uuid, p_tipo text, p_descricao text,
   p_payload text, p_copias integer, p_pessoa uuid default null)
@@ -40,9 +48,13 @@ begin
   end if;
   insert into public.trabalho_impressao (obra_id, impressora_id, tipo, pessoa_id, descricao, payload, copias)
   values (p_obra, v_impressora, p_tipo, p_pessoa, coalesce(p_descricao, ''), p_payload, p_copias)
-  on conflict (pessoa_id) where tipo = 'adesivo' and status in ('pendente', 'enviando') do nothing
+  -- Já tem adesivo dessa pessoa esperando: vale o pedido novo (mais cópias, nome atualizado).
+  on conflict (pessoa_id) where tipo = 'adesivo' and status in ('pendente', 'enviando')
+  do update set payload = excluded.payload, copias = excluded.copias, descricao = excluded.descricao,
+                atualizado_em = now()
+     where public.trabalho_impressao.status = 'pendente'
   returning id into v_id;
-  -- Já tem adesivo dessa pessoa esperando na fila: é o mesmo pedido.
+  -- O agente já está mandando esse adesivo: é o mesmo pedido.
   if v_id is null then
     select id into v_id from public.trabalho_impressao
      where obra_id = p_obra and tipo = 'adesivo' and pessoa_id = p_pessoa

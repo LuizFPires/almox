@@ -21,6 +21,13 @@ describe('buscarTodas', () => {
     expect(pedidos).toHaveLength(Math.floor(total / PAGINA) + 1)
   })
 
+  it('para no máximo pedido, sem pedir além', async () => {
+    const { pagina, pedidos } = api(9000)
+    const linhas = await buscarTodas(pagina, 'erro', 5000)
+    expect(linhas).toHaveLength(5000)
+    expect(pedidos.at(-1)).toEqual([4000, 4999])
+  })
+
   it('falha com a mensagem quando a API dá erro', async () => {
     await expect(
       buscarTodas(async () => ({ data: null, error: new Error('x') }), 'Não carregou.'),

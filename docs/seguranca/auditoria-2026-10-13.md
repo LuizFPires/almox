@@ -34,7 +34,7 @@ Legenda da origem: **DB** banco · **APP** aplicação e acesso · **INF** infra
 |---|---|---|---|
 | DB-01 | Engenheiro faz `UPDATE` em **todas** as colunas de `obra` (inclusive `ativa`, `encerrada_em`), sem log. `ativa=false` desliga o encerramento e os avisos; `encerrada_em` antigo dispara a anonimização irreversível no dia 1º. Confirmado no banco local. | Só `nome` e `endereco` editáveis; gatilho de alterações em `obra`; teste pgTAP. | **1 (feito)** |
 | APP-02 / INF-06 | Trocar a senha só pede a sessão (celular desbloqueado na obra ⇒ conta tomada); `secure_password_change = false`; não derruba outras sessões. | Troca e recuperação **pelo código de 8 dígitos no e-mail** (como o revel), `secure_password_change = true`, salvar a senha encerra as outras sessões. | **1 (feito)** |
-| APP-01 / INF-10 | Sem Content-Security-Policy nas páginas; cookie de sessão legível por JS (exigência do `@supabase/ssr` e do modo offline). Um XSS futuro levaria a sessão. | CSP com nonce, primeiro em **Report-Only**; cookie `Secure`. | **1 (feito: Report-Only)** · 2 (aplicar) |
+| APP-01 / INF-10 | Sem Content-Security-Policy nas páginas; cookie de sessão legível por JS (exigência do `@supabase/ssr` e do modo offline). Um XSS futuro levaria a sessão. | Já aplicada: `frame-ancestors`, `object-src`, `base-uri`, `form-action`. Em **Report-Only**: scripts, conexões, imagens e fontes só do site, do Supabase e do Sentry (0 violações em 10 telas). Nonce descartado: com o pré-render parcial só 6 de 18 scripts o recebiam. Cookie `Secure` na Vercel. | **1 (feito)** · 2 (aplicar) |
 | APP-03 | Login e link mágico sem CAPTCHA; o limite do Supabase enxerga o IP da Vercel (todos os usuários juntos). Link mágico repetido esgota a cota de e-mails. | Sai o link mágico (o código substitui); CAPTCHA (Turnstile) e regra no Vercel Firewall para `POST /login`. | **1 (link sai)** · 2 (CAPTCHA) |
 | APP-04 / DB-02 | Aprovar TV por código de 6 dígitos: phishing ("aprova essa TV: link") ou erro de digitação aprovam o aparelho de outra pessoa, que passa a ver o painel (nomes) por tempo indeterminado. Limite por IP contornável com IPv6. | Mostrar há quanto tempo o pedido foi feito e recusar pedido velho; push ao engenheiro quando uma TV entra; limite por /64; credencial "só painel" com validade. | 2 |
 | INF-03 | Banco de produção: SSL **não** obrigatório e conexões diretas liberadas para `0.0.0.0/0`. A senha do Postgres é a única barreira (ignora RLS). | Ligar "Enforce SSL" e restringir as redes (o app usa só a API). | 1 (painel) |
@@ -107,7 +107,7 @@ Legenda da origem: **DB** banco · **APP** aplicação e acesso · **INF** infra
 2. Acesso no formato do revel: e-mail + senha com "olho"; **"Esqueci ou ainda não tenho senha"** com código de 8 dígitos
    no e-mail (15 min); **trocar a senha também pelo código**; salvar a senha encerra as outras sessões; mensagens claras
    para muitas tentativas e senha fraca; sai o link mágico.
-3. CSP em Report-Only e cookie `Secure`; CI com `permissions: contents: read`; agente só `https://`; URL da foto 10 min.
+3. CSP (parte aplicada + Report-Only, relatórios em `/api/csp`) e cookie `Secure`; CI com `permissions: contents: read`; agente só `https://`; URL da foto 10 min.
 
 **No painel (dono, com o passo a passo no PR):**
 1. GitHub: ruleset na `main`, secret scanning + push protection, Dependabot (INF-01).

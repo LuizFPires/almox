@@ -66,7 +66,7 @@ export async function buscarAvaria(obraId: string, id: string): Promise<DetalheA
       ? Promise.resolve(null)
       : supabase.storage
           .from('avarias')
-          .createSignedUrl(data.foto_path, 3600)
+          .createSignedUrl(data.foto_path, 600)
           .then((r) => r.data?.signedUrl ?? null),
     supabase
       .from('alteracao')

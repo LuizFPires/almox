@@ -1,6 +1,7 @@
 import type { Metadata } from 'next'
 import Link from 'next/link'
 import { notFound } from 'next/navigation'
+import { Suspense } from 'react'
 import { BarraInferior } from '@/components/BarraInferior'
 import { Cabecalho } from '@/components/Cabecalho'
 import { Cartao } from '@/components/Cartao'
@@ -47,7 +48,6 @@ export default async function PaginaFicha({ params, searchParams }: PageProps<'/
     lanca ? identificacaoValida(obraAtual.id, ident, id) : Promise.resolve(null),
   ])
   if (!pessoa) notFound()
-  const equipe = pessoa.empresa ? await equipeDaEmpresa(obraAtual.id, pessoa.empresa.id, id) : []
 
   const agora = new Date()
   const como = comoFoiAberta(via, ident)
@@ -191,28 +191,51 @@ export default async function PaginaFicha({ params, searchParams }: PageProps<'/
             <h2 id="t-equipe" className="text-[13px] font-bold tracking-[1.2px] text-texto-2">
               EQUIPE · {pessoa.empresa.nome.toLocaleUpperCase('pt-BR')}
             </h2>
-            {equipe.length === 0 ? (
-              <Cartao className="text-[15px] text-texto-2">Só ele nesta empresa.</Cartao>
-            ) : (
-              <Cartao className="flex flex-col divide-y divide-borda py-1">
-                {equipe.map((c) => (
-                  <Link
-                    key={c.id}
-                    href={`/pessoa/${c.id}?volta=${encodeURIComponent(`/pessoa/${pessoa.id}`)}`}
-                    className="flex min-h-toque items-center justify-between gap-3 py-2"
-                  >
-                    <span className="truncate font-semibold">{c.nome}</span>
-                    <span className="shrink-0 rounded-full bg-sutil px-2.5 py-0.5 text-[13px] font-semibold">
-                      {contarItens(c.itens)}
-                    </span>
-                  </Link>
-                ))}
-              </Cartao>
-            )}
+            {/* A equipe carrega à parte: a ficha e os botões de lançar não esperam por ela. */}
+            <Suspense
+              fallback={<Cartao className="text-[15px] text-texto-2">Carregando a equipe…</Cartao>}
+            >
+              <Equipe obraId={obraAtual.id} empresaId={pessoa.empresa.id} pessoaId={pessoa.id} />
+            </Suspense>
           </section>
         )}
       </main>
       <BarraInferior ativa="lista" podeLancar={lanca} />
+    </>
+  )
+}
+
+/** Colegas da mesma empresa, com quantos itens cada um tem agora. */
+async function Equipe({
+  obraId,
+  empresaId,
+  pessoaId,
+}: {
+  obraId: string
+  empresaId: string
+  pessoaId: string
+}) {
+  const equipe = await equipeDaEmpresa(obraId, empresaId, pessoaId)
+  return (
+    <>
+      {equipe.length === 0 ? (
+        <Cartao className="text-[15px] text-texto-2">Só ele nesta empresa.</Cartao>
+      ) : (
+        <Cartao className="flex flex-col divide-y divide-borda py-1">
+          {equipe.map((c) => (
+            <Link
+              key={c.id}
+              href={`/pessoa/${c.id}?volta=${encodeURIComponent(`/pessoa/${pessoaId}`)}`}
+              className="flex min-h-toque items-center justify-between gap-3 py-2"
+            >
+              <span className="truncate font-semibold">{c.nome}</span>
+              <span className="shrink-0 rounded-full bg-sutil px-2.5 py-0.5 text-[13px] font-semibold">
+                {contarItens(c.itens)}
+              </span>
+            </Link>
+          ))}
+        </Cartao>
+      )}
     </>
   )
 }

@@ -25,7 +25,7 @@ test.describe('app no celular', () => {
       const bloco = page.getByRole('link', { name: rotulo }).filter({ visible: true }).first()
       await expect(bloco).toHaveAttribute('href', destino)
     }
-    await expect(page.getByRole('heading', { name: 'ÚLTIMOS LANÇAMENTOS' })).toBeVisible()
+    await expect(page.getByRole('heading', { name: 'REGISTRO DE MOVIMENTAÇÕES' })).toBeVisible()
 
     // Cores do Almox Design System: grafite no botão principal, canvas claro no fundo.
     await expect(lerQr).toHaveCSS('background-color', 'rgb(31, 41, 55)')
@@ -40,7 +40,7 @@ test.describe('app no celular', () => {
     }))
     expect(larguras.pagina).toBeLessThanOrEqual(larguras.tela)
 
-    await expect(page.getByRole('heading', { name: 'ÚLTIMOS LANÇAMENTOS' })).toBeVisible()
+    await expect(page.getByRole('heading', { name: 'REGISTRO DE MOVIMENTAÇÕES' })).toBeVisible()
     const alvos = page.locator('main a, main button, nav a, header a').filter({ visible: true })
     for (const alvo of await alvos.all()) {
       const caixa = await alvo.boundingBox()

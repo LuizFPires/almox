@@ -50,6 +50,9 @@ test.describe('cadastros do engenheiro', () => {
 
     const ferramenta = `Rompedor ${sufixo}`
     await page.goto('/cadastros/ferramenta/nova')
+    // Tela já interativa (o clique marca o ícone) antes de enviar o arquivo.
+    await page.locator('label').filter({ hasText: 'Martelete' }).first().click()
+    await expect(page.getByRole('radio', { name: 'Martelete' })).toBeChecked()
     // Ícone próprio: a imagem enviada vira PNG no Storage e fica escolhida na grade.
     await page.getByLabel('Escolher imagem do ícone').setInputFiles({
       name: 'rompedor.png',
@@ -90,9 +93,31 @@ test.describe('cadastros do engenheiro', () => {
     expect(imagem.headers()['content-type']).toBe('image/png')
   })
 
-  test('ícone de ajuda abre o passo a passo da impressora e da TV', async ({ page }) => {
+  test('busca geral acha pessoa, ferramenta e empresa sem acento', async ({ page }) => {
+    await entrarComo(page, 'engenheiro', '/inicio')
+    await page.goto('/cadastros/ferramentas')
+    const busca = page.getByRole('searchbox', { name: 'Buscar pessoa, ferramenta ou empresa' })
+    await busca.fill('eletrica lumen')
+    // Empresa e as pessoas dela aparecem, cada uma no seu grupo, mesmo estando na aba Ferramentas.
+    await expect(
+      page.getByRole('region', { name: 'Empresas' }).getByRole('link', { name: /Elétrica Lumen/ }),
+    ).toBeVisible()
+    await expect(
+      page.getByRole('region', { name: 'Pessoas' }).getByRole('link').first(),
+    ).toBeVisible()
+    await busca.fill('serra circ')
+    await page.getByRole('region', { name: 'Ferramentas' }).getByRole('link').first().click()
+    await page.waitForURL(/\/cadastros\/ferramenta\/[0-9a-f-]{36}$/)
+    await page.goBack()
+    await page.getByRole('searchbox').fill('xyzxyz')
+    await expect(page.getByText('Nada encontrado com “xyzxyz”.')).toBeVisible()
+  })
+
+  test('engrenagem abre o passo a passo da impressora e da TV', async ({ page }) => {
     await entrarComo(page, 'engenheiro', '/inicio')
     await page.goto('/cadastros/pessoas')
+    await page.getByRole('button', { name: /^Impressora, TV e planilha/ }).click()
+    await expect(page.getByRole('dialog', { name: 'Impressora, TV e planilha' })).toBeVisible()
     await page.getByRole('link', { name: 'Passo a passo: impressora e TV' }).click()
     await expect(page.getByRole('heading', { name: 'Impressora e TV' })).toBeVisible()
     for (const secao of [

@@ -1,6 +1,5 @@
 import type { Metadata } from 'next'
 import Link from 'next/link'
-import { BotaoNovo } from '@/components/Formulario'
 import { IconeInterface } from '@/components/IconeInterface'
 import { listarAcessos } from '@/lib/dados/acessos'
 import { rotuloPerfil } from '@/lib/dominio/permissoes'
@@ -14,7 +13,6 @@ export default async function PaginaAcessos() {
 
   return (
     <>
-      <BotaoNovo href="/cadastros/acesso/novo">Dar acesso</BotaoNovo>
       <p className="text-[13px] text-texto-2">Quem entra no Almox nesta obra</p>
       {acessos.map((a) => {
         const voce = a.usuario_id === usuario.id

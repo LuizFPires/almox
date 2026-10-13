@@ -1,7 +1,6 @@
 import type { Metadata } from 'next'
 import Link from 'next/link'
 import { Cartao } from '@/components/Cartao'
-import { BotaoNovo } from '@/components/Formulario'
 import { IconeFerramenta } from '@/components/IconeFerramenta'
 import { IconeInterface } from '@/components/IconeInterface'
 import { listarTipos } from '@/lib/dados/ferramentas'
@@ -17,7 +16,6 @@ export default async function PaginaFerramentas() {
 
   return (
     <>
-      <BotaoNovo href="/cadastros/ferramenta/nova">Nova ferramenta</BotaoNovo>
       <p className="text-[13px] text-texto-2">
         {tipos.length} {tipos.length === 1 ? 'tipo' : 'tipos'} · {totalUnidades} unidades
       </p>
@@ -48,8 +46,8 @@ export default async function PaginaFerramentas() {
                 )}
               </span>
               <span className="truncate text-[13px] text-texto-2">
-                {t.unidades.length} un. · {livres}{' '}
-                livres · {emUso} em uso{manutencao > 0 && ` · ${manutencao} manutenção`}
+                {t.unidades.length} un. · {livres} livres · {emUso} em uso
+                {manutencao > 0 && ` · ${manutencao} manutenção`}
               </span>
             </span>
             <span className="shrink-0 text-right text-sm font-bold tabular-nums">

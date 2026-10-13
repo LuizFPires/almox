@@ -149,7 +149,7 @@ export function FormFerramenta({ obraId, tipo, prefixosUsados, iconesProprios }:
       <div className="flex flex-1 flex-col gap-5 px-5 pt-2 pb-6">
         {tipo && <input type="hidden" name="id" value={tipo.id} />}
 
-        <fieldset className="flex flex-col gap-3">
+        <fieldset className="flex min-w-0 flex-col gap-3">
           <legend className="mb-1.5 text-sm font-semibold">Ícone</legend>
           <div className="flex gap-2">
             <label className="flex h-12 min-w-0 flex-1 items-center gap-2 rounded-botao border border-borda bg-cartao px-3 has-[:focus-visible]:outline-3 has-[:focus-visible]:outline-offset-3 has-[:focus-visible]:outline-foco">
@@ -160,7 +160,7 @@ export function FormFerramenta({ obraId, tipo, prefixosUsados, iconesProprios }:
                 value={filtroIcone}
                 onChange={(e) => setFiltroIcone(e.target.value)}
                 placeholder="Buscar ícone"
-                className="min-w-0 flex-1 bg-transparent text-base outline-none"
+                className="min-w-0 flex-1 bg-transparent text-base outline-none focus-visible:outline-none"
               />
             </label>
             <button
@@ -188,16 +188,18 @@ export function FormFerramenta({ obraId, tipo, prefixosUsados, iconesProprios }:
             </span>
           )}
           {erros.icone && <span className="text-sm font-semibold text-erro">{erros.icone}</span>}
-          {grupos.map((g) => (
-            <div key={g.titulo} className="flex flex-col gap-2">
-              <span className="text-[13px] font-bold tracking-[1.2px] text-texto-2 uppercase">
-                {g.titulo}
-              </span>
-              <div className="grid grid-cols-3 gap-2 min-[420px]:grid-cols-4">
-                {g.icones.map((chave) => opcao(chave))}
+          <div className="flex max-h-[22rem] flex-col gap-3 overflow-y-auto rounded-cartao bg-sutil p-2">
+            {grupos.map((g) => (
+              <div key={g.titulo} className="flex flex-col gap-2">
+                <span className="text-[13px] font-bold tracking-[1.2px] text-texto-2 uppercase">
+                  {g.titulo}
+                </span>
+                <div className="grid grid-cols-3 gap-2 min-[420px]:grid-cols-4">
+                  {g.icones.map((chave) => opcao(chave))}
+                </div>
               </div>
-            </div>
-          ))}
+            ))}
+          </div>
           {grupos.length === 0 && (
             <span className="text-sm text-texto-2">
               Nenhum ícone com “{filtroIcone.trim()}”. Use <b>Enviar ícone</b> com uma imagem da

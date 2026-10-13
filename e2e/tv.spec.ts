@@ -275,6 +275,7 @@ test.describe('painel da TV', () => {
     try {
       await entrarComo(page, 'engenheiro', '/inicio')
       await page.goto('/cadastros/pessoas')
+      await page.getByRole('button', { name: /^Impressora, TV e planilha/ }).click()
       await page.getByRole('link', { name: /Painel da TV/ }).click()
       await expect(page.getByRole('heading', { name: 'Painel da TV' })).toBeVisible()
 

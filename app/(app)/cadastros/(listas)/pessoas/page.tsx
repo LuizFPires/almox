@@ -1,7 +1,6 @@
 import type { Metadata } from 'next'
 import Link from 'next/link'
 import { Cartao } from '@/components/Cartao'
-import { BotaoNovo } from '@/components/Formulario'
 import { IconeImpressora } from '@/components/IconeImpressora'
 import { listarPessoas, type PessoaCadastro } from '@/lib/dados/pessoas'
 import { obterSessao } from '@/lib/sessao'
@@ -70,7 +69,6 @@ export default async function PaginaPessoas() {
 
   return (
     <>
-      <BotaoNovo href="/cadastros/pessoa/nova">Nova pessoa</BotaoNovo>
       <p className="text-[13px] text-texto-2">
         {ativas.length} {ativas.length === 1 ? 'pessoa ativa' : 'pessoas ativas'} nesta obra
       </p>

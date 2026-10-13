@@ -109,7 +109,10 @@ test.describe('histórico e auditoria', () => {
   test('almoxarife não abre o histórico', async ({ page }) => {
     await entrarComo(page, 'almoxarife', '/inicio')
     await expect(page.getByRole('link', { name: 'Histórico e auditoria' })).toHaveCount(0)
-    await expect(page.getByRole('button', { name: /^Gestão da obra/ })).toHaveCount(0)
+    // A gaveta do almoxarife só tem "Conectar TV".
+    await page.getByRole('button', { name: /^Gestão da obra/ }).click()
+    await expect(page.getByRole('link', { name: /Conectar TV/ })).toBeVisible()
+    await expect(page.getByRole('link', { name: /Histórico e auditoria/ })).toHaveCount(0)
     await page.goto('/historico')
     await page.waitForURL((u) => u.pathname === '/inicio')
     await page.goto('/metricas')

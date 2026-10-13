@@ -3,6 +3,7 @@ import { cookies } from 'next/headers'
 import { Suspense, type ReactNode } from 'react'
 import { COOKIE_TV, lerPainel } from '@/lib/dados/tv'
 import { PainelTv, Tela } from './PainelTv'
+import { Pareamento } from './Pareamento'
 import { TentarDeNovo } from './TentarDeNovo'
 
 export const metadata: Metadata = { title: 'Painel · Almox' }
@@ -21,19 +22,14 @@ async function Conteudo({ searchParams }: Pick<PageProps<'/tv'>, 'searchParams'>
   const token = (await cookies()).get(COOKIE_TV)?.value
   const resultado = await lerPainel(token)
   if (resultado.tipo === 'nao_autorizado') {
+    // Sem credencial: a TV mostra um código e espera alguém aprovar no celular.
     return (
       <Moldura obra="">
-        {/* Se foi uma falha passageira, a TV volta sozinha. */}
-        <TentarDeNovo emMs={5 * 60_000} />
-        <span className="flex flex-col items-center gap-4 text-center">
-          <span className="text-4xl font-bold text-tv-texto">
-            {codigo === 'invalido' ? 'Código vencido ou já usado' : 'Dispositivo não autorizado'}
-          </span>
-          <span className="max-w-[900px] text-2xl">
-            Em Cadastros › Impressora, o engenheiro toca em “Conectar uma TV” no mini PC e abre o
-            endereço que aparece neste navegador. O código vale 10 minutos e uma vez.
-          </span>
-        </span>
+        <Pareamento
+          aviso={
+            codigo === 'invalido' ? 'O endereço antigo venceu. Use o código abaixo.' : undefined
+          }
+        />
       </Moldura>
     )
   }

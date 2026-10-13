@@ -5,6 +5,7 @@ import { CirculoFerramenta } from '@/components/IconeFerramenta'
 import { ehIcone } from '@/components/icones-ferramenta'
 import { Marca } from '@/components/Marca'
 import { Relogio } from '@/components/Relogio'
+import { Pareamento } from './Pareamento'
 import {
   deslocamentoMaximo,
   empacotar,
@@ -55,13 +56,8 @@ export function PainelTv({ inicial }: { inicial: DadosPainel }) {
   if (naoAutorizado) {
     return (
       <Tela obra={painel.obra} titulo="" diferencaMs={diferencaMs}>
-        <p className="flex h-full flex-col items-center justify-center gap-4 text-center">
-          <span className="text-4xl font-bold">Dispositivo não autorizado</span>
-          <span className="max-w-[900px] text-2xl text-tv-texto-2">
-            O mini PC foi revogado ou a TV foi conectada em outro lugar. Peça ao engenheiro para
-            conectar esta TV de novo em Cadastros › Impressora.
-          </span>
-        </p>
+        {/* Desconectada (ou conectada em outro lugar): já mostra o código para conectar de novo. */}
+        <Pareamento aviso="Esta TV foi desconectada." />
       </Tela>
     )
   }

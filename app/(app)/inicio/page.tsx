@@ -81,6 +81,16 @@ export default async function PaginaInicio() {
   const engenheiro = obraAtual.perfil === 'engenheiro'
   // Quem recebe aviso (PRD §5): engenheiro e a consulta da empreiteira.
   const gestao: ItemGaveta[] = [
+    ...(lanca
+      ? [
+          {
+            href: '/conectar-tv',
+            icone: <IconeInterface nome="dashboard" tamanho={20} />,
+            titulo: 'Conectar TV',
+            detalhe: 'Código que aparece na TV do almoxarifado',
+          },
+        ]
+      : []),
     ...(engenheiro || restrita
       ? [
           {
@@ -136,7 +146,7 @@ export default async function PaginaInicio() {
         <SeloPerfil perfil={obraAtual.perfil} empresa={obraAtual.empresa?.nome} />
         {gestao.length > 0 && (
           <Gaveta
-            rotulo="Gestão da obra: avisos, a descontar, histórico e métricas"
+            rotulo="Gestão da obra: TV, avisos, a descontar, histórico e métricas"
             icone={<IconeInterface nome="dashboard" tamanho={22} />}
             titulo="Gestão da obra"
             itens={gestao}

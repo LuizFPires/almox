@@ -65,3 +65,43 @@ export const OPCOES_COOKIE_TV = {
   path: '/tv',
   maxAge: 400 * 24 * 60 * 60, // o máximo que os navegadores aceitam
 }
+
+/** Cookie com o segredo do pedido de pareamento (a TV guarda; só com ele recebe a credencial). */
+export const COOKIE_PEDIDO_TV = 'almox_tv_pedido'
+
+export const OPCOES_COOKIE_PEDIDO = {
+  httpOnly: true,
+  sameSite: 'lax' as const,
+  path: '/tv',
+  maxAge: 15 * 60, // o pedido vale 10 minutos
+}
+
+/** Segredo do pedido: 64 hex gerados no servidor. */
+export function segredoValido(segredo: string | undefined | null): segredo is string {
+  return typeof segredo === 'string' && /^[0-9a-f]{64}$/.test(segredo)
+}
+
+export type Pareamento =
+  | { estado: 'esperando'; codigo: string }
+  | { estado: 'aprovado'; token: string }
+  | { estado: 'vencido' }
+  | { estado: 'erro' }
+
+/** A TV pede um código de 6 dígitos para mostrar na tela. */
+export async function pedirPareamento(segredo: string): Promise<string | null> {
+  const { data, error } = await clienteAnonimo().rpc('pedir_pareamento_tv', { p_segredo: segredo })
+  if (error || typeof data !== 'string' || !/^[0-9]{6}$/.test(data)) return null
+  return data
+}
+
+/** A TV pergunta se alguém aprovou o código; aprovado, vem a credencial (uma vez só). */
+export async function consultarPareamento(segredo: string): Promise<Pareamento> {
+  const { data, error } = await clienteAnonimo().rpc('consultar_pareamento_tv', {
+    p_segredo: segredo,
+  })
+  if (error || !data) return { estado: 'erro' }
+  const r = data as { estado?: string; codigo?: string; token?: string }
+  if (r.estado === 'aprovado' && tokenValido(r.token)) return { estado: 'aprovado', token: r.token }
+  if (r.estado === 'esperando' && r.codigo) return { estado: 'esperando', codigo: r.codigo }
+  return { estado: 'vencido' }
+}

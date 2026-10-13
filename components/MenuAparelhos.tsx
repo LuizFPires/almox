@@ -50,8 +50,14 @@ export function MenuAparelhos({ pronta, situacao }: Props) {
           tom: pronta ? 'ok' : 'erro',
         },
         {
-          href: '/cadastros/painel-tv',
+          href: '/conectar-tv',
           icone: <IconeInterface nome="dashboard" tamanho={20} />,
+          titulo: 'Conectar TV',
+          detalhe: 'Código que aparece na TV',
+        },
+        {
+          href: '/cadastros/painel-tv',
+          icone: <IconeInterface nome="clock" tamanho={20} />,
           titulo: 'Painel da TV',
           detalhe: 'Tempo por página e rolagem',
         },

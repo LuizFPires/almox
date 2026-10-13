@@ -26,8 +26,14 @@ export function BotaoImprimirA4({
 
   async function marcar() {
     setEtapa('marcando')
-    const { ok } = await marcarImpressos(pessoas)
-    setEtapa(ok ? 'marcado' : 'erro')
+    // Falha de rede ou do servidor rejeita a ação: volta a deixar tocar de novo (marcar de
+    // novo não duplica nada). Sessão vencida segue o redirecionamento do próprio Next.
+    try {
+      const resposta = await marcarImpressos(pessoas)
+      setEtapa(resposta?.ok ? 'marcado' : 'erro')
+    } catch {
+      setEtapa('erro')
+    }
   }
 
   if (etapa === 'marcado') {

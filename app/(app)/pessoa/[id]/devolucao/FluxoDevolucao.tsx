@@ -1,7 +1,7 @@
 'use client'
 
 import Link from 'next/link'
-import { useState, useTransition } from 'react'
+import { useEffect, useRef, useState, useTransition } from 'react'
 import { Botao } from '@/components/Botao'
 import { Cabecalho } from '@/components/Cabecalho'
 import { CartaoPessoaLancamento } from '@/components/CartaoPessoaLancamento'
@@ -122,6 +122,13 @@ export function FluxoDevolucao(props: Props) {
     props
   const [dev, setDev] = useState<Record<string, number>>({})
   const [avarias, setAvarias] = useState<Record<string, (FotoFeita | null)[]>>({})
+  // Ao sair da tela (concluída ou abandonada), libera as prévias da memória. As fotos no Storage
+  // ficam: a devolução concluída precisa delas, e as não usadas o banco apaga em 24 h.
+  const previas = useRef<string[]>([])
+  useEffect(() => {
+    previas.current = Object.values(avarias).flatMap((l) => l.flatMap((a) => (a ? [a.previa] : [])))
+  }, [avarias])
+  useEffect(() => () => previas.current.forEach((url) => URL.revokeObjectURL(url)), [])
   const [fotografando, setFotografando] = useState<{ tipoId: string; indice: number } | null>(null)
   const [falha, setFalha] = useState<FalhaDevolucao | null>(null)
   const [chave] = useState(() => crypto.randomUUID())

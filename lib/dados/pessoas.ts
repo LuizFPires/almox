@@ -10,12 +10,14 @@ export type PessoaCadastro = {
   funcao: string
   matricula: string
   ativa: boolean
+  /** Adesivo já impresso em folha A4. */
+  adesivo_impresso_em: string | null
   empresa: { id: string; nome: string; cor: string } | null
   posses: { unidade_id: string }[]
 }
 
 const CAMPOS =
-  'id, nome, nome_capacete, funcao, matricula, ativa, ' +
+  'id, nome, nome_capacete, funcao, matricula, ativa, adesivo_impresso_em, ' +
   'empresa:empresa!pessoa_empresa_id_obra_id_fkey (id, nome, cor), ' +
   'posses:posse!posse_pessoa_id_obra_id_fkey (unidade_id)'
 
@@ -41,8 +43,8 @@ export async function listarPessoas(obraId: string): Promise<PessoaCadastro[]> {
 }
 
 /**
- * Pessoas ativas que nunca tiveram adesivo mandado para a impressora (da obra ou de uma
- * empresa): o lote de adesivos imprime só estas, então repetir o lote não imprime de novo.
+ * Pessoas ativas que nunca tiveram adesivo mandado para a impressora nem impresso em A4 (da
+ * obra ou de uma empresa): o lote imprime só estas, então repetir o lote não imprime de novo.
  */
 export async function pessoasSemAdesivo(obraId: string, empresaId?: string | null) {
   const supabase = await criarClienteServidor()
@@ -61,7 +63,11 @@ export async function pessoasSemAdesivo(obraId: string, empresaId?: string | nul
     if (data.length < PAGINA) break
   }
   return (await listarPessoas(obraId)).filter(
-    (p) => p.ativa && !comAdesivo.has(p.id) && (!empresaId || p.empresa?.id === empresaId),
+    (p) =>
+      p.ativa &&
+      !p.adesivo_impresso_em &&
+      !comAdesivo.has(p.id) &&
+      (!empresaId || p.empresa?.id === empresaId),
   )
 }
 

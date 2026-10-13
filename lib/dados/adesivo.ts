@@ -24,6 +24,30 @@ export async function dadosAdesivo(
   }
 }
 
+/** Até 200 adesivos de uma vez, para a folha A4 (só o engenheiro da obra; sem quem é de outra obra). */
+export async function dadosAdesivos(
+  obraId: string,
+  pessoas: string[],
+): Promise<(DadosAdesivo & { pessoaId: string })[]> {
+  if (pessoas.length === 0) return []
+  const supabase = await criarClienteServidor()
+  const { data, error } = await supabase.rpc('dados_adesivos', {
+    p_obra: obraId,
+    p_pessoas: pessoas,
+  })
+  if (error) throw new Error('Não foi possível gerar os adesivos.')
+  return data.map((d) => ({
+    pessoaId: d.pessoa_id,
+    token: d.token,
+    nomeCapacete: d.nome_capacete,
+    nomeCompleto: d.nome,
+    funcao: d.funcao,
+    empresa: d.empresa,
+    obra: d.obra,
+    matricula: d.matricula,
+  }))
+}
+
 export type MotivoFalha = 'sem-impressora' | 'sem-pessoa' | 'falhou'
 
 export const MENSAGEM_FALHA: Record<MotivoFalha, string> = {

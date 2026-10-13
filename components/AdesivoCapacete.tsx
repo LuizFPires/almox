@@ -44,7 +44,7 @@ export function AdesivoCapacete(p: Props) {
       aria-label={`Prévia do adesivo de ${p.nomeCapacete}`}
       className={`relative shrink-0 overflow-hidden bg-white text-[#1F2937] ${
         p.impressao
-          ? 'm-0 break-inside-avoid outline-[0.2mm] outline-[#9CA3AF] outline-dashed'
+          ? 'm-0 break-inside-avoid border-[0.2mm] border-dashed border-[#9CA3AF]'
           : 'mx-auto rounded-cartao shadow-md'
       }`}
       style={{ width: m(l.largura), height: m(l.altura) }}

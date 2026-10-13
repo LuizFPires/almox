@@ -54,9 +54,27 @@ export default async function PaginaImprimir({
           <AdesivoCapacete {...adesivo} />
           <span className="text-[13px] text-texto-2">Adesivo do capacete · 60 × 80 mm</span>
         </div>
-        <div className="px-5">
-          <CartaoImpressora impressora={impressora} agente={agente} href={telaImpressora} />
-        </div>
+        {!trabalho && (
+          <div className="flex flex-col gap-1.5 px-5">
+            <Link
+              href={`/cadastros/adesivos/a4?pessoas=${id}&volta=${encodeURIComponent(aqui)}`}
+              className={`flex min-h-14 items-center justify-center rounded-cartao px-5 text-lg font-bold ${
+                impressora ? 'border border-borda bg-cartao text-texto' : 'bg-amarelo text-escuro'
+              }`}
+            >
+              Imprimir em folha A4
+            </Link>
+            <span className="text-center text-[13px] text-texto-2">
+              Na impressora comum da obra; recorte na linha e cole.
+            </span>
+          </div>
+        )}
+        {/* Impressora de etiquetas (mini PC): só quando a obra tem uma. */}
+        {impressora && (
+          <div className="px-5">
+            <CartaoImpressora impressora={impressora} agente={agente} href={telaImpressora} />
+          </div>
+        )}
 
         {trabalho ? (
           <>
@@ -103,13 +121,11 @@ export default async function PaginaImprimir({
             </div>
           </>
         ) : (
-          <div className="mt-auto">
-            <FormImprimir
-              pessoaId={id}
-              volta={volta}
-              escolherImpressora={impressora ? null : telaImpressora}
-            />
-          </div>
+          impressora && (
+            <div className="mt-auto">
+              <FormImprimir pessoaId={id} volta={volta} escolherImpressora={null} />
+            </div>
+          )
         )}
       </main>
     </>

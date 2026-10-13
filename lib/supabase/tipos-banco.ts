@@ -1038,6 +1038,7 @@ export type Database = {
       }
       pessoa: {
         Row: {
+          adesivo_impresso_em: string | null
           anonimizada_em: string | null
           ativa: boolean
           criado_em: string
@@ -1052,6 +1053,7 @@ export type Database = {
         }
         ComputedFields: never
         Insert: {
+          adesivo_impresso_em?: string | null
           anonimizada_em?: string | null
           ativa?: boolean
           criado_em?: string
@@ -1065,6 +1067,7 @@ export type Database = {
           qr_token?: string
         }
         Update: {
+          adesivo_impresso_em?: string | null
           anonimizada_em?: string | null
           ativa?: boolean
           criado_em?: string
@@ -1436,6 +1439,19 @@ export type Database = {
           token: string
         }[]
       }
+      dados_adesivos: {
+        Args: { p_obra: string; p_pessoas: string[] }
+        Returns: {
+          empresa: string
+          funcao: string
+          matricula: string
+          nome: string
+          nome_capacete: string
+          obra: string
+          pessoa_id: string
+          token: string
+        }[]
+      }
       dados_envio: { Args: { p_envio: string }; Returns: Json }
       dados_offline: { Args: { p_obra: string }; Returns: Json }
       definir_indenizacao: { Args: { p_avaria: string; p_valor?: number }; Returns: undefined }
@@ -1509,6 +1525,7 @@ export type Database = {
           usuario_id: string
         }[]
       }
+      marcar_adesivos_impressos: { Args: { p_obra: string; p_pessoas: string[] }; Returns: number }
       marcar_fotos_apagadas: { Args: { p_caminhos: string[] }; Returns: number }
       metricas_piloto: { Args: { p_ate: string; p_de: string; p_obra: string }; Returns: Json }
       painel_tv: { Args: { p_token: string; p_versao?: string }; Returns: Json }

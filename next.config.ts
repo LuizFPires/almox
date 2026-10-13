@@ -1,4 +1,5 @@
 import type { NextConfig } from 'next'
+import { CSP_APLICADA, montarCspCompleta } from './lib/seguranca/csp'
 
 const nextConfig: NextConfig = {
   cacheComponents: true,
@@ -30,6 +31,16 @@ const nextConfig: NextConfig = {
             value: 'camera=(self), microphone=(), geolocation=(), payment=(), usb=()',
           },
           { key: 'Strict-Transport-Security', value: 'max-age=63072000; includeSubDomains' },
+          // A parte da CSP que não depende de script já vale; o resto só relata (onda 2 aplica).
+          { key: 'Content-Security-Policy', value: CSP_APLICADA },
+          {
+            key: 'Content-Security-Policy-Report-Only',
+            value: montarCspCompleta({
+              supabaseUrl: process.env.NEXT_PUBLIC_SUPABASE_URL,
+              sentryDsn: process.env.NEXT_PUBLIC_SENTRY_DSN,
+              desenvolvimento: process.env.NODE_ENV === 'development',
+            }),
+          },
         ],
       },
       {

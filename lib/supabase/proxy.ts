@@ -1,13 +1,14 @@
 import { createServerClient } from '@supabase/ssr'
 import { NextResponse, type NextRequest } from 'next/server'
-import { lerAmbientePublico } from './ambiente'
+import { lerAmbientePublico, opcoesCookieServidor } from './ambiente'
 import type { Database } from './tipos-banco'
 
 /**
  * Rotas abertas: login, recuperar a senha pelo código do e-mail, retorno de links do Auth, a
- * TV (credencial própria, M8) e o processador de envios (agendamento com segredo, M9).
+ * TV (credencial própria, M8), o processador de envios (agendamento com segredo, M9) e os
+ * relatórios da CSP (o navegador manda sem sessão).
  */
-const ROTAS_PUBLICAS = ['/login', '/recuperar-senha', '/auth', '/tv', '/api/envios']
+const ROTAS_PUBLICAS = ['/login', '/recuperar-senha', '/auth', '/tv', '/api/envios', '/api/csp']
 
 export function ehRotaPublica(caminho: string): boolean {
   return ROTAS_PUBLICAS.some((rota) => caminho === rota || caminho.startsWith(`${rota}/`))
@@ -22,6 +23,7 @@ export async function atualizarSessao(request: NextRequest) {
   let resposta = NextResponse.next({ request })
 
   const supabase = createServerClient<Database>(url, chavePublica, {
+    cookieOptions: opcoesCookieServidor(),
     cookies: {
       getAll: () => request.cookies.getAll(),
       setAll: (lista, cabecalhos) => {

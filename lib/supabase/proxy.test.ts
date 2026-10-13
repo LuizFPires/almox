@@ -5,6 +5,7 @@ describe('ehRotaPublica', () => {
   it('libera login, retorno do link mágico e TV', () => {
     expect(ehRotaPublica('/login')).toBe(true)
     expect(ehRotaPublica('/recuperar-senha')).toBe(true)
+    expect(ehRotaPublica('/api/csp')).toBe(true)
     expect(ehRotaPublica('/auth/confirmar')).toBe(true)
     expect(ehRotaPublica('/tv')).toBe(true)
     expect(ehRotaPublica('/api/envios')).toBe(true)

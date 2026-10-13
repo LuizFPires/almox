@@ -1,7 +1,7 @@
 import 'server-only'
 import { createServerClient } from '@supabase/ssr'
 import { cookies } from 'next/headers'
-import { lerAmbientePublico } from './ambiente'
+import { lerAmbientePublico, opcoesCookieServidor } from './ambiente'
 import type { Database } from './tipos-banco'
 
 /**
@@ -12,6 +12,7 @@ export async function criarClienteServidor() {
   const { url, chavePublica } = lerAmbientePublico()
   const loja = await cookies()
   return createServerClient<Database>(url, chavePublica, {
+    cookieOptions: opcoesCookieServidor(),
     cookies: {
       getAll: () => loja.getAll(),
       setAll: (lista) => {

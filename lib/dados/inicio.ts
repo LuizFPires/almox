@@ -2,7 +2,6 @@ import 'server-only'
 import { maisRecentes, type Lancamento } from '@/lib/dominio/lancamentos'
 import { inicioDoDiaDaObra } from '@/lib/formatos/datas'
 import { criarClienteServidor } from '@/lib/supabase/servidor'
-import { buscarTodas } from './paginar'
 
 export type Resumo = {
   noCanteiro: number
@@ -13,79 +12,40 @@ export type Resumo = {
   pessoasComFerramenta: number
 }
 
-export type Pendencia = {
-  unidadeId: string
-  desde: string
-  codigo: string
-  ferramenta: string
-  pessoa: { id: string; nome: string }
-}
-
-type PosseResumo = {
-  unidade_id: string
-  pessoa_id: string
-  desde: string
-  unidade: { codigo: string; tipo: { nome: string } | null } | null
-  pessoa: { id: string; nome: string } | null
-}
-
 /**
- * Números e pendências da tela inicial. A RLS limita a consulta de empreiteira à própria
- * empresa nas posses; o estoque (livre / manutenção) é da obra toda (PRD §5).
+ * Números da tela inicial, contados no banco (sem trazer posse por posse). A RLS limita a
+ * consulta de empreiteira à própria empresa nas posses e pessoas; o estoque (livre /
+ * manutenção) é da obra toda (PRD §5).
  */
-export async function resumoDoDia(
-  obraId: string,
-  agora: Date,
-): Promise<{ resumo: Resumo; pendencias: Pendencia[] }> {
+export async function resumoDoDia(obraId: string, agora: Date): Promise<{ resumo: Resumo }> {
   const supabase = await criarClienteServidor()
-  const [posses, livres, manutencao] = await Promise.all([
-    buscarTodas(
-      (de, ate) =>
-        supabase
-          .from('posse')
-          .select(
-            'unidade_id, pessoa_id, desde, ' +
-              'unidade:unidade!posse_unidade_id_obra_id_fkey (codigo, tipo:tipo_ferramenta!unidade_tipo_id_obra_id_fkey (nome)), ' +
-              'pessoa:pessoa!posse_pessoa_id_obra_id_fkey (id, nome)',
-          )
-          .eq('obra_id', obraId)
-          .order('desde')
-          .order('unidade_id')
-          .range(de, ate)
-          .overrideTypes<PosseResumo[], { merge: false }>(),
-      'Não foi possível carregar o resumo.',
-    ),
+  const contar = { count: 'exact' as const, head: true }
+  const [noCanteiro, pendencias, pessoas, livres, manutencao] = await Promise.all([
+    supabase.from('posse').select('unidade_id', contar).eq('obra_id', obraId),
     supabase
-      .from('unidade')
-      .select('id', { count: 'exact', head: true })
+      .from('posse')
+      .select('unidade_id', contar)
       .eq('obra_id', obraId)
-      .eq('status', 'livre'),
+      .lt('desde', inicioDoDiaDaObra(agora).toISOString()),
+    // Pessoas com pelo menos uma posse (junção interna conta cada pessoa uma vez).
     supabase
-      .from('unidade')
-      .select('id', { count: 'exact', head: true })
-      .eq('obra_id', obraId)
-      .eq('status', 'manutencao'),
+      .from('pessoa')
+      .select('id, posses:posse!posse_pessoa_id_obra_id_fkey!inner (unidade_id)', contar)
+      .eq('obra_id', obraId),
+    supabase.from('unidade').select('id', contar).eq('obra_id', obraId).eq('status', 'livre'),
+    supabase.from('unidade').select('id', contar).eq('obra_id', obraId).eq('status', 'manutencao'),
   ])
-  if (livres.error || manutencao.error) {
+  if (noCanteiro.error || pendencias.error || pessoas.error || livres.error || manutencao.error) {
     throw new Error('Não foi possível carregar o resumo.')
   }
-  const inicioHoje = inicioDoDiaDaObra(agora).getTime()
-  const pendentes = posses.filter((p) => new Date(p.desde).getTime() < inicioHoje)
   return {
     resumo: {
-      noCanteiro: posses.length,
+      noCanteiro: noCanteiro.count ?? 0,
       noAlmox: livres.count ?? 0,
       manutencao: manutencao.count ?? 0,
-      pendencias: pendentes.length,
-      pessoasComFerramenta: new Set(posses.map((p) => p.pessoa_id)).size,
+      pendencias: pendencias.count ?? 0,
+      pessoasComFerramenta: pessoas.count ?? 0,
     },
-    pendencias: pendentes.slice(0, 10).map((p) => ({
-      unidadeId: p.unidade_id,
-      desde: p.desde,
-      codigo: p.unidade?.codigo ?? '',
-      ferramenta: p.unidade?.tipo?.nome ?? '',
-      pessoa: { id: p.pessoa?.id ?? p.pessoa_id, nome: p.pessoa?.nome ?? '' },
-    })),
   }
 }
 

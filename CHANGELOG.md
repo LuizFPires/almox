@@ -2,6 +2,20 @@
 
 Registro do que foi entregue em cada milestone (ver `PLAN.md`).
 
+## Performance · bloco 2 (13/10/2026)
+
+O que pesa em obras grandes.
+
+### Mudado
+- **Início:** os números são contados no banco, sem trazer peça por peça.
+- **Estoque:** só monta o detalhe do grupo aberto.
+- **Buscas** (Cadastros e lista): não refazem tudo a cada letra; a digitação não trava.
+- **Escolher na lista:** mostra 60 pessoas por vez ("Mostrar mais"); a busca acha todas.
+- **Sem internet:** menos releituras e downloads repetidos; a preparação não disputa com a abertura do app.
+- **Fotos de avaria:** miniaturas só baixam quando aparecem na tela.
+- **Editar ferramenta:** carrega só o necessário.
+- **TV:** organizar as colunas ficou leve mesmo com muitas pessoas.
+
 ## Performance · bloco 1 (13/10/2026)
 
 O que o almoxarife sente todo dia (análise em `docs/ANALISE-DE-PERFORMANCE-E-FLUIDEZ.md`).

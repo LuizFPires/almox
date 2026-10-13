@@ -73,11 +73,28 @@ test.describe('cadastros do engenheiro', () => {
     await campo(page, 'Valor de reposição (por unidade)').fill('2.890,00')
     for (let i = 0; i < 4; i++) await page.getByRole('button', { name: 'Aumentar unidade' }).click()
     await expect(page.getByText(/Códigos das peças/)).toContainText('-01 a ')
+    // Alugada: locadora nova, digitada na busca e adicionada.
+    const locadora = `Locadora ${sufixo}`
+    await page.getByRole('radio', { name: /^Alugada/ }).click()
+    await page.getByRole('searchbox', { name: 'Buscar locadora' }).fill(locadora)
+    await page.getByRole('button', { name: `Adicionar “${locadora}”` }).click()
+    await expect(page.getByRole('radio', { name: new RegExp(locadora) })).toHaveAttribute(
+      'aria-checked',
+      'true',
+    )
     await page.getByRole('button', { name: 'Salvar 5 unidades' }).click()
     await page.waitForURL((u) => u.pathname === '/cadastros/ferramentas')
     const linha = page.getByRole('link', { name: new RegExp(ferramenta) })
     await expect(linha).toContainText('5 un.')
     await expect(linha).toContainText('R$ 2.890,00')
+    await expect(linha).toContainText(`ALUGADA · ${locadora}`)
+
+    // No próximo cadastro, a locadora aparece de novo para escolher (achada pela busca).
+    await page.goto('/cadastros/ferramenta/nova')
+    await page.getByRole('radio', { name: /^Alugada/ }).click()
+    await page.getByRole('searchbox', { name: 'Buscar locadora' }).fill(sufixo.slice(-5))
+    await expect(page.getByRole('radio', { name: new RegExp(locadora) })).toBeVisible()
+    await expect(page.getByRole('button', { name: /^Adicionar/ })).toHaveCount(1)
 
     // No banco, em centavos.
     const { url, chave } = ambiente()

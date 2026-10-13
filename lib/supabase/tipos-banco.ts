@@ -726,6 +726,36 @@ export type Database = {
           },
         ]
       }
+      locadora: {
+        Row: {
+          criado_em: string
+          id: string
+          nome: string
+          obra_id: string
+        }
+        ComputedFields: never
+        Insert: {
+          criado_em?: string
+          id?: string
+          nome: string
+          obra_id: string
+        }
+        Update: {
+          criado_em?: string
+          id?: string
+          nome?: string
+          obra_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: 'locadora_obra_id_fkey'
+            columns: ['obra_id']
+            isOneToOne: false
+            referencedRelation: 'obra'
+            referencedColumns: ['id']
+          },
+        ]
+      }
       medicao: {
         Row: {
           empresa_id: string
@@ -1163,9 +1193,11 @@ export type Database = {
           criado_em: string
           icone: string
           id: string
+          locadora_id: string | null
           nome: string
           obra_id: string
           prefixo: string
+          propriedade: string
           valor_reposicao: number
         }
         ComputedFields: never
@@ -1174,9 +1206,11 @@ export type Database = {
           criado_em?: string
           icone: string
           id?: string
+          locadora_id?: string | null
           nome: string
           obra_id: string
           prefixo: string
+          propriedade?: string
           valor_reposicao: number
         }
         Update: {
@@ -1184,12 +1218,21 @@ export type Database = {
           criado_em?: string
           icone?: string
           id?: string
+          locadora_id?: string | null
           nome?: string
           obra_id?: string
           prefixo?: string
+          propriedade?: string
           valor_reposicao?: number
         }
         Relationships: [
+          {
+            foreignKeyName: 'tipo_ferramenta_locadora_fk'
+            columns: ['locadora_id', 'obra_id']
+            isOneToOne: false
+            referencedRelation: 'locadora'
+            referencedColumns: ['id', 'obra_id']
+          },
           {
             foreignKeyName: 'tipo_ferramenta_obra_id_fkey'
             columns: ['obra_id']

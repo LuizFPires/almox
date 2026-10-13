@@ -5,12 +5,13 @@ import { redirect } from 'next/navigation'
 import { ehIcone, ehIconeArquivo } from '@/components/icones-ferramenta'
 import { exigirEngenheiro } from '@/lib/acesso'
 import { lerValorReposicao, sugerirPrefixo } from '@/lib/dominio/cadastros'
+import { normalizarTexto } from '@/lib/formatos/texto'
 import { valoresDoForm, type Valores } from '@/lib/formulario'
 
 export type EstadoFerramenta = {
   valores?: Valores
   erro?: string
-  campos?: Partial<Record<'nome' | 'icone' | 'valor' | 'quantidade', string>>
+  campos?: Partial<Record<'nome' | 'icone' | 'valor' | 'quantidade' | 'locadora', string>>
 }
 
 const texto = (form: FormData, chave: string) =>
@@ -34,6 +35,9 @@ export async function salvarFerramenta(
   const valor = lerValorReposicao(texto(form, 'valor'))
   const quantidade = Number(texto(form, 'quantidade') || '0')
   const altoValor = form.get('alto_valor') === 'on'
+  const alugada = texto(form, 'propriedade') === 'alugada'
+  const locadoraId = texto(form, 'locadora_id')
+  const locadoraNova = texto(form, 'locadora_nova')
 
   const campos: EstadoFerramenta['campos'] = {}
   if (nome.length < 2) campos.nome = 'Informe o nome da ferramenta.'
@@ -46,9 +50,46 @@ export async function salvarFerramenta(
     campos.quantidade = 'Quantidade de 0 a 200.'
   }
   if (!id && quantidade < 1) campos.quantidade = 'Ferramenta nova precisa de pelo menos 1 unidade.'
+  if (alugada && !locadoraId && locadoraNova.length < 2) {
+    campos.locadora = 'Escolha a locadora ou digite o nome de uma nova.'
+  }
+  if (locadoraNova.length > 80) campos.locadora = 'Nome da locadora com até 80 letras.'
   if (Object.keys(campos).length > 0 || 'erro' in valor) return { campos, valores }
 
-  const dados = { nome, icone, valor_reposicao: valor.centavos, alto_valor: altoValor }
+  // Alugada: usa a locadora escolhida ou cadastra a nova (sem repetir nome com outra grafia).
+  let locadora: string | null = null
+  if (alugada) {
+    if (locadoraId) {
+      locadora = locadoraId
+    } else {
+      const { data: existentes } = await supabase
+        .from('locadora')
+        .select('id, nome')
+        .eq('obra_id', obraId)
+      const chave = normalizarTexto(locadoraNova)
+      const igual = (existentes ?? []).find((l) => normalizarTexto(l.nome) === chave)
+      if (igual) {
+        locadora = igual.id
+      } else {
+        const { data: criada, error } = await supabase
+          .from('locadora')
+          .insert({ obra_id: obraId, nome: locadoraNova })
+          .select('id')
+          .single()
+        if (error) return { campos: { locadora: 'Não foi possível salvar a locadora.' }, valores }
+        locadora = criada.id
+      }
+    }
+  }
+
+  const dados = {
+    nome,
+    icone,
+    valor_reposicao: valor.centavos,
+    alto_valor: altoValor,
+    propriedade: alugada ? ('alugada' as const) : ('propria' as const),
+    locadora_id: locadora,
+  }
   let tipoId = id
   if (id) {
     // Confere que o tipo é da obra ativa: com id de outra obra, o update não acharia nada.

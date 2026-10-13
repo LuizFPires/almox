@@ -23,6 +23,8 @@ Registro do que foi entregue em cada milestone (ver `PLAN.md`).
 
 - **Montar a folha de adesivos:** 3 tamanhos (9, 12 ou 16 por folha, Médio por padrão), aproveitar folha já usada, todos ou um por um.
 
+- **Ferramenta própria ou alugada:** locadora com busca, salva para os próximos cadastros; quantidade logo após o nome.
+
 ### Mudado
 - **Métricas do piloto removidas do app** (tela, menu e planilha).
 - **Início mais limpo:** números que abrem cada tela e gestão (avisos, a descontar, histórico, métricas) num ícone no cabeçalho.

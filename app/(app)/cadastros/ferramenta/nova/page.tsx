@@ -3,7 +3,7 @@ import { Cabecalho } from '@/components/Cabecalho'
 import { NovaVisita } from '@/components/NovaVisita'
 import { listarTipos } from '@/lib/dados/ferramentas'
 import { obterSessao } from '@/lib/sessao'
-import { iconesProprios } from '@/lib/dados/ferramentas'
+import { iconesProprios, listarLocadoras } from '@/lib/dados/ferramentas'
 import { FormFerramenta } from '../FormFerramenta'
 
 export const metadata: Metadata = { title: 'Nova ferramenta · Almox' }
@@ -23,6 +23,7 @@ export default async function PaginaNovaFerramenta() {
           obraId={obraAtual.id}
           prefixosUsados={tipos.map((t) => t.prefixo)}
           iconesProprios={iconesProprios(tipos)}
+          locadoras={await listarLocadoras(obraAtual.id, tipos)}
         />
       </NovaVisita>
     </>

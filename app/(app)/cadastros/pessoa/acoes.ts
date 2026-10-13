@@ -64,6 +64,8 @@ export async function salvarPessoa(_: EstadoPessoa, form: FormData): Promise<Est
   if (error) {
     if (error.code === '23503')
       return { campos: { empresa_id: 'Empresa inválida para esta obra.' }, valores }
+    // Troca de empresa com ferramenta na mão ou desconto em aberto (a mensagem vem do banco).
+    if (error.code === 'AL010') return { campos: { empresa_id: error.message }, valores }
     return { erro: 'Não foi possível salvar. Tente de novo.', valores }
   }
   if (!salva) return { erro: 'Pessoa não encontrada nesta obra.', valores }

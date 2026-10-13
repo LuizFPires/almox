@@ -17,8 +17,11 @@ values ('e0000000-0000-4000-8000-0000000000b1', 'a0000000-0000-4000-8000-0000000
 insert into public.pessoa (obra_id, empresa_id, nome, nome_capacete, funcao)
 values ('a0000000-0000-4000-8000-000000000002', 'e0000000-0000-4000-8000-0000000000b1', 'Beto Lima', 'BETO', 'Pedreiro');
 insert into t_ctx select 'beto', qr_token from public.pessoa where nome = 'Beto Lima';
-update public.pessoa set ativa = false where nome = 'Ivan Pereira';
-insert into t_ctx select 'ivan', qr_token from public.pessoa where nome = 'Ivan Pereira';
+-- Inativa sem ferramenta (com ferramenta ainda devolve pelo QR: teste 030).
+insert into public.pessoa (obra_id, empresa_id, nome, nome_capacete, funcao, ativa)
+values ('a0000000-0000-4000-8000-000000000001', 'e0000000-0000-4000-8000-000000000003',
+        'Inativo Sem Ferramenta', 'INATIVO', 'Servente', false);
+insert into t_ctx select 'ivan', qr_token from public.pessoa where nome = 'Inativo Sem Ferramenta';
 
 -- Almoxarife -----------------------------------------------------------------------------------
 set local role authenticated;

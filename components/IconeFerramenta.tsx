@@ -1,4 +1,4 @@
-import { ICONES_FERRAMENTA, type ChaveIcone } from './icones-ferramenta'
+import { ICONES_FERRAMENTA, ehChaveIcone, urlIconeArquivo, type Icone } from './icones-ferramenta'
 
 const TAMANHOS = {
   p: { circulo: 'size-[34px]', svg: 20, texto: 'text-[13px]' },
@@ -7,7 +7,7 @@ const TAMANHOS = {
 } as const
 
 type Props = {
-  icone: ChaveIcone
+  icone: Icone
   /** Nome escrito embaixo; padrão = nome do ícone. O nome sempre aparece. */
   nome?: string
   tamanho?: keyof typeof TAMANHOS
@@ -17,7 +17,7 @@ type Props = {
 
 /** Ícone de ferramenta sempre acompanhado do nome escrito embaixo. */
 export function IconeFerramenta({ icone, nome, tamanho = 'm', destaque = false }: Props) {
-  const { nome: nomePadrao } = ICONES_FERRAMENTA[icone]
+  const nomePadrao = ehChaveIcone(icone) ? ICONES_FERRAMENTA[icone].nome : 'Ferramenta'
   const t = TAMANHOS[tamanho]
   return (
     <span className="inline-flex flex-col items-center gap-1.5">
@@ -28,7 +28,7 @@ export function IconeFerramenta({ icone, nome, tamanho = 'm', destaque = false }
 }
 
 type PropsCirculo = {
-  icone: ChaveIcone
+  icone: Icone
   /** Classe de tamanho do círculo (ex.: `size-[26px]`). */
   circulo: string
   svg: number
@@ -37,7 +37,8 @@ type PropsCirculo = {
 
 /**
  * Só o círculo com o traço, para onde o nome já está escrito ao lado (chip da lista, linha do
- * estoque — decisão do M7). Decorativo: quem usa escreve o nome.
+ * estoque — decisão do M7). Decorativo: quem usa escreve o nome. Ícone próprio (enviado pelo
+ * engenheiro) aparece como imagem no mesmo círculo claro, inclusive na TV.
  */
 export function CirculoFerramenta({ icone, circulo, svg, destaque = false }: PropsCirculo) {
   return (
@@ -45,19 +46,32 @@ export function CirculoFerramenta({ icone, circulo, svg, destaque = false }: Pro
       aria-hidden="true"
       className={`${circulo} flex shrink-0 items-center justify-center rounded-full ${destaque ? 'bg-white' : 'bg-sutil'}`}
     >
-      <svg
-        width={svg}
-        height={svg}
-        viewBox="0 0 24 24"
-        fill="none"
-        stroke="currentColor"
-        strokeWidth={1.75}
-        strokeLinecap="round"
-        strokeLinejoin="round"
-        className="text-texto"
-      >
-        <path d={ICONES_FERRAMENTA[icone].d} />
-      </svg>
+      {ehChaveIcone(icone) ? (
+        <svg
+          width={svg}
+          height={svg}
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          strokeWidth={1.75}
+          strokeLinecap="round"
+          strokeLinejoin="round"
+          className="text-texto"
+        >
+          <path d={ICONES_FERRAMENTA[icone].d} />
+        </svg>
+      ) : (
+        // eslint-disable-next-line @next/next/no-img-element -- imagem pequena do Storage público
+        <img
+          src={urlIconeArquivo(icone)}
+          alt=""
+          width={svg}
+          height={svg}
+          loading="lazy"
+          className="object-contain"
+          style={{ width: svg, height: svg }}
+        />
+      )}
     </span>
   )
 }

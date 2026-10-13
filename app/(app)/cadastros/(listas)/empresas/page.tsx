@@ -1,7 +1,6 @@
 import type { Metadata } from 'next'
 import Link from 'next/link'
 import { Cartao } from '@/components/Cartao'
-import { BotaoNovo } from '@/components/Formulario'
 import { IconeInterface } from '@/components/IconeInterface'
 import { listarEmpresas } from '@/lib/dados/empresas'
 import { faltaEmail } from '@/lib/dominio/cadastros'
@@ -16,7 +15,6 @@ export default async function PaginaEmpresas() {
 
   return (
     <>
-      <BotaoNovo href="/cadastros/empresa/nova">Nova empresa</BotaoNovo>
       <p className="text-[13px] text-texto-2">Construtora e empreiteiras no canteiro</p>
       {empresas.length === 0 && (
         <Cartao className="py-6 text-center text-[15px] text-texto-2">

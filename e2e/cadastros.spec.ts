@@ -50,17 +50,26 @@ test.describe('cadastros do engenheiro', () => {
 
     const ferramenta = `Rompedor ${sufixo}`
     await page.goto('/cadastros/ferramenta/nova')
+    // Tela já interativa (o clique marca o ícone) antes de enviar o arquivo.
     await page.locator('label').filter({ hasText: 'Martelete' }).first().click()
+    await expect(page.getByRole('radio', { name: 'Martelete' })).toBeChecked()
+    // Ícone próprio: a imagem enviada vira PNG no Storage e fica escolhida na grade.
+    await page.getByLabel('Escolher imagem do ícone').setInputFiles({
+      name: 'rompedor.png',
+      mimeType: 'image/png',
+      buffer: Buffer.from(
+        'iVBORw0KGgoAAAANSUhEUgAAAAgAAAAICAYAAADED76LAAAAH0lEQVR4nGOQ1zRnkNc0/w/FGGy8ksgKcCpkGApWAAAKbkqWnAtoDwAAAABJRU5ErkJggg==',
+        'base64',
+      ),
+    })
+    await expect(page.locator('input[name=icone]:checked')).toHaveValue(/^arquivo:/)
     await campo(page, 'Nome').fill(ferramenta)
-    // Prefixo único por execução (o CI repete o teste em caso de falha e o prefixo é único na obra).
-    const prefixo = String(Date.now() % 1_000_000)
-      .padStart(6, '0')
-      .replace(/\d/g, (d) => 'ABCDEFGHJK'[Number(d)]!)
-      .slice(-4)
-    await campo(page, 'Prefixo do código').fill(prefixo)
+    // Sem campo de prefixo: o código das peças sai do nome.
+    await expect(page.getByLabel('Prefixo do código')).toHaveCount(0)
+    await expect(page.getByText(/Códigos das peças/)).toContainText(/\b[A-Z]{2,4}-01\b/)
     await campo(page, 'Valor de reposição (por unidade)').fill('2.890,00')
     for (let i = 0; i < 4; i++) await page.getByRole('button', { name: 'Aumentar unidade' }).click()
-    await expect(page.getByText(/Unidades novas/)).toContainText('-01 a ')
+    await expect(page.getByText(/Códigos das peças/)).toContainText('-01 a ')
     await page.getByRole('button', { name: 'Salvar 5 unidades' }).click()
     await page.waitForURL((u) => u.pathname === '/cadastros/ferramentas')
     const linha = page.getByRole('link', { name: new RegExp(ferramenta) })
@@ -71,15 +80,44 @@ test.describe('cadastros do engenheiro', () => {
     const { url, chave } = ambiente()
     const token = await tokenDe(page, USUARIOS.engenheiro)
     const resposta = await page.request.get(
-      `${url}/rest/v1/tipo_ferramenta?select=valor_reposicao&nome=eq.${encodeURIComponent(ferramenta)}`,
+      `${url}/rest/v1/tipo_ferramenta?select=valor_reposicao,icone&nome=eq.${encodeURIComponent(ferramenta)}`,
       { headers: { apikey: chave, Authorization: `Bearer ${token}` } },
     )
-    expect(await resposta.json()).toEqual([{ valor_reposicao: 289000 }])
+    const [gravado] = (await resposta.json()) as { valor_reposicao: number; icone: string }[]
+    expect(gravado?.valor_reposicao).toBe(289000)
+    expect(gravado?.icone).toMatch(/^arquivo:[0-9a-f-]{36}\/[0-9a-f-]{36}\.png$/)
+    // A imagem é pública (a TV lê sem login) e aparece na lista.
+    const imagem = await page.request.get(
+      `${url}/storage/v1/object/public/icones/${gravado!.icone.slice('arquivo:'.length)}`,
+    )
+    expect(imagem.headers()['content-type']).toBe('image/png')
   })
 
-  test('ícone de ajuda abre o passo a passo da impressora e da TV', async ({ page }) => {
+  test('busca geral acha pessoa, ferramenta e empresa sem acento', async ({ page }) => {
+    await entrarComo(page, 'engenheiro', '/inicio')
+    await page.goto('/cadastros/ferramentas')
+    const busca = page.getByRole('searchbox', { name: 'Buscar pessoa, ferramenta ou empresa' })
+    await busca.fill('eletrica lumen')
+    // Empresa e as pessoas dela aparecem, cada uma no seu grupo, mesmo estando na aba Ferramentas.
+    await expect(
+      page.getByRole('region', { name: 'Empresas' }).getByRole('link', { name: /Elétrica Lumen/ }),
+    ).toBeVisible()
+    await expect(
+      page.getByRole('region', { name: 'Pessoas' }).getByRole('link').first(),
+    ).toBeVisible()
+    await busca.fill('serra circ')
+    await page.getByRole('region', { name: 'Ferramentas' }).getByRole('link').first().click()
+    await page.waitForURL(/\/cadastros\/ferramenta\/[0-9a-f-]{36}$/)
+    await page.goBack()
+    await page.getByRole('searchbox').fill('xyzxyz')
+    await expect(page.getByText('Nada encontrado com “xyzxyz”.')).toBeVisible()
+  })
+
+  test('engrenagem abre o passo a passo da impressora e da TV', async ({ page }) => {
     await entrarComo(page, 'engenheiro', '/inicio')
     await page.goto('/cadastros/pessoas')
+    await page.getByRole('button', { name: /^Impressora, TV e planilha/ }).click()
+    await expect(page.getByRole('dialog', { name: 'Impressora, TV e planilha' })).toBeVisible()
     await page.getByRole('link', { name: 'Passo a passo: impressora e TV' }).click()
     await expect(page.getByRole('heading', { name: 'Impressora e TV' })).toBeVisible()
     for (const secao of [

@@ -2,7 +2,7 @@
 
 import { useEffect, useLayoutEffect, useRef, useState } from 'react'
 import { CirculoFerramenta } from '@/components/IconeFerramenta'
-import { ehChaveIcone } from '@/components/icones-ferramenta'
+import { ehIcone } from '@/components/icones-ferramenta'
 import { Marca } from '@/components/Marca'
 import { Relogio } from '@/components/Relogio'
 import {
@@ -287,7 +287,7 @@ function Ferramenta({ ferramenta: f, compacto }: { ferramenta: FerramentaTv; com
   return (
     <li className="flex w-[104px] flex-col items-center gap-1.5">
       <span className="relative">
-        {ehChaveIcone(f.icone) ? (
+        {ehIcone(f.icone) ? (
           <CirculoFerramenta
             icone={f.icone}
             circulo={compacto ? 'size-14' : 'size-[76px]'}
@@ -388,7 +388,7 @@ function Coluna({ coluna: c }: { coluna: ColunaEmpresa }) {
                         key={f.tipo}
                         className="flex max-w-full min-w-0 items-center gap-2 rounded-full bg-tv-chip py-1 pr-3.5 pl-1"
                       >
-                        {ehChaveIcone(f.icone) && (
+                        {ehIcone(f.icone) && (
                           <CirculoFerramenta icone={f.icone} circulo="size-10" svg={24} />
                         )}
                         <span className="truncate text-lg font-semibold">

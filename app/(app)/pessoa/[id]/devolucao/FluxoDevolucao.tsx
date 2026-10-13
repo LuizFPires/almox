@@ -6,7 +6,7 @@ import { Botao } from '@/components/Botao'
 import { Cabecalho } from '@/components/Cabecalho'
 import { CartaoPessoaLancamento } from '@/components/CartaoPessoaLancamento'
 import { IconeFerramenta } from '@/components/IconeFerramenta'
-import { ehChaveIcone } from '@/components/icones-ferramenta'
+import { ehIcone } from '@/components/icones-ferramenta'
 import { RodapeAcao } from '@/components/RodapeAcao'
 import {
   limitarAvariadas,
@@ -240,7 +240,7 @@ export function FluxoDevolucao(props: Props) {
                   onClick={() => mudarDevolvendo(g.tipoId, q + 1)}
                   className="shrink-0 rounded-full disabled:opacity-60"
                 >
-                  {ehChaveIcone(g.icone) && <IconeFerramenta icone={g.icone} nome={g.tipo} />}
+                  {ehIcone(g.icone) && <IconeFerramenta icone={g.icone} nome={g.tipo} />}
                 </button>
                 <span className="text-[13px] text-texto-2">
                   Toque no ícone: +1 · com ele: {g.codigos.length} ·{' '}

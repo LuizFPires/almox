@@ -92,7 +92,6 @@ test.describe('fluxo completo', () => {
       await page.goto('/cadastros/ferramenta/nova')
       await page.locator('label').filter({ hasText: 'Serra circular' }).first().click()
       await campo(page, 'Nome').fill(ferramenta)
-      await campo(page, 'Prefixo do código').fill('SF')
       await campo(page, 'Valor de reposição (por unidade)').fill('450,00')
       await page.getByRole('button', { name: 'Aumentar unidade' }).click()
       await page.getByRole('button', { name: 'Salvar 2 unidades' }).click()

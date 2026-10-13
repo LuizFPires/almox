@@ -71,6 +71,7 @@ test.describe('importação do cadastro inicial', () => {
     ).join('')
     await entrarComo(page, 'engenheiro', '/inicio')
     await page.goto('/cadastros/pessoas')
+    await page.getByRole('button', { name: /^Impressora, TV e planilha/ }).click()
     await page.getByRole('link', { name: /Importar planilha/ }).click()
     const baixando = page.waitForEvent('download')
     await page.getByRole('link', { name: 'Baixar planilha modelo (.xlsx)' }).click()

@@ -5,7 +5,7 @@ import { BarraInferior } from '@/components/BarraInferior'
 import { Cabecalho } from '@/components/Cabecalho'
 import { Cartao } from '@/components/Cartao'
 import { IconeFerramenta } from '@/components/IconeFerramenta'
-import type { ChaveIcone } from '@/components/icones-ferramenta'
+import type { Icone } from '@/components/icones-ferramenta'
 import { IconeInterface } from '@/components/IconeInterface'
 import { SeloPerfil } from '@/components/SeloPerfil'
 import { buscarFicha, equipeDaEmpresa, identificacaoValida } from '@/lib/dados/ficha'
@@ -107,7 +107,7 @@ export default async function PaginaFicha({ params, searchParams }: PageProps<'/
                   <div key={p.unidade_id} className="flex items-center gap-3 py-2.5">
                     {p.unidade?.tipo && (
                       <IconeFerramenta
-                        icone={p.unidade.tipo.icone as ChaveIcone}
+                        icone={p.unidade.tipo.icone as Icone}
                         nome={p.unidade.tipo.nome}
                         tamanho="p"
                       />

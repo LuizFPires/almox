@@ -2,15 +2,15 @@
 
 import { revalidatePath } from 'next/cache'
 import { redirect } from 'next/navigation'
-import { ehChaveIcone } from '@/components/icones-ferramenta'
+import { ehIcone, ehIconeArquivo } from '@/components/icones-ferramenta'
 import { exigirEngenheiro } from '@/lib/acesso'
-import { lerValorReposicao, validarPrefixo } from '@/lib/dominio/cadastros'
+import { lerValorReposicao, sugerirPrefixo } from '@/lib/dominio/cadastros'
 import { valoresDoForm, type Valores } from '@/lib/formulario'
 
 export type EstadoFerramenta = {
   valores?: Valores
   erro?: string
-  campos?: Partial<Record<'nome' | 'icone' | 'prefixo' | 'valor' | 'quantidade', string>>
+  campos?: Partial<Record<'nome' | 'icone' | 'valor' | 'quantidade', string>>
 }
 
 const texto = (form: FormData, chave: string) =>
@@ -31,17 +31,15 @@ export async function salvarFerramenta(
   const id = texto(form, 'id')
   const nome = texto(form, 'nome')
   const icone = texto(form, 'icone')
-  const prefixo = texto(form, 'prefixo').toUpperCase()
   const valor = lerValorReposicao(texto(form, 'valor'))
   const quantidade = Number(texto(form, 'quantidade') || '0')
   const altoValor = form.get('alto_valor') === 'on'
 
   const campos: EstadoFerramenta['campos'] = {}
   if (nome.length < 2) campos.nome = 'Informe o nome da ferramenta.'
-  if (!ehChaveIcone(icone)) campos.icone = 'Escolha o ícone.'
-  if (!id) {
-    const erroPrefixo = validarPrefixo(prefixo)
-    if (erroPrefixo) campos.prefixo = erroPrefixo
+  // Ícone próprio só da obra ativa (o banco confere de novo).
+  if (!ehIcone(icone) || (ehIconeArquivo(icone) && !icone.startsWith(`arquivo:${obraId}/`))) {
+    campos.icone = 'Escolha o ícone.'
   }
   if ('erro' in valor) campos.valor = valor.erro
   if (!Number.isInteger(quantidade) || quantidade < 0 || quantidade > 200) {
@@ -68,6 +66,15 @@ export async function salvarFerramenta(
       return { erro: 'Não foi possível salvar. Tente de novo.', valores }
     }
   } else {
+    // O código das peças sai do nome (sem campo de prefixo): 2–4 letras que a obra não usa.
+    const { data: usados } = await supabase
+      .from('tipo_ferramenta')
+      .select('prefixo')
+      .eq('obra_id', obraId)
+    const prefixo = sugerirPrefixo(
+      nome,
+      (usados ?? []).map((t) => t.prefixo),
+    )
     const { data, error } = await supabase
       .from('tipo_ferramenta')
       .insert({ ...dados, prefixo, obra_id: obraId })
@@ -75,7 +82,7 @@ export async function salvarFerramenta(
       .single()
     if (error) {
       if (error.code === '23505') {
-        return { erro: 'Já existe ferramenta com esse nome ou prefixo.', valores }
+        return { campos: { nome: 'Já existe ferramenta com esse nome.' }, valores }
       }
       return { erro: 'Não foi possível salvar. Tente de novo.', valores }
     }

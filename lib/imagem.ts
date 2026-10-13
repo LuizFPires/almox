@@ -30,6 +30,41 @@ export async function comprimirFoto(
   )
 }
 
+/**
+ * Ícone próprio de ferramenta: qualquer imagem (PNG, JPG, WebP ou SVG) vira um PNG quadrado de
+ * 128 px, centralizado e com fundo transparente. Redesenhar no canvas descarta o que não for
+ * imagem (scripts de SVG, metadados) e deixa o arquivo pequeno para a TV e o celular.
+ */
+export async function prepararIcone(arquivo: File, lado = 128): Promise<Blob> {
+  const imagem = await abrirImagem(arquivo)
+  if (!imagem.width || !imagem.height) {
+    imagem.fechar()
+    throw new Error('Imagem sem tamanho.')
+  }
+  const escala = Math.min(lado / imagem.width, lado / imagem.height)
+  const largura = Math.round(imagem.width * escala)
+  const altura = Math.round(imagem.height * escala)
+  const tela = document.createElement('canvas')
+  tela.width = lado
+  tela.height = lado
+  const contexto = tela.getContext('2d')
+  if (!contexto) throw new Error('Não foi possível preparar o ícone.')
+  contexto.drawImage(
+    imagem.fonte,
+    Math.round((lado - largura) / 2),
+    Math.round((lado - altura) / 2),
+    largura,
+    altura,
+  )
+  imagem.fechar()
+  return new Promise((resolver, rejeitar) =>
+    tela.toBlob(
+      (blob) => (blob ? resolver(blob) : rejeitar(new Error('Não foi possível preparar o ícone.'))),
+      'image/png',
+    ),
+  )
+}
+
 type ImagemAberta = { fonte: CanvasImageSource; width: number; height: number; fechar: () => void }
 
 /**

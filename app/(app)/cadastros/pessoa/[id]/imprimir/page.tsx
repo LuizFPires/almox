@@ -2,7 +2,6 @@ import type { Metadata } from 'next'
 import Link from 'next/link'
 import { notFound } from 'next/navigation'
 import { AdesivoCapacete } from '@/components/AdesivoCapacete'
-import { AtualizarSozinho } from '@/components/AtualizarSozinho'
 import { Cabecalho } from '@/components/Cabecalho'
 import { CartaoImpressora } from '@/components/CartaoImpressora'
 import { ErroFormulario } from '@/components/Formulario'
@@ -14,6 +13,7 @@ import { destinoSeguro } from '@/lib/dominio/destino'
 import { descreverTrabalho, emAndamento } from '@/lib/dominio/impressao'
 import { obterSessao } from '@/lib/sessao'
 import { FormImprimir } from './FormImprimir'
+import { AcompanharImpressao } from '../AcompanharImpressao'
 
 export const metadata: Metadata = { title: 'Imprimir adesivo · Almox' }
 
@@ -47,7 +47,12 @@ export default async function PaginaImprimir({
 
   return (
     <>
-      {trabalho && emAndamento(trabalho.status) && <AtualizarSozinho segundos={2} />}
+      {trabalho && emAndamento(trabalho.status) && (
+        <AcompanharImpressao
+          trabalhos={[{ id: trabalho.id, status: trabalho.status }]}
+          segundos={2}
+        />
+      )}
       <Cabecalho titulo="Imprimir" subtitulo="Adesivo do capacete" voltarPara={volta} />
       <main className="flex flex-1 flex-col gap-4 pt-2">
         <div className="flex flex-col items-center gap-2 px-5">

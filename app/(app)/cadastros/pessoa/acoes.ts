@@ -115,3 +115,22 @@ export async function alternarAtiva(form: FormData) {
   revalidatePath('/cadastros/pessoas')
   redirect('/cadastros/pessoas')
 }
+
+const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i
+
+/**
+ * Só a situação dos trabalhos de impressão (acompanhar o adesivo sem recarregar a página
+ * inteira a cada 3 s). Até 10 ids, da obra ativa; a RLS confere o resto.
+ */
+export async function situacaoTrabalhos(ids: string[]): Promise<{ id: string; status: string }[]> {
+  const { supabase, obraId } = await exigirEngenheiro()
+  const validos = ids.filter((i) => UUID.test(i)).slice(0, 10)
+  if (validos.length === 0) return []
+  const { data, error } = await supabase
+    .from('trabalho_impressao')
+    .select('id, status')
+    .eq('obra_id', obraId)
+    .in('id', validos)
+  if (error) throw new Error('Não foi possível ver a impressão.')
+  return data
+}

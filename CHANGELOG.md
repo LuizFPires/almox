@@ -2,6 +2,18 @@
 
 Registro do que foi entregue em cada milestone (ver `PLAN.md`).
 
+## Performance · bloco 1 (13/10/2026)
+
+O que o almoxarife sente todo dia (análise em `docs/ANALISE-DE-PERFORMANCE-E-FLUIDEZ.md`).
+
+### Mudado
+- **Ficha da pessoa** aparece logo; a equipe da empresa carrega depois.
+- **Lista** abre mais rápido: as fotos das avarias só são preparadas na aba Avarias.
+- **Sinal fraco:** a tela sem internet abre pela cópia do celular em 3 s, em vez de ficar carregando.
+- **Ao vivo:** com movimento sem parar, a lista e o início atualizam pelo menos a cada 3 s.
+- **Avisos de espera:** "Preparando a foto…" e "Conferindo…".
+- **Impressão:** acompanhar o adesivo não recarrega a página inteira a cada poucos segundos.
+
 ## Plano de correção · bloco 3 (13/10/2026)
 
 Limpeza e consumo de recursos; com este bloco, os 18 pontos da análise externa estão tratados.

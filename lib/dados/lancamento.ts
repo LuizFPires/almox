@@ -115,8 +115,15 @@ type UnidadeManut = {
   }[]
 }
 
-/** Peças em manutenção, com a avaria mais recente de cada uma (foto, motivo, quem devolveu). */
-export async function pecasEmManutencao(obraId: string): Promise<PecaEmManutencao[]> {
+/**
+ * Peças em manutenção, com a avaria mais recente de cada uma (foto, motivo, quem devolveu).
+ * `comFotos: false` pula os links das fotos (uma ida ao Storage): para só contar, como a aba
+ * "Agora" da lista faz.
+ */
+export async function pecasEmManutencao(
+  obraId: string,
+  { comFotos = true }: { comFotos?: boolean } = {},
+): Promise<PecaEmManutencao[]> {
   const supabase = await criarClienteServidor()
   const { data, error } = await supabase
     .from('unidade')
@@ -134,7 +141,7 @@ export async function pecasEmManutencao(obraId: string): Promise<PecaEmManutenca
     u,
     a: [...u.avarias].sort((x, y) => y.criado_em.localeCompare(x.criado_em))[0] ?? null,
   }))
-  const caminhos = ultimas.flatMap(({ a }) => (a ? [a.foto_path] : []))
+  const caminhos = comFotos ? ultimas.flatMap(({ a }) => (a ? [a.foto_path] : [])) : []
   const { data: urls } = caminhos.length
     ? await supabase.storage.from('avarias').createSignedUrls(caminhos, 600)
     : { data: [] }

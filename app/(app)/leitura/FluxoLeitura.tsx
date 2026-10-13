@@ -130,7 +130,7 @@ export function FluxoLeitura({ lanca }: { lanca: boolean }) {
                 })
               }
             >
-              Sim, é o {primeiro}
+              {enviando ? 'Conferindo…' : `Sim, é o ${primeiro}`}
             </Botao>
             <button
               type="button"

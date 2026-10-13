@@ -44,8 +44,6 @@ export function ListaAvarias({ grupos, agora }: Props) {
                   className="size-12 shrink-0 rounded-[8px] object-cover"
                   width={48}
                   height={48}
-                  // Miniatura: só baixa quando aparece na tela.
-                  loading="lazy"
                   decoding="async"
                 />
               ) : (

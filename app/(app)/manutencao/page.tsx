@@ -57,8 +57,6 @@ export default async function PaginaManutencao({ searchParams }: PageProps<'/man
                   className="size-20 rounded-botao object-cover"
                   width={80}
                   height={80}
-                  // Miniatura: só baixa quando aparece na tela.
-                  loading="lazy"
                   decoding="async"
                 />
               )}

@@ -17,12 +17,23 @@ const baixando = new Map<string, Promise<boolean>>()
 
 /**
  * Baixa e guarda os dados da obra para lançar sem internet (só almoxarife e engenheiro). Se já
- * há um download dessa obra em andamento, espera ele em vez de baixar de novo.
+ * há um download dessa obra em andamento, espera ele em vez de baixar de novo. `depoisDoEnvio`:
+ * a fila acabou de mudar o servidor, então baixa de novo depois do que estiver em andamento
+ * (esse pode ter começado antes do envio e guardar um retrato velho).
  */
-export function atualizarDados(obra: string, cliente: Cliente = criarClienteNavegador()) {
+export function atualizarDados(
+  obra: string,
+  cliente: Cliente = criarClienteNavegador(),
+  { depoisDoEnvio = false }: { depoisDoEnvio?: boolean } = {},
+) {
   const emAndamento = baixando.get(obra)
-  if (emAndamento) return emAndamento
-  const pedido = baixarDados(obra, cliente).finally(() => baixando.delete(obra))
+  if (emAndamento && !depoisDoEnvio) return emAndamento
+  const pedido = (emAndamento ?? Promise.resolve(false))
+    .catch(() => false)
+    .then(() => baixarDados(obra, cliente))
+    .finally(() => {
+      if (baixando.get(obra) === pedido) baixando.delete(obra)
+    })
   baixando.set(obra, pedido)
   return pedido
 }
@@ -104,7 +115,7 @@ export async function enviarFila(cliente: Cliente = criarClienteNavegador()): Pr
       }
       obras.add(item.obra)
     }
-    for (const obra of obras) await atualizarDados(obra, cliente)
+    for (const obra of obras) await atualizarDados(obra, cliente, { depoisDoEnvio: true })
     return enviados
   }
   // Duas telas abertas não mandam a fila ao mesmo tempo.

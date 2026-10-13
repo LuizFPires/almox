@@ -92,7 +92,8 @@ export function BuscaCadastros({ indice, children }: Props) {
   const preparada = useMemo(() => prepararBusca(indice), [indice])
   const termoAdiado = useDeferredValue(termo)
   const resultado = useMemo(() => buscarCadastros(preparada, termoAdiado), [preparada, termoAdiado])
-  const buscando = termo.trim().length > 0
+  // Pelo termo adiado, o mesmo do resultado: sem "Nada encontrado" piscando ao digitar.
+  const buscando = termoAdiado.trim().length > 0
 
   return (
     <>
@@ -130,7 +131,7 @@ export function BuscaCadastros({ indice, children }: Props) {
           children
         ) : resultado.length === 0 ? (
           <p className="py-6 text-center text-[15px] text-texto-2">
-            Nada encontrado com “{termo.trim()}”.
+            Nada encontrado com “{termoAdiado.trim()}”.
           </p>
         ) : (
           resultado.map((g) => (

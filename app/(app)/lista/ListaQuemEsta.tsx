@@ -51,7 +51,7 @@ export function ListaQuemEsta({ pessoas, empresas, agora }: Props) {
       </label>
       {grupos.length === 0 && (
         <p className="py-6 text-center text-[15px] text-texto-2">
-          {busca.trim() ? 'Ninguém encontrado.' : 'Ninguém está com ferramenta agora.'}
+          {buscaAdiada.trim() ? 'Ninguém encontrado.' : 'Ninguém está com ferramenta agora.'}
         </p>
       )}
       {grupos.map((g) => (

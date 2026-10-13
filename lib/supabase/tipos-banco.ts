@@ -89,6 +89,7 @@ export type Database = {
           movimento_id: string
           obra_id: string
           unidade_id: string
+          valor_indenizacao: number | null
         }
         ComputedFields: never
         Insert: {
@@ -101,6 +102,7 @@ export type Database = {
           movimento_id: string
           obra_id: string
           unidade_id: string
+          valor_indenizacao?: number | null
         }
         Update: {
           criado_em?: string
@@ -112,6 +114,7 @@ export type Database = {
           movimento_id?: string
           obra_id?: string
           unidade_id?: string
+          valor_indenizacao?: number | null
         }
         Relationships: [
           {
@@ -1365,6 +1368,7 @@ export type Database = {
       }
       dados_envio: { Args: { p_envio: string }; Returns: Json }
       dados_offline: { Args: { p_obra: string }; Returns: Json }
+      definir_indenizacao: { Args: { p_avaria: string; p_valor?: number }; Returns: undefined }
       encerrar_dia: { Args: { p_obra: string }; Returns: string }
       enfileirar_impressao: {
         Args: {

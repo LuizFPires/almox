@@ -21,7 +21,10 @@ async function api(request: APIRequestContext, perfil: keyof typeof USUARIOS) {
     conferir<T>(await request.get(`${url}/rest/v1/${caminho}`, { headers }))
   const post = async <T>(caminho: string, data: unknown) =>
     conferir<T>(await request.post(`${url}/rest/v1/${caminho}`, { headers, data }))
-  return { get, post }
+  // Sem conferir o status: para testar o que o servidor nega.
+  const raw = (caminho: string, data: unknown) =>
+    request.post(`${url}/rest/v1/${caminho}`, { headers, data })
+  return { get, post, raw }
 }
 
 /** Tipo novo com N unidades, só deste teste. */
@@ -206,6 +209,35 @@ test.describe('lista e estoque', () => {
     const grupo = page.getByRole('region', { name: 'Gilberto Alves' })
     await expect(grupo.getByText(`${prefixo}-01`)).toBeVisible()
     await expect(grupo.getByText(`“Empenado na ponta (${nome})”`)).toBeVisible()
+
+    // Toque no item: foto, data, indenização (reposição) e envio; o engenheiro ajusta o valor.
+    await grupo.getByRole('link', { name: new RegExp(`${prefixo}-01`) }).click()
+    await expect(page.getByRole('heading', { name: `${nome} ${prefixo}-01` })).toBeVisible()
+    await expect(page.getByRole('img', { name: /Foto da avaria/ })).toBeAttached()
+    await expect(
+      page.getByText('R$ 50,00', { exact: true }).filter({ visible: true }).first(),
+    ).toBeVisible()
+    await expect(page.getByText('Valor de reposição da ferramenta')).toBeVisible()
+    await expect(page.getByRole('button', { name: 'Enviar foto e dados' })).toBeVisible()
+    await page.getByRole('button', { name: 'Ajustar valor' }).click()
+    await page.getByLabel('Valor da indenização').fill('12,50')
+    await page.getByRole('button', { name: 'Salvar valor' }).click()
+    await expect(
+      page.getByText('R$ 12,50', { exact: true }).filter({ visible: true }),
+    ).toBeVisible()
+    await expect(page.getByText(/Ajustado por .+ · reposição R\$ 50,00/)).toBeVisible()
+  })
+
+  test('almoxarife vê a avaria e envia, mas não ajusta o valor', async ({ page, request }) => {
+    const alm = await api(request, 'almoxarife')
+    const [avaria] = await alm.get<{ id: string }[]>(`avaria?select=id&obra_id=eq.${OBRA}&limit=1`)
+    test.skip(!avaria, 'sem avaria na obra')
+    await entrarComo(page, 'almoxarife', '/inicio')
+    await page.goto(`/avaria/${avaria!.id}`)
+    await expect(page.getByRole('button', { name: 'Enviar foto e dados' })).toBeVisible()
+    await expect(page.getByRole('button', { name: 'Ajustar valor' })).toHaveCount(0)
+    const negado = await alm.raw('rpc/definir_indenizacao', { p_avaria: avaria!.id, p_valor: 1 })
+    expect(negado.status()).toBe(403)
   })
 
   test('consulta da empreiteira vê só a própria empresa na lista', async ({ page }) => {

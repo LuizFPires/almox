@@ -1,4 +1,5 @@
 import 'server-only'
+import { valorIndenizacao } from '@/lib/dominio/avaria'
 import { criarClienteServidor } from '@/lib/supabase/servidor'
 
 export type Lancamento = {
@@ -94,13 +95,18 @@ export type PecaEmManutencao = {
   quando: string | null
   devolvidaPor: string | null
   foto: string | null
+  avariaId: string | null
+  /** Indenização em centavos (ajustada ou, sem ajuste, a reposição). */
+  valor: number | null
 }
 
 type UnidadeManut = {
   id: string
   codigo: string
-  tipo: { nome: string } | null
+  tipo: { nome: string; valor_reposicao: number } | null
   avarias: {
+    id: string
+    valor_indenizacao: number | null
     motivo: string
     detalhes: string | null
     foto_path: string
@@ -115,8 +121,8 @@ export async function pecasEmManutencao(obraId: string): Promise<PecaEmManutenca
   const { data, error } = await supabase
     .from('unidade')
     .select(
-      'id, codigo, tipo:tipo_ferramenta!unidade_tipo_id_obra_id_fkey (nome), ' +
-        'avarias:avaria!avaria_unidade_id_obra_id_fkey (motivo, detalhes, foto_path, criado_em, ' +
+      'id, codigo, tipo:tipo_ferramenta!unidade_tipo_id_obra_id_fkey (nome, valor_reposicao), ' +
+        'avarias:avaria!avaria_unidade_id_obra_id_fkey (id, valor_indenizacao, motivo, detalhes, foto_path, criado_em, ' +
         'movimento:movimento!avaria_movimento_id_obra_id_fkey (pessoa:pessoa!movimento_pessoa_id_obra_id_fkey (nome)))',
     )
     .eq('obra_id', obraId)
@@ -142,5 +148,13 @@ export async function pecasEmManutencao(obraId: string): Promise<PecaEmManutenca
     quando: a?.criado_em ?? null,
     devolvidaPor: a?.movimento?.pessoa?.nome ?? null,
     foto: a ? (porCaminho.get(a.foto_path) ?? null) : null,
+    avariaId: a?.id ?? null,
+    valor:
+      a && u.tipo
+        ? valorIndenizacao({
+            valorReposicao: u.tipo.valor_reposicao,
+            valorIndenizacao: a.valor_indenizacao,
+          }).centavos
+        : null,
   }))
 }

@@ -1,6 +1,8 @@
+import Link from 'next/link'
 import { rotuloMotivo } from '@/lib/dominio/devolucao'
 import { textoDesde } from '@/lib/dominio/ficha'
 import type { avariasPorPessoa } from '@/lib/dominio/lista'
+import { formatarBRL } from '@/lib/formatos/moeda'
 
 type Props = {
   grupos: ReturnType<typeof avariasPorPessoa>
@@ -29,7 +31,11 @@ export function ListaAvarias({ grupos, agora }: Props) {
             </span>
           </h2>
           {g.itens.map((a) => (
-            <div key={a.id} className="flex items-start gap-3 rounded-botao bg-aviso-claro p-2">
+            <Link
+              key={a.id}
+              href={a.avariaId ? `/avaria/${a.avariaId}` : '/lista?aba=avarias'}
+              className="flex items-start gap-3 rounded-botao bg-aviso-claro p-2"
+            >
               {a.foto ? (
                 // eslint-disable-next-line @next/next/no-img-element -- URL assinada do Storage privado
                 <img
@@ -52,7 +58,15 @@ export function ListaAvarias({ grupos, agora }: Props) {
                   </span>
                 )}
               </span>
-            </div>
+              <span className="ml-auto flex shrink-0 flex-col items-end gap-0.5 self-center">
+                {a.valor != null && (
+                  <span className="text-[13px] font-bold tabular-nums">{formatarBRL(a.valor)}</span>
+                )}
+                <span aria-hidden="true" className="text-lg leading-none text-texto-2">
+                  ›
+                </span>
+              </span>
+            </Link>
           ))}
         </section>
       ))}

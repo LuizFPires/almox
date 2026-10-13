@@ -139,6 +139,10 @@ export type AvariaLista = {
   quando: string | null
   devolvidaPor: string | null
   foto: string | null
+  /** Avaria mais recente da peça (abre a tela da avaria). */
+  avariaId?: string | null
+  /** Indenização em centavos (ajustada ou, sem ajuste, a reposição). */
+  valor?: number | null
 }
 
 /**

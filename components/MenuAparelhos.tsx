@@ -70,7 +70,7 @@ export function MenuAparelhos({ pronta, situacao }: Props) {
         {
           href: '/cadastros/ajuda',
           icone: <IconeInterface nome="info" tamanho={20} />,
-          titulo: 'Passo a passo: impressora e TV',
+          titulo: 'Passo a passo: TV e adesivos',
           tom: 'info',
         },
       ]}

@@ -84,7 +84,9 @@ devolver. Não existe "passar para outro" nem "baixar tudo" no fim do dia.
 - **Histórico e auditoria**: filtros por pessoa, empresa, ferramenta, período e via.
   **Baixar planilha** para guardar ou mandar.
 - **Métricas do piloto**: toda sexta, anote os números no relatório do piloto.
-- **Painel da TV** e **Impressora** em Cadastros: tempo das páginas, impressora e mini PC.
+- **Conectar TV** (Início › ícone de grade): código que aparece na TV; também o almoxarife.
+- **Adesivos em folha A4** (ficha da pessoa ou lote): impressora comum, escala 100%.
+- **Painel da TV** em Cadastros: tempo das páginas e rolagem.
 
 > Exercício: estorne a retirada de treino da Parte 1, com o motivo "treinamento".
 

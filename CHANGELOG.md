@@ -16,6 +16,9 @@ Registro do que foi entregue em cada milestone (ver `PLAN.md`).
 
 - **Avaria:** tela com foto inteira, data e hora, quem devolveu, motivo, detalhes e valor da indenização (o engenheiro ajusta); botão para enviar foto e dados pelo WhatsApp.
 
+- **TV sem mini PC:** a TV mostra um código e um QR; o engenheiro ou o almoxarife conecta pelo celular (*Conectar TV*), e dá para desconectar.
+- **Adesivos em folha A4** na impressora comum da obra, da ficha ou em lote.
+
 ### Mudado
 - **Início mais limpo:** números que abrem cada tela e gestão (avisos, a descontar, histórico, métricas) num ícone no cabeçalho.
 - **Código das peças:** sai do nome da ferramenta, sem o campo de prefixo.

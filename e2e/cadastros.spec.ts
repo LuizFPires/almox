@@ -113,21 +113,17 @@ test.describe('cadastros do engenheiro', () => {
     await expect(page.getByText('Nada encontrado com “xyzxyz”.')).toBeVisible()
   })
 
-  test('engrenagem abre o passo a passo da impressora e da TV', async ({ page }) => {
+  test('engrenagem abre o passo a passo da TV e dos adesivos', async ({ page }) => {
     await entrarComo(page, 'engenheiro', '/inicio')
     await page.goto('/cadastros/pessoas')
     await page.getByRole('button', { name: /^Impressora, TV e planilha/ }).click()
     await expect(page.getByRole('dialog', { name: 'Impressora, TV e planilha' })).toBeVisible()
-    await page.getByRole('link', { name: 'Passo a passo: impressora e TV' }).click()
-    await expect(page.getByRole('heading', { name: 'Impressora e TV' })).toBeVisible()
-    for (const secao of [
-      '1. Impressora de etiquetas',
-      '2. Agente de impressão no mini PC',
-      '3. Painel na TV',
-    ]) {
+    await page.getByRole('link', { name: 'Passo a passo: TV e adesivos' }).click()
+    await expect(page.getByRole('heading', { name: 'TV e adesivos' })).toBeVisible()
+    for (const secao of ['1. Painel na TV', '2. Adesivos dos capacetes', 'Se algo não funcionar']) {
       await expect(page.getByRole('region', { name: secao })).toBeVisible()
     }
-    await expect(page.getByText('em até 10 minutos')).toBeVisible()
+    await expect(page.getByText('almox-chi.vercel.app/tv')).toBeVisible()
   })
 
   test('almoxarife não cadastra: nem pela tela, nem pela API', async ({ page }) => {

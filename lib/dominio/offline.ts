@@ -11,6 +11,8 @@ export type PessoaOffline = {
   funcao: string
   empresa: string
   empresaCor: string
+  /** false: inativa que ainda está com ferramenta (só devolve). Ausente em dados antigos. */
+  ativa?: boolean
   /** SHA-256 (hex) do token do capacete; o token nunca vem do servidor. */
   hash: string
 }

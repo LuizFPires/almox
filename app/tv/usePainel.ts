@@ -22,6 +22,8 @@ export type EstadoPainel = {
  * Busca o painel em ciclo, sem sobrepor pedidos, mandando a versão que já tem: sem mudança, o
  * servidor responde só a hora e a tela não re-renderiza. Reconecta sozinha.
  */
+const DESVIO_RELOGIO_MS = 2000
+
 export function usePainel(inicial: PainelTv): EstadoPainel {
   const [estado, setEstado] = useState<EstadoPainel>({
     painel: inicial,
@@ -37,6 +39,7 @@ export function usePainel(inicial: PainelTv): EstadoPainel {
     let versao = inicial.versao
     let caiu = false
     let semAutorizacao = false
+    let diferencaAtual: number | null = null
 
     const buscar = async () => {
       controle = new AbortController()
@@ -60,7 +63,12 @@ export function usePainel(inicial: PainelTv): EstadoPainel {
         const diferencaMs = Date.parse(corpo.agora) - Date.now()
         const novo = corpo.pessoas ? (corpo as PainelTv) : null
         if (novo) versao = novo.versao
-        if (novo || caiu || semAutorizacao) {
+        // O relógio da TV se acerta pelo servidor mesmo sem mudança no painel (1ª resposta ou
+        // desvio de mais de 2 s); abaixo disso não re-renderiza a cada consulta.
+        const acertarRelogio =
+          diferencaAtual === null || Math.abs(diferencaMs - diferencaAtual) > DESVIO_RELOGIO_MS
+        if (novo || caiu || semAutorizacao || acertarRelogio) {
+          diferencaAtual = diferencaMs
           setEstado((e) => ({
             painel: novo ?? e.painel,
             semConexaoDesde: null,

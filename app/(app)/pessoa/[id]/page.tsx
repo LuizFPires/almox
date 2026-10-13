@@ -133,14 +133,21 @@ export default async function PaginaFicha({ params, searchParams }: PageProps<'/
 
         {lanca ? (
           <section aria-label="Lançar" className="flex flex-col gap-2.5">
+            {!pessoa.ativa && (
+              <p className="rounded-botao bg-aviso-claro px-3 py-2.5 text-[15px] text-aviso">
+                Pessoa inativa: só devolve o que está com ela.
+              </p>
+            )}
             <div className="grid grid-cols-2 gap-2.5">
-              <Link
-                href={`/pessoa/${pessoa.id}/retirada?${parametroLancamento}`}
-                className="flex min-h-24 flex-col items-start justify-between gap-2 rounded-cartao bg-amarelo p-4 text-left text-lg font-bold text-texto"
-              >
-                <IconeInterface nome="checkout" tamanho={26} />
-                Retirada
-              </Link>
+              {pessoa.ativa && (
+                <Link
+                  href={`/pessoa/${pessoa.id}/retirada?${parametroLancamento}`}
+                  className="flex min-h-24 flex-col items-start justify-between gap-2 rounded-cartao bg-amarelo p-4 text-left text-lg font-bold text-texto"
+                >
+                  <IconeInterface nome="checkout" tamanho={26} />
+                  Retirada
+                </Link>
+              )}
               {devolucao.permitida ? (
                 <Link
                   href={`/pessoa/${pessoa.id}/devolucao?${parametroLancamento}`}

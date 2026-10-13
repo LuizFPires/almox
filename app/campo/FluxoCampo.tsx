@@ -1,7 +1,7 @@
 'use client'
 
 import Link from 'next/link'
-import { useCallback, useEffect, useMemo, useState } from 'react'
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { Botao } from '@/components/Botao'
 import { Cabecalho } from '@/components/Cabecalho'
 import { CartaoPessoaLancamento, iniciais } from '@/components/CartaoPessoaLancamento'
@@ -64,6 +64,10 @@ export function FluxoCampo() {
   const [online, setOnline] = useState(true)
   const [enviando, setEnviando] = useState(false)
   const [semLogin, setSemLogin] = useState(false)
+  // Toque duplo em "Guardar" não pode virar dois lançamentos (cada um ganha uma chave nova).
+  const gravandoRef = useRef(false)
+  const [gravando, setGravando] = useState(false)
+  const [erroGravar, setErroGravar] = useState<string | null>(null)
 
   // Só os dados e a fila de quem está logado neste celular (sem sessão, a tela não abre).
   const recarregar = useCallback(() => {
@@ -133,15 +137,26 @@ export function FluxoCampo() {
     item: Omit<ItemFila, 'chave' | 'obra' | 'usuario' | 'quando' | 'situacao'>,
     texto: string,
   ) {
-    if (!dados) return
-    await guardarNaFila({
-      ...item,
-      chave: crypto.randomUUID(),
-      obra: dados.obra,
-      usuario: dados.usuario,
-      quando: new Date().toISOString(),
-      situacao: 'aguardando',
-    })
+    if (!dados || gravandoRef.current) return
+    gravandoRef.current = true
+    setGravando(true)
+    setErroGravar(null)
+    try {
+      await guardarNaFila({
+        ...item,
+        chave: crypto.randomUUID(),
+        obra: dados.obra,
+        usuario: dados.usuario,
+        quando: new Date().toISOString(),
+        situacao: 'aguardando',
+      })
+    } catch {
+      setErroGravar('Não foi possível guardar no celular. Nada foi registrado: tente de novo.')
+      return
+    } finally {
+      gravandoRef.current = false
+      setGravando(false)
+    }
     await recarregar()
     setEtapa({ tipo: 'feito', texto })
     if (navigator.onLine)
@@ -370,14 +385,17 @@ export function FluxoCampo() {
                 ? 'Não está com nenhuma ferramenta.'
                 : `Está com ${total} ${total === 1 ? 'ferramenta' : 'ferramentas'} (contando a fila).`}
             </p>
-            <Botao
-              variante="primaria"
-              tamanho="g"
-              larguraTotal
-              onClick={() => setEtapa({ tipo: 'retirada', escolhida: etapa.escolhida })}
-            >
-              Retirada
-            </Botao>
+            {/* Inativa só aparece aqui enquanto tem ferramenta: só devolve. */}
+            {etapa.escolhida.pessoa.ativa !== false && (
+              <Botao
+                variante="primaria"
+                tamanho="g"
+                larguraTotal
+                onClick={() => setEtapa({ tipo: 'retirada', escolhida: etapa.escolhida })}
+              >
+                Retirada
+              </Botao>
+            )}
             <Botao
               variante="escura"
               tamanho="g"
@@ -398,6 +416,8 @@ export function FluxoCampo() {
           fila={fila}
           escolhida={etapa.escolhida}
           aoVoltar={() => setEtapa({ tipo: 'acao', escolhida: etapa.escolhida })}
+          gravando={gravando}
+          erro={erroGravar}
           aoConcluir={(itens) =>
             void lancar(
               {
@@ -419,6 +439,8 @@ export function FluxoCampo() {
           fila={fila}
           escolhida={etapa.escolhida}
           aoVoltar={() => setEtapa({ tipo: 'acao', escolhida: etapa.escolhida })}
+          gravando={gravando}
+          erro={erroGravar}
           aoConcluir={(itens) =>
             void lancar(
               {
@@ -613,9 +635,20 @@ type PropsLancamento = {
   escolhida: Escolhida
   aoVoltar: () => void
   aoConcluir: (itens: { tipo: string; quantidade: number }[]) => void
+  /** Gravando no celular: o botão fica travado (sem lançamento repetido). */
+  gravando: boolean
+  erro: string | null
 }
 
-function RetiradaOffline({ dados, fila, escolhida, aoVoltar, aoConcluir }: PropsLancamento) {
+function RetiradaOffline({
+  dados,
+  fila,
+  escolhida,
+  aoVoltar,
+  aoConcluir,
+  gravando,
+  erro,
+}: PropsLancamento) {
   const [qtd, setQtd] = useState<Record<string, number>>({})
   const [revisao, setRevisao] = useState(false)
   const [conferido, setConferido] = useState(false)
@@ -667,10 +700,15 @@ function RetiradaOffline({ dados, fila, escolhida, aoVoltar, aoConcluir }: Props
           </button>
         </main>
         <RodapeAcao resumo={<span className="text-sm">Fica na fila · aguardando envio</span>}>
+          {erro && (
+            <p role="alert" className="text-sm font-semibold text-erro">
+              {erro}
+            </p>
+          )}
           <Botao
             tamanho="g"
             larguraTotal
-            disabled={!conferido}
+            disabled={!conferido || gravando}
             onClick={() =>
               aoConcluir(marcadas.map((t) => ({ tipo: t.id, quantidade: qtd[t.id] ?? 0 })))
             }
@@ -746,7 +784,15 @@ function RetiradaOffline({ dados, fila, escolhida, aoVoltar, aoConcluir }: Props
   )
 }
 
-function DevolucaoOffline({ dados, fila, escolhida, aoVoltar, aoConcluir }: PropsLancamento) {
+function DevolucaoOffline({
+  dados,
+  fila,
+  escolhida,
+  aoVoltar,
+  aoConcluir,
+  gravando,
+  erro,
+}: PropsLancamento) {
   const [qtd, setQtd] = useState<Record<string, number>>({})
   const comQr = escolhida.token !== null
   const posses = possesComFila(dados, fila, escolhida.pessoa.id)
@@ -802,10 +848,15 @@ function DevolucaoOffline({ dados, fila, escolhida, aoVoltar, aoConcluir }: Prop
         </p>
       </main>
       <RodapeAcao resumo={<span className="text-sm">Fica na fila · aguardando envio</span>}>
+        {erro && (
+          <p role="alert" className="text-sm font-semibold text-erro">
+            {erro}
+          </p>
+        )}
         <Botao
           tamanho="g"
           larguraTotal
-          disabled={total === 0}
+          disabled={total === 0 || gravando}
           onClick={() =>
             aoConcluir(
               Object.entries(qtd)

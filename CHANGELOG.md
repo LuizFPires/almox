@@ -2,6 +2,20 @@
 
 Registro do que foi entregue em cada milestone (ver `PLAN.md`).
 
+## Plano de correção · bloco 1 (13/10/2026)
+
+Pontos da análise externa (`docs/PLANO-DE-CORRECAO-18-PONTOS.md`) que afetam cobrança e o balcão.
+
+### Corrigido
+- **Encerramento × devolução ao mesmo tempo:** a empreiteira não é mais cobrada por ferramenta devolvida no
+  instante do encerramento (corrida reproduzida com duas conexões e fechada).
+- **Troca de empresa com ferramenta na mão** é recusada: a cobrança iria para a empresa nova.
+- **Pessoa inativa que ainda tem ferramenta** devolve pelo QR (com e sem internet); retirada continua bloqueada.
+- **Notificação** na fila não vai para quem perdeu o acesso.
+- **Sem internet:** toque duplo em "Guardar" não duplica o lançamento.
+- **Folha A4:** "Sim, saíram certas" não fica preso em "Marcando…".
+- **TV:** o relógio se acerta pelo servidor mesmo sem mudança no painel.
+
 ## Ajustes do piloto (após o M11, 13/10/2026)
 
 ### Adicionado

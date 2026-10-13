@@ -41,17 +41,28 @@ test.describe('adesivos em folha A4', () => {
     await entrarComo(page, 'engenheiro', '/inicio')
     await page.goto(`/cadastros/pessoa/${pessoa!.id}/imprimir`)
     await page.getByRole('link', { name: 'Imprimir em folha A4' }).click()
+    // Montagem: já com a pessoa escolhida e o tamanho Médio (12 por folha).
+    await expect(page.getByRole('heading', { name: 'Imprimir adesivos' })).toBeVisible()
+    await expect(page.getByRole('radio', { name: /^Médio/ })).toHaveAttribute(
+      'aria-checked',
+      'true',
+    )
+    await expect(page.getByRole('button', { name: /^Espaço 1: / })).toHaveAccessibleName(
+      `Espaço 1: ${pessoa!.nome_capacete}`,
+    )
+    await page.getByRole('link', { name: 'Imprimir 1 adesivo · 1 folha' }).click()
+
     await expect(page.getByRole('heading', { name: 'Adesivos em A4' })).toBeVisible()
-    await expect(page.getByText('1 adesivo · 1 folha')).toBeVisible()
+    await expect(page.getByText('1 adesivo · 1 folha · Médio')).toBeVisible()
     await expect(
-      page.getByRole('figure', { name: `Prévia do adesivo de ${pessoa!.nome_capacete}` }).first(),
+      page.getByRole('figure', { name: `Adesivo de ${pessoa!.nome_capacete}` }).first(),
     ).toBeVisible()
-    // A folha (só no papel) tem o adesivo em 60 × 80 mm.
+    // A folha (só no papel) tem o adesivo em 5 × 6,5 cm.
     const folha = page
       .locator('body > #folhas-a4')
       .getByRole('region', { name: 'Folha 1', includeHidden: true })
     await expect(folha.locator('figure')).toHaveCount(1)
-    expect(await folha.locator('figure').getAttribute('style')).toContain('60mm')
+    expect(await folha.locator('figure').getAttribute('style')).toContain('50mm')
 
     await page.getByRole('button', { name: 'Imprimir 1 folha A4' }).click()
     await expect(page.locator('html')).toHaveAttribute('data-imprimiu', 'sim')
@@ -66,6 +77,30 @@ test.describe('adesivos em folha A4', () => {
         return p?.adesivo_impresso_em ?? null
       })
       .not.toBeNull()
+  })
+
+  test('folha aproveitada: pula os espaços usados e as seguintes vêm cheias', async ({ page }) => {
+    await entrarComo(page, 'engenheiro', '/inicio')
+    await page.goto('/cadastros/adesivos')
+    // Grande (9 por folha), com os 2 primeiros espaços da folha já usados.
+    await page.getByRole('radio', { name: /^Grande/ }).click()
+    await page.getByRole('button', { name: 'Espaço 1: livre' }).click()
+    await page.getByRole('button', { name: 'Espaço 2: livre' }).click()
+    await expect(page.getByRole('button', { name: 'Espaço 1: já usado' })).toBeVisible()
+    const todos = page.getByRole('button', { name: /^Todos da obra \(\d+\)$/ })
+    const n = Math.min(Number((await todos.innerText()).replace(/\D/g, '')), 96)
+    await todos.click()
+    const folhas = Math.ceil((n + 2) / 9)
+    await page.getByRole('link', { name: `Imprimir ${n} adesivos · ${folhas} folhas` }).click()
+    await expect(page.getByText(`${n} adesivos · ${folhas} folhas · Grande`)).toBeVisible()
+    const folhasA4 = page.locator('body > #folhas-a4')
+    // Primeira folha: 7 adesivos (2 espaços em branco); a segunda, cheia.
+    await expect(
+      folhasA4.getByRole('region', { name: 'Folha 1', includeHidden: true }).locator('figure'),
+    ).toHaveCount(7)
+    await expect(
+      folhasA4.getByRole('region', { name: 'Folha 2', includeHidden: true }).locator('figure'),
+    ).toHaveCount(Math.min(9, n - 7))
   })
 
   test('almoxarife não abre a folha de adesivos', async ({ page }) => {

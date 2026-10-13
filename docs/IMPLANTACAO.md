@@ -64,8 +64,10 @@ repetidor perto do balcão evita fila de lançamentos para mandar depois.
 - [ ] Deixe a TV ligada 72 h seguidas antes do piloto e confira que continua passando as páginas.
 
 ### Adesivos (folha A4)
-- [ ] *Cadastros › Adesivos em lote › Imprimir em folha A4*: escala **100%** na impressão.
-- [ ] Meça um adesivo: 6 × 8 cm. Recorte na linha tracejada.
+- [ ] *Imprimir adesivos* (pela empresa, pela importação ou pela ficha): tamanho **Médio** (12 por
+      folha), **Todos sem adesivo** e escala **100%** na impressão.
+- [ ] Meça um adesivo: 5 × 6,5 cm no Médio (6 × 8 no Grande; 4,5 × 6 no Pequeno). Recorte na
+      linha tracejada. Sobrou espaço? Na próxima vez, marque os espaços já usados e aproveite a folha.
 - [ ] Leia o adesivo com *Ler QR do capacete*: abre a pessoa certa.
 
 ### Opcional: impressora de etiquetas com mini PC

@@ -42,11 +42,8 @@ export async function listarPessoas(obraId: string): Promise<PessoaCadastro[]> {
   }
 }
 
-/**
- * Pessoas ativas que nunca tiveram adesivo mandado para a impressora nem impresso em A4 (da
- * obra ou de uma empresa): o lote imprime só estas, então repetir o lote não imprime de novo.
- */
-export async function pessoasSemAdesivo(obraId: string, empresaId?: string | null) {
+/** Quem já teve adesivo mandado para a impressora de etiquetas (fila do mini PC). */
+async function comAdesivoNaFila(obraId: string): Promise<Set<string>> {
   const supabase = await criarClienteServidor()
   const comAdesivo = new Set<string>()
   for (let inicio = 0; ; inicio += PAGINA) {
@@ -62,11 +59,46 @@ export async function pessoasSemAdesivo(obraId: string, empresaId?: string | nul
     for (const t of data) if (t.pessoa_id) comAdesivo.add(t.pessoa_id)
     if (data.length < PAGINA) break
   }
-  return (await listarPessoas(obraId)).filter(
+  return comAdesivo
+}
+
+export type PessoaAdesivo = {
+  id: string
+  nome: string
+  nomeCapacete: string
+  empresa: { id: string; nome: string } | null
+  /** Já tem adesivo (impresso em A4 ou mandado para a impressora de etiquetas). */
+  temAdesivo: boolean
+  /** Quando foi impresso em A4 (null: nunca, ou só pela impressora de etiquetas). */
+  impressoEm: string | null
+}
+
+/** Pessoas ativas da obra para montar a folha de adesivos, com quem já tem adesivo. */
+export async function pessoasParaAdesivo(obraId: string): Promise<PessoaAdesivo[]> {
+  const [pessoas, naFila] = await Promise.all([listarPessoas(obraId), comAdesivoNaFila(obraId)])
+  return pessoas
+    .filter((p) => p.ativa)
+    .map((p) => ({
+      id: p.id,
+      nome: p.nome,
+      nomeCapacete: p.nome_capacete,
+      empresa: p.empresa ? { id: p.empresa.id, nome: p.empresa.nome } : null,
+      temAdesivo: Boolean(p.adesivo_impresso_em) || naFila.has(p.id),
+      impressoEm: p.adesivo_impresso_em,
+    }))
+}
+
+/**
+ * Pessoas ativas que nunca tiveram adesivo mandado para a impressora nem impresso em A4 (da
+ * obra ou de uma empresa): o lote imprime só estas, então repetir o lote não imprime de novo.
+ */
+export async function pessoasSemAdesivo(obraId: string, empresaId?: string | null) {
+  const [pessoas, naFila] = await Promise.all([listarPessoas(obraId), comAdesivoNaFila(obraId)])
+  return pessoas.filter(
     (p) =>
       p.ativa &&
       !p.adesivo_impresso_em &&
-      !comAdesivo.has(p.id) &&
+      !naFila.has(p.id) &&
       (!empresaId || p.empresa?.id === empresaId),
   )
 }

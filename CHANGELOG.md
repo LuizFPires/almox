@@ -21,6 +21,8 @@ Registro do que foi entregue em cada milestone (ver `PLAN.md`).
 
 - **Registro de movimentações no Início:** quem lançou, funcionário, dia e hora, ferramentas e QR ou lista.
 
+- **Montar a folha de adesivos:** 3 tamanhos (9, 12 ou 16 por folha, Médio por padrão), aproveitar folha já usada, todos ou um por um.
+
 ### Mudado
 - **Início mais limpo:** números que abrem cada tela e gestão (avisos, a descontar, histórico, métricas) num ícone no cabeçalho.
 - **Código das peças:** sai do nome da ferramenta, sem o campo de prefixo.

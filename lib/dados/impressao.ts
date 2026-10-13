@@ -50,6 +50,8 @@ export async function listarDispositivos(obraId: string): Promise<Dispositivo[]>
     .from('dispositivo_tv')
     .select('id, nome, ultimo_ping, ultimo_ping_tv, revogado_em, criado_em')
     .eq('obra_id', obraId)
+    // TVs "só painel" (Google TV) não são mini PC: ficam em Conectar TV.
+    .eq('so_painel', false)
     .order('criado_em', { ascending: false })
   if (error) throw new Error('Não foi possível carregar os dispositivos.')
   return data

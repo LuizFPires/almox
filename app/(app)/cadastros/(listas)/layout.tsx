@@ -17,9 +17,10 @@ export default async function LayoutListas({ children }: LayoutProps<'/cadastros
     situacaoImpressao(obraAtual.id),
     indiceCadastros(obraAtual.id),
   ])
-  const pronta = Boolean(impressora) && agente.online
+  // Sem impressora de etiquetas é o normal (adesivos em A4): a engrenagem não fica vermelha.
+  const pronta = impressora ? agente.online : null
   const situacao = !impressora
-    ? 'Nenhuma impressora escolhida'
+    ? 'Opcional: etiquetas com mini PC'
     : agente.online
       ? `${impressora.nome} · agente online`
       : agente.texto

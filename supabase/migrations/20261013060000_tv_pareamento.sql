@@ -5,7 +5,9 @@
 --
 -- Segurança: a TV guarda um segredo aleatório (cookie httpOnly) e só com ele recebe a
 -- credencial; o código de 6 dígitos sozinho não dá nada. Aprovar exige login de quem lança na
--- obra. O pedido vale 10 minutos e entrega a credencial uma vez só.
+-- obra. O pedido vale 10 minutos e entrega a credencial uma vez só. Pedir código só pelo
+-- servidor do app (chave secreta), com o IP de quem pediu: no máximo 3 pedidos vivos por IP,
+-- para ninguém lotar os códigos e travar as TVs das obras.
 
 alter table public.dispositivo_tv add column so_painel boolean not null default false;
 grant select (so_painel, revogado_em, ultimo_ping_tv) on public.dispositivo_tv to authenticated;
@@ -20,6 +22,8 @@ create table public.pareamento_tv (
   codigo text not null check (codigo ~ '^[0-9]{6}$'),
   segredo_hash text not null unique,
   expira_em timestamptz not null,
+  -- IP de quem pediu (limite de pedidos por IP); nunca vai para a tela.
+  ip text,
   obra_id uuid references public.obra (id),
   dispositivo_id uuid references public.dispositivo_tv (id),
   aprovado_por uuid references public.usuario (id),
@@ -32,10 +36,10 @@ alter table public.pareamento_tv enable row level security;
 revoke all on public.pareamento_tv from public, anon, authenticated;
 
 /**
- * A TV pede um código. `p_segredo` (64 hex) é gerado e guardado pela TV; só o hash fica aqui.
- * Devolve o código de 6 dígitos, único entre os pedidos vivos.
+ * A TV pede um código (pelo servidor do app). `p_segredo` (64 hex) fica no cookie da TV; só o
+ * hash fica aqui. Devolve o código de 6 dígitos, único entre os pedidos vivos.
  */
-create function public.pedir_pareamento_tv(p_segredo text) returns text
+create function public.pedir_pareamento_tv(p_segredo text, p_ip text default null) returns text
 language plpgsql
 security definer
 set search_path = ''
@@ -47,9 +51,18 @@ begin
   if coalesce(p_segredo, '') !~ '^[0-9a-f]{64}$' then
     raise exception 'Segredo inválido.' using errcode = '22023';
   end if;
-  -- Limpeza dos pedidos velhos e trava contra enxurrada de pedidos anônimos.
+  -- Um pedido por vez: o código sorteado não colide com outro pedido simultâneo.
+  perform pg_advisory_xact_lock(hashtext('pareamento_tv'));
+  -- Limpeza dos pedidos velhos e travas contra enxurrada de pedidos.
   delete from public.pareamento_tv where expira_em < now() - interval '1 day';
-  if (select count(*) from public.pareamento_tv where expira_em > now() and aprovado_em is null) >= 500 then
+  if p_ip is not null and (
+    select count(*) from public.pareamento_tv
+     where ip = p_ip and expira_em > now() and aprovado_em is null
+       and segredo_hash <> privado.hash_token(p_segredo)
+  ) >= 3 then
+    raise exception 'Muitos pedidos de TV deste endereço. Tente em alguns minutos.' using errcode = 'AL009';
+  end if;
+  if (select count(*) from public.pareamento_tv where expira_em > now() and aprovado_em is null) >= 5000 then
     raise exception 'Muitos pedidos de TV abertos. Tente em alguns minutos.' using errcode = 'AL009';
   end if;
   loop
@@ -62,8 +75,8 @@ begin
       raise exception 'Não foi possível gerar o código.' using errcode = 'AL009';
     end if;
   end loop;
-  insert into public.pareamento_tv (codigo, segredo_hash, expira_em)
-  values (v_codigo, privado.hash_token(p_segredo), now() + interval '10 minutes')
+  insert into public.pareamento_tv (codigo, segredo_hash, expira_em, ip)
+  values (v_codigo, privado.hash_token(p_segredo), now() + interval '10 minutes', p_ip)
   on conflict (segredo_hash) do update
     set codigo = excluded.codigo, expira_em = excluded.expira_em
     where public.pareamento_tv.aprovado_em is null;
@@ -164,10 +177,35 @@ begin
 end;
 $$;
 
-revoke all on function public.pedir_pareamento_tv(text), public.consultar_pareamento_tv(text),
+/** O mini PC antigo não reconecta uma TV "só painel" (trocaria a credencial dela sem aviso). */
+create or replace function public.gerar_codigo_tv(p_dispositivo uuid) returns text
+language plpgsql
+security definer
+set search_path = ''
+as $$
+declare
+  v public.dispositivo_tv;
+  v_codigo text := encode(extensions.gen_random_bytes(16), 'hex');
+begin
+  select * into v from public.dispositivo_tv
+   where id = p_dispositivo and revogado_em is null and not so_painel;
+  if v.id is null or not privado.eh_engenheiro(v.obra_id) then
+    raise exception 'Só o engenheiro da obra conecta uma TV a um mini PC ativo.' using errcode = '42501';
+  end if;
+  -- Um código vivo por mini PC: o novo invalida o anterior.
+  update public.codigo_tv set usado_em = now() where dispositivo_id = v.id and usado_em is null;
+  insert into public.codigo_tv (codigo_hash, dispositivo_id, expira_em)
+  values (privado.hash_token(v_codigo), v.id, now() + interval '10 minutes');
+  return v_codigo;
+end;
+$$;
+
+revoke all on function public.pedir_pareamento_tv(text, text), public.consultar_pareamento_tv(text),
   public.aprovar_pareamento_tv(uuid, text, text), public.desconectar_tv(uuid)
   from public, anon, authenticated;
--- A TV pede e consulta só com a chave pública.
-grant execute on function public.pedir_pareamento_tv(text), public.consultar_pareamento_tv(text) to anon;
+-- Pedir código: só o servidor do app (chave secreta), que informa o IP de quem pediu.
+grant execute on function public.pedir_pareamento_tv(text, text) to service_role;
+-- A TV consulta com a chave pública (só com o segredo do cookie dela).
+grant execute on function public.consultar_pareamento_tv(text) to anon;
 grant execute on function public.aprovar_pareamento_tv(uuid, text, text), public.desconectar_tv(uuid)
   to authenticated;

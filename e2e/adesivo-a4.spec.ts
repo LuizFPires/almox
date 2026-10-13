@@ -47,12 +47,17 @@ test.describe('adesivos em folha A4', () => {
       page.getByRole('figure', { name: `Prévia do adesivo de ${pessoa!.nome_capacete}` }).first(),
     ).toBeVisible()
     // A folha (só no papel) tem o adesivo em 60 × 80 mm.
-    const folha = page.getByRole('region', { name: 'Folha 1', includeHidden: true })
+    const folha = page
+      .locator('body > #folhas-a4')
+      .getByRole('region', { name: 'Folha 1', includeHidden: true })
     await expect(folha.locator('figure')).toHaveCount(1)
     expect(await folha.locator('figure').getAttribute('style')).toContain('60mm')
 
     await page.getByRole('button', { name: 'Imprimir 1 folha A4' }).click()
     await expect(page.locator('html')).toHaveAttribute('data-imprimiu', 'sim')
+    // Só marca depois de confirmar que as folhas saíram certas.
+    await page.getByRole('button', { name: 'Sim, saíram certas' }).click()
+    await expect(page.getByText(/1 adesivo marcado como impresso/)).toBeVisible()
     await expect
       .poll(async () => {
         const [p] = await ler<{ adesivo_impresso_em: string | null }[]>(

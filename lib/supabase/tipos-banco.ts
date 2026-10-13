@@ -984,6 +984,7 @@ export type Database = {
           entregue_em: string | null
           expira_em: string
           id: string
+          ip: string | null
           obra_id: string | null
           segredo_hash: string
         }
@@ -997,6 +998,7 @@ export type Database = {
           entregue_em?: string | null
           expira_em: string
           id?: string
+          ip?: string | null
           obra_id?: string | null
           segredo_hash: string
         }
@@ -1009,6 +1011,7 @@ export type Database = {
           entregue_em?: string | null
           expira_em?: string
           id?: string
+          ip?: string | null
           obra_id?: string | null
           segredo_hash?: string
         }
@@ -1529,7 +1532,7 @@ export type Database = {
       marcar_fotos_apagadas: { Args: { p_caminhos: string[] }; Returns: number }
       metricas_piloto: { Args: { p_ate: string; p_de: string; p_obra: string }; Returns: Json }
       painel_tv: { Args: { p_token: string; p_versao?: string }; Returns: Json }
-      pedir_pareamento_tv: { Args: { p_segredo: string }; Returns: string }
+      pedir_pareamento_tv: { Args: { p_ip?: string; p_segredo: string }; Returns: string }
       pegar_envios: {
         Args: { p_canais?: Database['public']['Enums']['canal_envio'][]; p_limite?: number }
         Returns: {

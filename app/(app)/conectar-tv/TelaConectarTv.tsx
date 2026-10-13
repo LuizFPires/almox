@@ -12,7 +12,13 @@ import { FormConectarTv } from './FormConectarTv'
  * Conectar a TV do almoxarifado (engenheiro ou almoxarife): o código que a TV mostra é
  * aprovado aqui. Embaixo, as TVs conectadas, com "Desconectar".
  */
-export async function TelaConectarTv({ codigo }: { codigo?: string }) {
+export async function TelaConectarTv({
+  codigo,
+  erroDesconectar = false,
+}: {
+  codigo?: string
+  erroDesconectar?: boolean
+}) {
   const { obraAtual } = await obterSessao()
   const lanca = podeLancar(obraAtual.perfil)
   const agora = new Date()
@@ -36,6 +42,11 @@ export async function TelaConectarTv({ codigo }: { codigo?: string }) {
               câmera do celular ou digite o código aqui. Vale 10 minutos.
             </p>
             <FormConectarTv codigo={codigo} />
+            {erroDesconectar && (
+              <p role="alert" className="rounded-cartao bg-erro-claro px-4 py-3 text-erro">
+                Não foi possível desconectar a TV. Tente de novo.
+              </p>
+            )}
 
             <section aria-labelledby="titulo-tvs" className="flex flex-col gap-2">
               <h2

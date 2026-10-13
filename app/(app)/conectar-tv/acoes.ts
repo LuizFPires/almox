@@ -1,6 +1,7 @@
 'use server'
 
 import { revalidatePath } from 'next/cache'
+import { redirect } from 'next/navigation'
 import { exigirLancador } from '@/lib/acesso'
 
 export type EstadoConectarTv = { erro?: string; conectada?: string; codigo?: string; nome?: string }
@@ -38,6 +39,9 @@ export async function conectarTv(_: EstadoConectarTv, form: FormData): Promise<E
 /** Desconecta uma TV "só painel" da obra (ela volta a mostrar o código). */
 export async function desconectarTv(form: FormData): Promise<void> {
   const { supabase } = await exigirLancador()
-  await supabase.rpc('desconectar_tv', { p_dispositivo: String(form.get('id') ?? '') })
+  const { error } = await supabase.rpc('desconectar_tv', {
+    p_dispositivo: String(form.get('id') ?? ''),
+  })
   revalidatePath('/conectar-tv')
+  if (error) redirect('/conectar-tv?erro=desconectar')
 }

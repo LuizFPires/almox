@@ -7,6 +7,7 @@ import { pessoasSemAdesivo } from '@/lib/dados/pessoas'
 import { podeCadastrar } from '@/lib/dominio/permissoes'
 import { obterSessao } from '@/lib/sessao'
 import { BotaoImprimirA4 } from './BotaoImprimirA4'
+import { FolhasA4 } from './FolhasA4'
 
 export const metadata: Metadata = { title: 'Adesivos em A4 · Almox' }
 
@@ -50,12 +51,8 @@ export default async function PaginaAdesivosA4({
           grid-auto-rows: 80mm; gap: 5mm; justify-content: center; }
         @media print {
           body { background: #fff !important; }
-          /* Só as folhas no papel, no fluxo normal (assim a quebra de página funciona):
-             some tudo que não é as folhas nem está em volta delas; o que está em volta perde a
-             largura de celular. */
-          body *:not(:has(#folhas-a4)):not(#folhas-a4):not(#folhas-a4 *) { display: none !important; }
-          body *:has(#folhas-a4) { display: block !important; max-width: none !important;
-            margin: 0 !important; padding: 0 !important; min-height: 0 !important; }
+          /* Só as folhas no papel (elas ficam direto no body, fora da coluna do app). */
+          body > :not(#folhas-a4) { display: none !important; }
           .folha-a4 { break-after: page; }
           .folha-a4:last-child { break-after: auto; }
         }
@@ -110,7 +107,7 @@ export default async function PaginaAdesivosA4({
         )}
       </main>
       {/* Só no papel: as folhas em tamanho real. */}
-      <div id="folhas-a4" className="hidden print:block">
+      <FolhasA4>
         {folhas.map((folha, i) => (
           <section key={i} className="folha-a4" aria-label={`Folha ${i + 1}`}>
             {folha.map((a) => (
@@ -118,7 +115,7 @@ export default async function PaginaAdesivosA4({
             ))}
           </section>
         ))}
-      </div>
+      </FolhasA4>
     </>
   )
 }

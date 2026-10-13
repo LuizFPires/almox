@@ -1,6 +1,7 @@
 import 'server-only'
 import { createClient } from '@supabase/supabase-js'
 import type { PainelTv } from '@/lib/dominio/tv'
+import { criarClienteAdmin } from '@/lib/supabase/admin'
 import { lerAmbientePublico } from '@/lib/supabase/ambiente'
 import type { Database } from '@/lib/supabase/tipos-banco'
 
@@ -87,9 +88,15 @@ export type Pareamento =
   | { estado: 'vencido' }
   | { estado: 'erro' }
 
-/** A TV pede um código de 6 dígitos para mostrar na tela. */
-export async function pedirPareamento(segredo: string): Promise<string | null> {
-  const { data, error } = await clienteAnonimo().rpc('pedir_pareamento_tv', { p_segredo: segredo })
+/**
+ * A TV pede um código de 6 dígitos para mostrar na tela. Só o servidor pede (chave secreta),
+ * informando o IP de quem pediu: o banco limita os pedidos vivos por IP.
+ */
+export async function pedirPareamento(segredo: string, ip: string | null): Promise<string | null> {
+  const { data, error } = await criarClienteAdmin().rpc('pedir_pareamento_tv', {
+    p_segredo: segredo,
+    p_ip: ip ?? undefined,
+  })
   if (error || typeof data !== 'string' || !/^[0-9]{6}$/.test(data)) return null
   return data
 }

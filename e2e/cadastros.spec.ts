@@ -62,7 +62,10 @@ test.describe('cadastros do engenheiro', () => {
         'base64',
       ),
     })
-    await expect(page.locator('input[name=icone]:checked')).toHaveValue(/^arquivo:/)
+    // Envio do ícone: prepara a imagem e sobe para o Storage (pode passar de 5 s com a máquina cheia).
+    await expect(page.locator('input[name=icone]:checked')).toHaveValue(/^arquivo:/, {
+      timeout: 15_000,
+    })
     await campo(page, 'Nome').fill(ferramenta)
     // Sem campo de prefixo: o código das peças sai do nome.
     await expect(page.getByLabel('Prefixo do código')).toHaveCount(0)

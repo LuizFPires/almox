@@ -17,6 +17,13 @@ function semCache(resposta: NextResponse) {
 
 const seguro = (request: NextRequest) => request.nextUrl.protocol === 'https:'
 
+/** IP de quem pediu (a Vercel preenche estes cabeçalhos); null no computador de teste. */
+function ipDe(request: NextRequest): string | null {
+  const ip =
+    request.headers.get('x-real-ip') ?? request.headers.get('x-forwarded-for')?.split(',')[0]
+  return ip?.trim().slice(0, 64) || null
+}
+
 /**
  * A TV sem credencial pede um código para mostrar (POST). Se já tem um pedido vivo, devolve o
  * mesmo código (recarregar a página não troca o número que alguém está digitando).
@@ -28,9 +35,11 @@ export async function POST(request: NextRequest) {
     if (pedido.estado === 'esperando') {
       return semCache(NextResponse.json({ codigo: pedido.codigo }))
     }
+    // Aprovado entre duas perguntas (a TV recarregou): a credencial já saiu, então fica aqui.
+    if (pedido.estado === 'aprovado') return entrar(request, pedido.token)
   }
   const segredo = randomBytes(32).toString('hex')
-  const codigo = await pedirPareamento(segredo)
+  const codigo = await pedirPareamento(segredo, ipDe(request))
   if (!codigo) return semCache(NextResponse.json({ erro: true }, { status: 503 }))
   const resposta = NextResponse.json({ codigo })
   resposta.cookies.set(COOKIE_PEDIDO_TV, segredo, {
@@ -52,8 +61,13 @@ export async function GET(request: NextRequest) {
     return semCache(NextResponse.json({ estado: 'erro' }, { status: 503 }))
   }
   if (pedido.estado !== 'aprovado') return semCache(NextResponse.json(pedido))
+  return entrar(request, pedido.token)
+}
+
+/** Guarda a credencial do painel no cookie da TV e apaga o pedido; a tela recarrega. */
+function entrar(request: NextRequest, token: string) {
   const resposta = NextResponse.json({ estado: 'aprovado' })
-  resposta.cookies.set(COOKIE_TV, pedido.token, { ...OPCOES_COOKIE_TV, secure: seguro(request) })
+  resposta.cookies.set(COOKIE_TV, token, { ...OPCOES_COOKIE_TV, secure: seguro(request) })
   resposta.cookies.delete({ name: COOKIE_PEDIDO_TV, path: '/tv' })
   return semCache(resposta)
 }

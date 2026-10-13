@@ -33,8 +33,12 @@ export function Pareamento({ aviso }: Props) {
     async function pedir() {
       try {
         const r = await fetch('/tv/pareamento', { method: 'POST', cache: 'no-store' })
-        const dados = (await r.json()) as { codigo?: string }
+        const dados = (await r.json()) as { codigo?: string; estado?: string }
         if (!vivo) return
+        if (dados.estado === 'aprovado') {
+          window.location.replace('/tv')
+          return
+        }
         if (!r.ok || !dados.codigo) throw new Error('sem código')
         atual = dados.codigo
         setCodigo(dados.codigo)

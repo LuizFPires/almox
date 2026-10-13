@@ -49,6 +49,10 @@ export function FormConectarTv({ codigo }: { codigo?: string }) {
         autoComplete="off"
       />
       <ErroFormulario mensagem={estado.erro} />
+      <p className="rounded-cartao bg-aviso-claro px-3.5 py-2.5 text-sm text-aviso">
+        Só conecte se o código está na <b>TV do almoxarifado, na sua frente</b>. Código mandado por
+        mensagem pode ser de outra pessoa.
+      </p>
       <Botao type="submit" tamanho="g" larguraTotal disabled={enviando}>
         {enviando ? 'Conectando…' : 'Conectar TV'}
       </Botao>

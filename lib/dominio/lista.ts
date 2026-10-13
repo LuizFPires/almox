@@ -53,9 +53,16 @@ export function agruparPorEmpresa(
   agora: Date,
 ): GrupoEmpresa[] {
   const buscando = busca.trim().length > 0
+  // Pessoas separadas por empresa numa passada (antes, uma varredura por empresa).
+  const porEmpresa = new Map<string, PessoaLista[]>()
+  for (const p of pessoas) {
+    const grupo = porEmpresa.get(p.empresa.id)
+    if (grupo) grupo.push(p)
+    else porEmpresa.set(p.empresa.id, [p])
+  }
   return empresas
     .map((empresa) => {
-      const daEmpresa = pessoas.filter((p) => p.empresa.id === empresa.id)
+      const daEmpresa = porEmpresa.get(empresa.id) ?? []
       const mostradas = daEmpresa
         .filter((p) => p.itens.length > 0 && bateBusca(p, busca))
         .sort((a, b) => a.nome.localeCompare(b.nome, 'pt-BR'))

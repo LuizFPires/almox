@@ -31,26 +31,43 @@ const GRUPOS: { tipo: TipoCadastro; titulo: string }[] = [
 export const LIMITE_POR_GRUPO = 30
 
 /**
+ * Índice pronto para buscar: texto de cada item já sem acento e itens já na ordem de exibição
+ * (ativos antes, depois por nome). Monte uma vez por índice, não a cada letra digitada.
+ */
+export type BuscaPreparada = { preparada: true; itens: { item: ItemBusca; texto: string }[] }
+
+export function prepararBusca(indice: readonly ItemBusca[]): BuscaPreparada {
+  const itens = indice
+    .map((item) => ({
+      item,
+      texto: normalizarTexto([item.nome, item.detalhe, ...item.termos].join(' ')),
+    }))
+    .sort(
+      (a, b) =>
+        Number(a.item.inativo ?? false) - Number(b.item.inativo ?? false) ||
+        a.item.nome.localeCompare(b.item.nome, 'pt-BR'),
+    )
+  return { preparada: true, itens }
+}
+
+/**
  * Busca em todos os cadastros de uma vez: cada palavra digitada precisa aparecer no nome ou
  * em algum termo, sem acento e sem diferença de maiúsculas. Ativos antes, depois por nome.
  */
-export function buscarCadastros(indice: readonly ItemBusca[], termo: string): ResultadoBusca {
+export function buscarCadastros(
+  indice: readonly ItemBusca[] | BuscaPreparada,
+  termo: string,
+): ResultadoBusca {
   const palavras = normalizarTexto(termo).split(/\s+/).filter(Boolean)
   if (palavras.length === 0) return []
-  const achados = indice.filter((item) => {
-    const texto = normalizarTexto([item.nome, item.detalhe, ...item.termos].join(' '))
-    return palavras.every((p) => texto.includes(p))
-  })
+  const preparada = 'preparada' in indice ? indice : prepararBusca(indice)
+  const achados = preparada.itens
+    .filter(({ texto }) => palavras.every((p) => texto.includes(p)))
+    .map(({ item }) => item)
   return GRUPOS.map(({ tipo, titulo }) => ({
     tipo,
     titulo,
-    itens: achados
-      .filter((i) => i.tipo === tipo)
-      .sort(
-        (a, b) =>
-          Number(a.inativo ?? false) - Number(b.inativo ?? false) ||
-          a.nome.localeCompare(b.nome, 'pt-BR'),
-      ),
+    itens: achados.filter((i) => i.tipo === tipo),
   })).filter((g) => g.itens.length > 0)
 }
 

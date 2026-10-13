@@ -191,6 +191,26 @@ test.describe('lançar sem internet', () => {
     }
   })
 
+  test('sinal fraco (a rede não responde): abre a tela guardada em poucos segundos', async ({
+    page,
+    context,
+  }) => {
+    await entrarComo(page, 'almoxarife', '/inicio')
+    // Segunda visita: o service worker controla a página e guarda /campo.
+    await page.reload()
+    await expect
+      .poll(() => page.evaluate(async () => Boolean(await caches.match('/campo'))), {
+        timeout: 20_000,
+      })
+      .toBe(true)
+    // A rede "pendura": o pedido de /campo nunca responde nem falha.
+    await context.route('**/campo', () => new Promise(() => {}))
+    const inicio = Date.now()
+    await page.goto('/campo', { waitUntil: 'commit' })
+    await expect(page.getByText('Lançar sem internet').first()).toBeVisible({ timeout: 10_000 })
+    expect(Date.now() - inicio).toBeLessThan(9_000)
+  })
+
   test('sem login, a tela sem internet não abre (nem com dados de outro login no celular)', async ({
     page,
   }) => {

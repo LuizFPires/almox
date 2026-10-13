@@ -48,7 +48,7 @@ leem o `.env`. No Linux o `.env` fica com permissão 600.
 Log do agente:
 - em qualquer sistema: `logs/agente-AAAA-MM-DD.log` dentro da pasta, um arquivo por dia,
   guardados por 14 dias;
-- Windows: também `logs\agente.log` (saída do serviço);
+- Windows: também `logs\agente-falha.log` (só erros da execução atual; recomeça a cada início);
 - Linux: também `journalctl -u almox-agente -f`.
 
 Para remover o serviço: `instalar\windows.ps1 -Remover` ou `sudo sh instalar/linux.sh remover`.

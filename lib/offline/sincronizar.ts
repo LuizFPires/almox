@@ -12,8 +12,22 @@ export async function usuarioAtual(cliente: Cliente = criarClienteNavegador()) {
   return data.session?.user.id ?? null
 }
 
-/** Baixa e guarda os dados da obra para lançar sem internet (só almoxarife e engenheiro). */
-export async function atualizarDados(obra: string, cliente: Cliente = criarClienteNavegador()) {
+/** Download em andamento por obra: pedidos iguais ao mesmo tempo usam o mesmo. */
+const baixando = new Map<string, Promise<boolean>>()
+
+/**
+ * Baixa e guarda os dados da obra para lançar sem internet (só almoxarife e engenheiro). Se já
+ * há um download dessa obra em andamento, espera ele em vez de baixar de novo.
+ */
+export function atualizarDados(obra: string, cliente: Cliente = criarClienteNavegador()) {
+  const emAndamento = baixando.get(obra)
+  if (emAndamento) return emAndamento
+  const pedido = baixarDados(obra, cliente).finally(() => baixando.delete(obra))
+  baixando.set(obra, pedido)
+  return pedido
+}
+
+async function baixarDados(obra: string, cliente: Cliente): Promise<boolean> {
   const usuario = await usuarioAtual(cliente)
   if (!usuario) return false
   const { data, error } = await cliente.rpc('dados_offline', { p_obra: obra })

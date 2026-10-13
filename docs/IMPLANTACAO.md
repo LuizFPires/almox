@@ -109,7 +109,7 @@ Para obras que cadastram muita gente. Siga `agente-impressao/LEIA-ME.md`:
 
 ## 5. Durante o piloto (30 dias)
 
-- [ ] Toda sexta: *Início › Métricas do piloto* (engenheiro). Anote no relatório:
+- [ ] Toda sexta (engenheiro): anote no relatório, a partir do *Histórico* e do *A descontar*:
   - QR lido → retirada (meta: até 15 s);
   - retiradas sem QR (meta: menos de 10%);
   - pendências com aviso (meta: 100%);

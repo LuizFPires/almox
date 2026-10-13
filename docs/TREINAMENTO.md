@@ -83,7 +83,6 @@ devolver. Não existe "passar para outro" nem "baixar tudo" no fim do dia.
   - na medição, **Fechar medição** da empresa.
 - **Histórico e auditoria**: filtros por pessoa, empresa, ferramenta, período e via.
   **Baixar planilha** para guardar ou mandar.
-- **Métricas do piloto**: toda sexta, anote os números no relatório do piloto.
 - **Conectar TV** (Início › ícone de grade): código que aparece na TV; também o almoxarife.
 - **Adesivos em folha A4** (ficha da pessoa ou lote): impressora comum, escala 100%.
 - **Painel da TV** em Cadastros: tempo das páginas e rolagem.

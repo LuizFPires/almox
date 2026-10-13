@@ -1,8 +1,6 @@
 'use client'
 
-import Link from 'next/link'
 import { useId, type InputHTMLAttributes, type ReactNode } from 'react'
-import { IconeInterface } from './IconeInterface'
 
 export const CLASSE_CAMPO =
   'min-h-toque w-full rounded-botao border border-borda bg-cartao px-3 text-base text-texto aria-[invalid=true]:border-erro'
@@ -84,18 +82,5 @@ export function ErroFormulario({ mensagem }: { mensagem?: string }) {
     <p role="alert" className="rounded-botao bg-erro-claro px-3 py-2.5 text-[15px] text-erro">
       {mensagem}
     </p>
-  )
-}
-
-/** Botão "Nova …" das listas: largura total, logo abaixo das abas (protótipo). */
-export function BotaoNovo({ href, children }: { href: string; children: ReactNode }) {
-  return (
-    <Link
-      href={href}
-      className="flex min-h-14 items-center justify-center gap-2 rounded-cartao border-2 border-dashed border-engenheiro bg-cartao text-[17px] font-bold text-engenheiro"
-    >
-      <IconeInterface nome="plus" tamanho={20} />
-      {children}
-    </Link>
   )
 }

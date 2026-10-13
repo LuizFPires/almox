@@ -6,8 +6,8 @@
 -- Segurança: a TV guarda um segredo aleatório (cookie httpOnly) e só com ele recebe a
 -- credencial; o código de 6 dígitos sozinho não dá nada. Aprovar exige login de quem lança na
 -- obra. O pedido vale 10 minutos e entrega a credencial uma vez só. Pedir código só pelo
--- servidor do app (chave secreta), com o IP de quem pediu: no máximo 3 pedidos vivos por IP,
--- para ninguém lotar os códigos e travar as TVs das obras.
+-- servidor do app (chave secreta), com o IP de quem pediu: no máximo 10 pedidos vivos por IP
+-- (a obra inteira sai por um IP só), para ninguém lotar os códigos e travar as TVs das obras.
 
 alter table public.dispositivo_tv add column so_painel boolean not null default false;
 grant select (so_painel, revogado_em, ultimo_ping_tv) on public.dispositivo_tv to authenticated;
@@ -59,7 +59,7 @@ begin
     select count(*) from public.pareamento_tv
      where ip = p_ip and expira_em > now() and aprovado_em is null
        and segredo_hash <> privado.hash_token(p_segredo)
-  ) >= 3 then
+  ) >= 10 then
     raise exception 'Muitos pedidos de TV deste endereço. Tente em alguns minutos.' using errcode = 'AL009';
   end if;
   if (select count(*) from public.pareamento_tv where expira_em > now() and aprovado_em is null) >= 5000 then

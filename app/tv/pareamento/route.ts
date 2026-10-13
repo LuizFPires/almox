@@ -17,11 +17,18 @@ function semCache(resposta: NextResponse) {
 
 const seguro = (request: NextRequest) => request.nextUrl.protocol === 'https:'
 
-/** IP de quem pediu (a Vercel preenche estes cabeçalhos); null no computador de teste. */
+/**
+ * IP de quem pediu (a Vercel preenche estes cabeçalhos). O próprio servidor (127.0.0.1, ::1:
+ * computador de teste e CI) não entra no limite por IP.
+ */
 function ipDe(request: NextRequest): string | null {
-  const ip =
-    request.headers.get('x-real-ip') ?? request.headers.get('x-forwarded-for')?.split(',')[0]
-  return ip?.trim().slice(0, 64) || null
+  const ip = (
+    request.headers.get('x-real-ip') ??
+    request.headers.get('x-forwarded-for')?.split(',')[0] ??
+    ''
+  ).trim()
+  if (!ip || /^(127\.|::1$|::ffff:127\.)/.test(ip)) return null
+  return ip.slice(0, 64)
 }
 
 /**

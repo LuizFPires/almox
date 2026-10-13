@@ -24,12 +24,11 @@ select throws_ok(
 set local role service_role;
 select throws_ok($$select public.pedir_pareamento_tv('curto', '1.2.3.4')$$, '22023', null, 'segredo fora do formato: recusado');
 insert into t_ctx values ('codigo', public.pedir_pareamento_tv((select valor from t_ctx where chave = 'segredo'), '1.2.3.4'));
-select public.pedir_pareamento_tv(repeat('e1', 32), '9.9.9.9');
-select public.pedir_pareamento_tv(repeat('e2', 32), '9.9.9.9');
-select public.pedir_pareamento_tv(repeat('e3', 32), '9.9.9.9');
+select public.pedir_pareamento_tv(encode(sha256(n::text::bytea), 'hex'), '9.9.9.9')
+  from generate_series(1, 10) n;
 select throws_ok(
   $$select public.pedir_pareamento_tv(repeat('e4', 32), '9.9.9.9')$$,
-  'AL009', null, 'no máximo 3 pedidos vivos por IP'
+  'AL009', null, 'no máximo 10 pedidos vivos por IP'
 );
 set local role anon;
 select set_config('request.jwt.claims', '{"role":"anon"}', true);

@@ -127,4 +127,16 @@ describe('notificações e apoio', () => {
     expect(saudacao('Paulo Ribeiro', 'Paulo Ribeiro')).toBe('Olá, Paulo Ribeiro.')
     expect(saudacao('Paulo Ribeiro', 'Paulo Souza')).toBe('Olá, Paulo Ribeiro e Paulo Souza.')
   })
+
+  it('homônimos com ids diferentes ficam em linhas separadas', () => {
+    const homonimos = [
+      { pessoa: 'José Silva', pessoaId: 'a', tipo: 'Pá', valor: 8900 },
+      { pessoa: 'José Silva', pessoaId: 'b', tipo: 'Pá', valor: 8900 },
+      { pessoa: 'José Silva', pessoaId: 'a', tipo: 'Enxada', valor: 6000 },
+    ]
+    expect(porPessoa(homonimos)).toEqual([
+      { pessoa: 'José Silva', itens: 'Pá ×1, Enxada ×1', valor: 14900 },
+      { pessoa: 'José Silva', itens: 'Pá ×1', valor: 8900 },
+    ])
+  })
 })

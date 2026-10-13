@@ -57,7 +57,7 @@ export default async function PaginaImprimir({
         {!trabalho && (
           <div className="flex flex-col gap-1.5 px-5">
             <Link
-              href={`/cadastros/adesivos/a4?pessoas=${id}&volta=${encodeURIComponent(aqui)}`}
+              href={`/cadastros/adesivos?pessoa=${id}&volta=${encodeURIComponent(aqui)}`}
               className={`flex min-h-14 items-center justify-center rounded-cartao px-5 text-lg font-bold ${
                 impressora ? 'border border-borda bg-cartao text-texto' : 'bg-amarelo text-escuro'
               }`}

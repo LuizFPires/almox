@@ -11,7 +11,16 @@ type Etapa = 'imprimir' | 'conferir' | 'marcando' | 'marcado' | 'erro'
  * depois que a pessoa confirma que as folhas saíram certas: impressão cancelada ou na escala
  * errada não tira ninguém do lote.
  */
-export function BotaoImprimirA4({ pessoas, folhas }: { pessoas: string[]; folhas: number }) {
+export function BotaoImprimirA4({
+  pessoas,
+  folhas,
+  medida,
+}: {
+  pessoas: string[]
+  folhas: number
+  /** Tamanho de um adesivo, para conferir (ex.: "5 × 6,5 cm"). */
+  medida: string
+}) {
   const [etapa, setEtapa] = useState<Etapa>('imprimir')
   const rotulo = `Imprimir ${folhas} ${folhas === 1 ? 'folha' : 'folhas'} A4`
 
@@ -38,7 +47,7 @@ export function BotaoImprimirA4({ pessoas, folhas }: { pessoas: string[]; folhas
       <div className="flex flex-col gap-2 rounded-cartao bg-cartao px-4 py-3.5">
         <span className="text-[15px] font-bold">As folhas saíram certas?</span>
         <span className="text-[13px] text-texto-2">
-          Meça um adesivo: 6 × 8 cm. Só confirme depois de imprimir.
+          Meça um adesivo: {medida}. Só confirme depois de imprimir.
         </span>
         {etapa === 'erro' && (
           <span role="alert" className="text-sm font-semibold text-erro">

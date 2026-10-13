@@ -82,9 +82,9 @@ export default function PaginaAjuda() {
             Dura bem mais no capacete do que papel comum com fita.
           </Passo>
           <Passo n={2}>
-            Uma pessoa: na ficha dela, <b>Imprimir › Imprimir em folha A4</b>. Várias:{' '}
-            <b>Adesivos em lote › Imprimir em folha A4</b> (quem ainda não tem adesivo, 9 por
-            folha).
+            Em <b>Imprimir adesivos</b> (ou na ficha da pessoa › Imprimir em folha A4), escolha o
+            tamanho (Médio: 12 por folha), toque nos espaços já usados da folha, se for aproveitar
+            uma, e escolha: todos sem adesivo, todos da obra ou um por um.
           </Passo>
           <Passo n={3}>
             Na janela de impressão, escala <b>100%</b> (“tamanho real”), sem “ajustar à página”.
@@ -110,8 +110,8 @@ export default function PaginaAjuda() {
             TV mostra outro sozinha.
           </p>
           <p>
-            <b>Adesivo saiu pequeno ou grande:</b> imprima de novo com escala 100%; o adesivo certo
-            mede 6 × 8 cm.
+            <b>Adesivo saiu pequeno ou grande:</b> imprima de novo com escala 100%; o adesivo mede 5
+            × 6,5 cm no Médio (6 × 8 no Grande, 4,5 × 6 no Pequeno).
           </p>
           <p>
             <b>Trocar ou tirar uma TV:</b> Início › ícone de grade › Conectar TV ›{' '}

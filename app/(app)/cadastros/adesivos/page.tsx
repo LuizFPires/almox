@@ -1,102 +1,92 @@
 import type { Metadata } from 'next'
-import Link from 'next/link'
 import { Cabecalho } from '@/components/Cabecalho'
 import { CartaoImpressora } from '@/components/CartaoImpressora'
 import { situacaoImpressao } from '@/lib/dados/impressao'
-import { pessoasSemAdesivo } from '@/lib/dados/pessoas'
+import { pessoasParaAdesivo } from '@/lib/dados/pessoas'
+import { ehTamanho, TAMANHO_PADRAO } from '@/lib/dominio/folha-adesivos'
 import { obterSessao } from '@/lib/sessao'
 import { BotaoLote } from './BotaoLote'
+import { MontarFolhas } from './MontarFolhas'
 
-export const metadata: Metadata = { title: 'Adesivos em lote · Almox' }
+export const metadata: Metadata = { title: 'Imprimir adesivos · Almox' }
 
 const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i
 const POR_VEZ = 100
 
 /**
- * Adesivos em lote (M11): quem ainda não tem adesivo, da obra inteira ou de uma empresa
- * (?empresa=). Até 100 por toque; depois de cada lote mostra quantos faltam.
- * Reimpressão de uma pessoa continua pela ficha dela.
+ * Imprimir adesivos dos capacetes (opção B do protótipo): monta a folha A4 (tamanho, espaços
+ * já usados, todos sem adesivo, todos da obra ou um por um). `?pessoa=` já escolhe uma (ficha);
+ * `?empresa=` mostra só a empresa. A impressora de etiquetas (mini PC), quando a obra tem uma,
+ * continua embaixo.
  */
 export default async function PaginaAdesivos({ searchParams }: PageProps<'/cadastros/adesivos'>) {
   const p = (await searchParams) as Record<string, string | undefined>
   const { obraAtual } = await obterSessao()
   const volta = p.volta?.startsWith('/cadastros/') ? p.volta : '/cadastros/pessoas'
   const empresa = p.empresa && UUID.test(p.empresa) ? p.empresa : null
-  const [faltam, { impressora, agente }] = await Promise.all([
-    pessoasSemAdesivo(obraAtual.id, empresa),
+  const [todas, { impressora, agente }] = await Promise.all([
+    pessoasParaAdesivo(obraAtual.id),
     situacaoImpressao(obraAtual.id),
   ])
+  const pessoas = empresa ? todas.filter((x) => x.empresa?.id === empresa) : todas
+  const iniciais = p.pessoa && pessoas.some((x) => x.id === p.pessoa) ? [p.pessoa] : []
+  const semAdesivo = pessoas.filter((x) => !x.temAdesivo)
   const enviados = p.enviados === undefined ? null : Number(p.enviados) || 0
   const falhas = Number(p.falhas) || 0
-  const titulo = empresa ? (faltam[0]?.empresa?.nome ?? 'Empresa') : 'Quem ainda não tem adesivo'
-  const proximo = faltam.slice(0, POR_VEZ)
+  const aqui = `/cadastros/adesivos${empresa ? `?empresa=${empresa}` : ''}`
 
   return (
     <>
-      <Cabecalho titulo="Adesivos em lote" subtitulo={titulo} voltarPara={volta} />
-      <main className="flex flex-1 flex-col gap-3 px-5 pt-2 pb-6">
-        {enviados !== null && (
-          <p
-            role="status"
-            className="rounded-cartao bg-sucesso-claro px-4 py-3.5 text-[15px] font-semibold text-sucesso"
-          >
-            {enviados} {enviados === 1 ? 'adesivo foi para' : 'adesivos foram para'} a fila da
-            impressora. {faltam.length > 0 ? `Faltam ${faltam.length}.` : 'Todos já têm adesivo.'}
-          </p>
-        )}
-        {falhas > 0 && (
-          <p
-            role="alert"
-            className="rounded-cartao bg-erro-claro px-4 py-3.5 text-[15px] text-erro"
-          >
-            {falhas} não {falhas === 1 ? 'foi' : 'foram'} para a fila. Imprima pela ficha da pessoa.
-          </p>
-        )}
-        {impressora && (
-          <CartaoImpressora impressora={impressora} agente={agente} href="/cadastros/impressora" />
-        )}
-        {faltam.length === 0 ? (
-          <p className="rounded-cartao bg-sutil px-4 py-3 text-[15px]">
-            Todos já têm adesivo. Para reimprimir, use a ficha da pessoa.
-          </p>
-        ) : (
-          <>
-            <p className="text-[15px] text-texto-2">
-              {faltam.length > POR_VEZ
-                ? `${faltam.length} pessoas sem adesivo. Vão ${POR_VEZ} por vez: toque de novo para as seguintes.`
-                : `${faltam.length} ${faltam.length === 1 ? 'pessoa' : 'pessoas'} sem adesivo.`}
-            </p>
-            <ul
-              aria-label="Pessoas"
-              className="flex flex-col divide-y divide-borda rounded-cartao bg-cartao"
+      <Cabecalho
+        titulo="Imprimir adesivos"
+        subtitulo={empresa ? (pessoas[0]?.empresa?.nome ?? 'Empresa') : 'Monte a folha A4'}
+        voltarPara={volta}
+      />
+      {enviados !== null && (
+        <p
+          role="status"
+          className="mx-5 mb-3 rounded-cartao bg-sucesso-claro px-4 py-3.5 text-[15px] font-semibold text-sucesso"
+        >
+          {enviados} {enviados === 1 ? 'adesivo foi para' : 'adesivos foram para'} a fila da
+          impressora de etiquetas.
+        </p>
+      )}
+      {falhas > 0 && (
+        <p role="alert" className="mx-5 mb-3 rounded-cartao bg-erro-claro px-4 py-3.5 text-erro">
+          {falhas} não {falhas === 1 ? 'foi' : 'foram'} para a fila. Imprima pela ficha da pessoa.
+        </p>
+      )}
+      <MontarFolhas
+        pessoas={pessoas}
+        iniciais={iniciais}
+        tamanhoInicial={ehTamanho(p.tamanho) ? p.tamanho : TAMANHO_PADRAO}
+        volta={aqui}
+        rodape={
+          // Impressora de etiquetas (mini PC): opcional, só quando a obra tem uma.
+          impressora && (
+            <section
+              aria-label="Impressora de etiquetas"
+              className="mx-5 flex flex-col gap-2 rounded-cartao bg-sutil px-4 py-3"
             >
-              {proximo.map((x) => (
-                <li key={x.id} className="flex items-center justify-between gap-3 px-4 py-2.5">
-                  <span className="font-semibold">{x.nome}</span>
-                  <span className="text-[13px] text-texto-2">{x.nome_capacete}</span>
-                </li>
-              ))}
-            </ul>
-            <Link
-              href={`/cadastros/adesivos/a4?${empresa ? `empresa=${empresa}&` : ''}volta=${encodeURIComponent(
-                `/cadastros/adesivos${empresa ? `?empresa=${empresa}` : ''}`,
-              )}`}
-              className="flex min-h-14 items-center justify-center rounded-cartao bg-amarelo px-5 text-lg font-bold text-escuro"
-            >
-              Imprimir em folha A4 ({Math.min(faltam.length, 99)})
-            </Link>
-            {/* Impressora de etiquetas (mini PC): só quando a obra tem uma. */}
-            {impressora && (
-              <BotaoLote quantidade={proximo.length} empresa={empresa} volta={volta} />
-            )}
-          </>
-        )}
-        {enviados !== null && (
-          <Link href="/cadastros/impressora" className="text-center font-bold underline">
-            Ver a impressora
-          </Link>
-        )}
-      </main>
+              <span className="text-[13px] font-bold tracking-[1.2px] text-texto-2">
+                IMPRESSORA DE ETIQUETAS
+              </span>
+              <CartaoImpressora
+                impressora={impressora}
+                agente={agente}
+                href="/cadastros/impressora"
+              />
+              {semAdesivo.length > 0 && (
+                <BotaoLote
+                  quantidade={Math.min(semAdesivo.length, POR_VEZ)}
+                  empresa={empresa}
+                  volta={volta}
+                />
+              )}
+            </section>
+          )
+        }
+      />
     </>
   )
 }

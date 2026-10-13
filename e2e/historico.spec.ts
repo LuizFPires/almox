@@ -62,6 +62,7 @@ test.describe('histórico e auditoria', () => {
     const { codigo } = await prepararLancamento(request, nome)
 
     await entrarComo(page, 'engenheiro', '/inicio')
+    await page.getByRole('button', { name: /^Gestão da obra/ }).click()
     await page.getByRole('link', { name: 'Histórico e auditoria' }).click()
     await expect(page.getByRole('heading', { name: 'Histórico' })).toBeVisible()
     await page.getByLabel('Ferramenta').selectOption({ label: nome })
@@ -89,6 +90,7 @@ test.describe('histórico e auditoria', () => {
 
   test('engenheiro vê as métricas do piloto com as metas do PRD', async ({ page }) => {
     await entrarComo(page, 'engenheiro', '/inicio')
+    await page.getByRole('button', { name: /^Gestão da obra/ }).click()
     await page.getByRole('link', { name: 'Métricas do piloto' }).click()
     await expect(page.getByRole('heading', { name: 'Métricas do piloto' })).toBeVisible()
     const metas = page.getByRole('region', { name: 'Metas' })
@@ -107,6 +109,7 @@ test.describe('histórico e auditoria', () => {
   test('almoxarife não abre o histórico', async ({ page }) => {
     await entrarComo(page, 'almoxarife', '/inicio')
     await expect(page.getByRole('link', { name: 'Histórico e auditoria' })).toHaveCount(0)
+    await expect(page.getByRole('button', { name: /^Gestão da obra/ })).toHaveCount(0)
     await page.goto('/historico')
     await page.waitForURL((u) => u.pathname === '/inicio')
     await page.goto('/metricas')

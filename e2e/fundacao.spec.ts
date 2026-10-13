@@ -15,10 +15,15 @@ test.describe('app no celular', () => {
     await expect(page.getByRole('img', { name: 'almox' })).toBeVisible()
     const lerQr = page.getByRole('link', { name: /Ler QR do capacete/ })
     await expect(lerQr).toBeVisible()
-    await expect(page.getByRole('link', { name: 'Ver quem está com o quê' }).last()).toBeVisible()
-    await expect(page.getByRole('link', { name: /Ferramentas na obra/ })).toBeVisible()
-    for (const rotulo of ['no canteiro', 'no almox', 'manutenção', /^pendências?$/]) {
-      await expect(page.getByText(rotulo, { exact: true })).toBeVisible()
+    // Opção A: os números abrem a tela de cada um (lista, estoque, manutenção, não devolvidas).
+    for (const [rotulo, destino] of [
+      [/no canteiro/, '/lista'],
+      [/livres no almox/, '/estoque'],
+      [/em manutenção/, '/manutencao'],
+      [/pendências?/, '/lista?aba=nao-devolvidas'],
+    ] as const) {
+      const bloco = page.getByRole('link', { name: rotulo }).filter({ visible: true }).first()
+      await expect(bloco).toHaveAttribute('href', destino)
     }
     await expect(page.getByRole('heading', { name: 'ÚLTIMOS LANÇAMENTOS' })).toBeVisible()
 

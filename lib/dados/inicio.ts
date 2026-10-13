@@ -2,6 +2,7 @@ import 'server-only'
 import { maisRecentes, type Lancamento } from '@/lib/dominio/lancamentos'
 import { inicioDoDiaDaObra } from '@/lib/formatos/datas'
 import { criarClienteServidor } from '@/lib/supabase/servidor'
+import { buscarTodas } from './paginar'
 
 export type Resumo = {
   noCanteiro: number
@@ -38,16 +39,22 @@ export async function resumoDoDia(
 ): Promise<{ resumo: Resumo; pendencias: Pendencia[] }> {
   const supabase = await criarClienteServidor()
   const [posses, livres, manutencao] = await Promise.all([
-    supabase
-      .from('posse')
-      .select(
-        'unidade_id, pessoa_id, desde, ' +
-          'unidade:unidade!posse_unidade_id_obra_id_fkey (codigo, tipo:tipo_ferramenta!unidade_tipo_id_obra_id_fkey (nome)), ' +
-          'pessoa:pessoa!posse_pessoa_id_obra_id_fkey (id, nome)',
-      )
-      .eq('obra_id', obraId)
-      .order('desde')
-      .overrideTypes<PosseResumo[], { merge: false }>(),
+    buscarTodas(
+      (de, ate) =>
+        supabase
+          .from('posse')
+          .select(
+            'unidade_id, pessoa_id, desde, ' +
+              'unidade:unidade!posse_unidade_id_obra_id_fkey (codigo, tipo:tipo_ferramenta!unidade_tipo_id_obra_id_fkey (nome)), ' +
+              'pessoa:pessoa!posse_pessoa_id_obra_id_fkey (id, nome)',
+          )
+          .eq('obra_id', obraId)
+          .order('desde')
+          .order('unidade_id')
+          .range(de, ate)
+          .overrideTypes<PosseResumo[], { merge: false }>(),
+      'Não foi possível carregar o resumo.',
+    ),
     supabase
       .from('unidade')
       .select('id', { count: 'exact', head: true })
@@ -59,18 +66,18 @@ export async function resumoDoDia(
       .eq('obra_id', obraId)
       .eq('status', 'manutencao'),
   ])
-  if (posses.error || livres.error || manutencao.error) {
+  if (livres.error || manutencao.error) {
     throw new Error('Não foi possível carregar o resumo.')
   }
   const inicioHoje = inicioDoDiaDaObra(agora).getTime()
-  const pendentes = posses.data.filter((p) => new Date(p.desde).getTime() < inicioHoje)
+  const pendentes = posses.filter((p) => new Date(p.desde).getTime() < inicioHoje)
   return {
     resumo: {
-      noCanteiro: posses.data.length,
+      noCanteiro: posses.length,
       noAlmox: livres.count ?? 0,
       manutencao: manutencao.count ?? 0,
       pendencias: pendentes.length,
-      pessoasComFerramenta: new Set(posses.data.map((p) => p.pessoa_id)).size,
+      pessoasComFerramenta: new Set(posses.map((p) => p.pessoa_id)).size,
     },
     pendencias: pendentes.slice(0, 10).map((p) => ({
       unidadeId: p.unidade_id,
@@ -139,7 +146,8 @@ export async function ultimosLancamentos(obraId: string): Promise<Lancamento[]> 
       tipo: m.tipo,
       via: m.via,
       quando: m.criado_em,
-      pessoa: m.pessoa?.nome ?? '',
+      // Sem nome: a pessoa passou para outra empresa (o lançamento é do tempo da sua).
+      pessoa: m.pessoa?.nome ?? 'Pessoa transferida',
       usuario: m.usuario?.nome ?? null,
       itens: m.itens.map((i) => ({
         nome: i.unidade?.tipo?.nome ?? '',
@@ -149,7 +157,7 @@ export async function ultimosLancamentos(obraId: string): Promise<Lancamento[]> 
     ...ocorrencias.data.map((o): Lancamento => ({
       tipo: 'ocorrencia',
       quando: o.criado_em,
-      pessoa: o.pessoa?.nome ?? '',
+      pessoa: o.pessoa?.nome ?? 'Pessoa transferida',
       usuario: o.usuario?.nome ?? null,
     })),
   ])

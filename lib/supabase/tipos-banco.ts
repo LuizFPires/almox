@@ -1503,6 +1503,7 @@ export type Database = {
       definir_indenizacao: { Args: { p_avaria: string; p_valor?: number }; Returns: undefined }
       desconectar_tv: { Args: { p_dispositivo: string }; Returns: undefined }
       encerrar_dia: { Args: { p_obra: string }; Returns: string }
+      enfileirar_adesivos: { Args: { p_itens: Json; p_obra: string }; Returns: number }
       enfileirar_impressao: {
         Args: {
           p_copias: number
@@ -1643,6 +1644,23 @@ export type Database = {
           p_velocidade_px_s: number
         }
         Returns: undefined
+      }
+      salvar_ferramenta: {
+        Args: {
+          p_alto_valor: boolean
+          p_chave: string
+          p_icone: string
+          p_id?: string
+          p_locadora_id?: string
+          p_locadora_nova?: string
+          p_nome: string
+          p_obra: string
+          p_prefixo: string
+          p_propriedade: string
+          p_quantidade: number
+          p_valor: number
+        }
+        Returns: string
       }
       trocar_codigo_tv: { Args: { p_codigo: string }; Returns: string }
     }

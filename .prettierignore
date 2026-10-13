@@ -6,3 +6,4 @@ playwright-report
 test-results
 *.md
 design-system
+agente-impressao/logs

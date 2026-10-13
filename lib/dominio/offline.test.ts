@@ -80,6 +80,104 @@ describe('possesComFila', () => {
   it('sem nada com a pessoa: zero', () => {
     expect(podeDevolver(possesComFila(dados, [], 'p9').pa, true)).toBe(0)
   })
+
+  // Igual ao servidor: com QR volta a mais antiga, seja qual for a via (ponto 5 do plano).
+  const porPeca = {
+    posses: [
+      {
+        pessoa: 'p1',
+        tipo: 'pa',
+        via: 'qr' as const,
+        quantidade: 1,
+        desde: '2026-10-12T09:00:00Z',
+      },
+      {
+        pessoa: 'p1',
+        tipo: 'pa',
+        via: 'manual' as const,
+        quantidade: 1,
+        desde: '2026-10-12T07:00:00Z',
+      },
+    ],
+  }
+
+  it('manual antiga + QR recente: devolver 1 com QR leva a manual (a mais antiga)', () => {
+    const fila = [item({ tipo: 'devolucao', itens: [{ tipo: 'pa', quantidade: 1 }] })]
+    const r = possesComFila(porPeca, fila, 'p1')
+    expect(r.pa).toEqual({ total: 1, semQr: 0 })
+    // O celular não oferece mais a devolução sem QR que o servidor recusaria (AL004).
+    expect(podeDevolver(r.pa, false)).toBe(0)
+  })
+
+  it('QR antiga + manual recente: devolver 1 com QR leva a do QR; a manual ainda volta sem QR', () => {
+    const invertido = {
+      posses: [
+        { ...porPeca.posses[0]!, desde: '2026-10-12T07:00:00Z' },
+        { ...porPeca.posses[1]!, desde: '2026-10-12T09:00:00Z' },
+      ],
+    }
+    const fila = [item({ tipo: 'devolucao', itens: [{ tipo: 'pa', quantidade: 1 }] })]
+    expect(possesComFila(invertido, fila, 'p1').pa).toEqual({ total: 1, semQr: 1 })
+  })
+
+  it('sem QR leva só manuais; retiradas da fila entram depois das que já estão com ela', () => {
+    const fila = [
+      item({
+        token: null,
+        quando: '2026-10-12T10:00:00.000Z',
+        itens: [{ tipo: 'pa', quantidade: 2 }],
+      }),
+      item({
+        tipo: 'devolucao',
+        token: null,
+        quando: '2026-10-12T11:00:00.000Z',
+        itens: [{ tipo: 'pa', quantidade: 2 }],
+      }),
+      item({
+        tipo: 'devolucao',
+        quando: '2026-10-12T12:00:00.000Z',
+        itens: [{ tipo: 'pa', quantidade: 1 }],
+      }),
+    ]
+    // Tinha [manual 07h, qr 09h]; +2 manuais; -2 sem QR (manual 07h e manual 10h); -1 com QR (qr 09h).
+    expect(possesComFila(porPeca, fila, 'p1').pa).toEqual({ total: 1, semQr: 1 })
+  })
+
+  it('retirada da fila mais antiga que a do servidor entra antes dela (como o servidor grava)', () => {
+    // Servidor: 1 com QR às 10:30. Fila: 1 manual às 10:00 (hora do celular).
+    const servidor = {
+      posses: [
+        {
+          pessoa: 'p1',
+          tipo: 'pa',
+          via: 'qr' as const,
+          quantidade: 1,
+          desde: '2026-10-12T10:30:00Z',
+        },
+      ],
+    }
+    const fila = [
+      item({
+        token: null,
+        quando: '2026-10-12T10:00:00.000Z',
+        itens: [{ tipo: 'pa', quantidade: 1 }],
+      }),
+      item({
+        tipo: 'devolucao',
+        quando: '2026-10-12T11:00:00.000Z',
+        itens: [{ tipo: 'pa', quantidade: 1 }],
+      }),
+    ]
+    // Com QR volta a mais antiga (a manual das 10:00): sobra a do QR, que não volta sem QR.
+    expect(possesComFila(servidor, fila, 'p1').pa).toEqual({ total: 1, semQr: 0 })
+  })
+
+  it('devolução recusada não conta', () => {
+    const fila = [
+      item({ tipo: 'devolucao', situacao: 'recusado', itens: [{ tipo: 'pa', quantidade: 2 }] }),
+    ]
+    expect(possesComFila(porPeca, fila, 'p1').pa).toEqual({ total: 2, semQr: 1 })
+  })
 })
 
 describe('destinoDoEnvio', () => {

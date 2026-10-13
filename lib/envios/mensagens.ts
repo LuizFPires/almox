@@ -4,6 +4,8 @@ import { formatarBRL } from '@/lib/formatos/moeda'
 /** Uma peça no aviso (snapshot do encerramento). Valor em centavos. */
 export type ItemAviso = {
   pessoa: string
+  /** Id da pessoa: separa homônimos (avisos antigos podem não ter). */
+  pessoaId?: string
   tipo: string
   codigo: string
   valor: number
@@ -27,7 +29,7 @@ export type DadosCancelamento = {
   dono: string | null
   encarregado: string | null
   quando: string
-  devolvidas: { pessoa: string; tipo: string; codigo: string; valor: number }[]
+  devolvidas: { pessoa: string; pessoaId?: string; tipo: string; codigo: string; valor: number }[]
   /** O que continua em aberto para a empresa depois do cancelamento. */
   emAberto: number
   /** Devolução de verdade ou lançamento corrigido pelo engenheiro (estorno). */
@@ -59,17 +61,23 @@ export function saudacao(dono: string | null, encarregado: string | null): strin
   return unicos.length ? `Olá, ${unicos.join(' e ')}.` : 'Olá.'
 }
 
-/** Agrupa as peças por pessoa: "Pá ×2, Martelete ×1". */
-export function porPessoa(itens: { pessoa: string; tipo: string; valor: number }[]) {
-  const pessoas = new Map<string, { tipos: Map<string, number>; valor: number }>()
+/**
+ * Agrupa as peças por pessoa: "Pá ×2, Martelete ×1". Pelo id (homônimos ficam em linhas
+ * separadas); itens antigos sem id, pelo nome.
+ */
+export function porPessoa(
+  itens: { pessoa: string; pessoaId?: string; tipo: string; valor: number }[],
+) {
+  const pessoas = new Map<string, { nome: string; tipos: Map<string, number>; valor: number }>()
   for (const i of itens) {
-    const p = pessoas.get(i.pessoa) ?? { tipos: new Map(), valor: 0 }
+    const chave = i.pessoaId ? `id:${i.pessoaId}` : `nome:${i.pessoa}`
+    const p = pessoas.get(chave) ?? { nome: i.pessoa, tipos: new Map(), valor: 0 }
     p.tipos.set(i.tipo, (p.tipos.get(i.tipo) ?? 0) + 1)
     p.valor += i.valor
-    pessoas.set(i.pessoa, p)
+    pessoas.set(chave, p)
   }
-  return [...pessoas.entries()].map(([pessoa, p]) => ({
-    pessoa,
+  return [...pessoas.values()].map((p) => ({
+    pessoa: p.nome,
     itens: [...p.tipos.entries()].map(([t, n]) => `${t} ×${n}`).join(', '),
     valor: p.valor,
   }))

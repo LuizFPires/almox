@@ -3,6 +3,7 @@ import type { DevolucaoHoje, PosseFechamento } from '@/lib/dominio/fechamento'
 import type { ItemAviso } from '@/lib/envios/mensagens'
 import { diaDaObra, inicioDoDiaDaObra } from '@/lib/formatos/datas'
 import { criarClienteServidor } from '@/lib/supabase/servidor'
+import { buscarTodas } from './paginar'
 
 type PosseLinha = {
   desde: string
@@ -23,15 +24,21 @@ type DevolucaoLinha = {
 export async function dadosFechamento(obraId: string, agora: Date) {
   const supabase = await criarClienteServidor()
   const [posses, devolucoes, fechamento] = await Promise.all([
-    supabase
-      .from('posse')
-      .select(
-        'desde, pessoa:pessoa!posse_pessoa_id_obra_id_fkey (id, nome, ' +
-          'empresa:empresa!pessoa_empresa_id_obra_id_fkey (nome, cor, tipo)), ' +
-          'unidade:unidade!posse_unidade_id_obra_id_fkey (tipo:tipo_ferramenta!unidade_tipo_id_obra_id_fkey (nome, valor_reposicao))',
-      )
-      .eq('obra_id', obraId)
-      .overrideTypes<PosseLinha[], { merge: false }>(),
+    buscarTodas(
+      (de, ate) =>
+        supabase
+          .from('posse')
+          .select(
+            'desde, pessoa:pessoa!posse_pessoa_id_obra_id_fkey (id, nome, ' +
+              'empresa:empresa!pessoa_empresa_id_obra_id_fkey (nome, cor, tipo)), ' +
+              'unidade:unidade!posse_unidade_id_obra_id_fkey (tipo:tipo_ferramenta!unidade_tipo_id_obra_id_fkey (nome, valor_reposicao))',
+          )
+          .eq('obra_id', obraId)
+          .order('unidade_id')
+          .range(de, ate)
+          .overrideTypes<PosseLinha[], { merge: false }>(),
+      'Não foi possível carregar o fechamento.',
+    ),
     supabase
       .from('movimento')
       .select(
@@ -50,11 +57,11 @@ export async function dadosFechamento(obraId: string, agora: Date) {
       .eq('data', diaDaObra(agora))
       .maybeSingle(),
   ])
-  if (posses.error || devolucoes.error || fechamento.error) {
+  if (devolucoes.error || fechamento.error) {
     throw new Error('Não foi possível carregar o fechamento.')
   }
 
-  const pecas: PosseFechamento[] = posses.data.flatMap((p) =>
+  const pecas: PosseFechamento[] = posses.flatMap((p) =>
     p.pessoa?.empresa && p.unidade?.tipo
       ? [
           {

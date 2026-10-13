@@ -42,6 +42,7 @@ export default async function PaginaEditarFerramenta({
         voltarPara="/cadastros/ferramentas"
       />
       <FormFerramenta
+        chave={crypto.randomUUID()}
         tipo={{ ...tipo, codigos: tipo.unidades.map((u) => u.codigo) }}
         obraId={obraAtual.id}
         prefixosUsados={tipos.map((t) => t.prefixo)}

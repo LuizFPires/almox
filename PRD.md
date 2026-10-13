@@ -260,7 +260,7 @@ O Almox segue o **contrato único de conector** do ecossistema:
 
 1. **Prazo do desconto:** o aviso sai no mesmo dia do não retorno ou depois de X dias de pendência? (Padrão adotado: no encerramento do dia, com cancelamento se voltar até o fechamento da medição.)
 2. **Cláusula contratual:** o desconto precisa estar previsto no contrato com cada empreiteira. Redação a validar com o jurídico.
-3. **Avaria por mau uso:** também é cobrada da empreiteira? Com qual critério?
+3. **Avaria por mau uso:** também é cobrada da empreiteira? Com qual critério? *(Decidido em 13/10/2026: indenização para qualquer pessoa, sugerida pelo valor de reposição e ajustável pelo engenheiro — ver PLAN › Decisões.)*
 4. **Turnos noturnos / fim de semana:** o encerramento automático das 23:59 atende?
 5. **Multi-obra:** o engenheiro de várias obras alterna pelo seletor de obra (o modelo já prevê isso).
 6. **Termo de responsabilidade** assinado na integração do trabalhador, tornando válidos os lançamentos com o QR dele. Modelo a criar com o jurídico.

@@ -17,24 +17,6 @@ import { obterSessao } from '@/lib/sessao'
 
 export const metadata: Metadata = { title: 'Início · Almox' }
 
-/** Gráfico de barras no traço dos ícones do DS (o conjunto de interface não tem um). */
-function Grafico() {
-  return (
-    <svg
-      width={20}
-      height={20}
-      viewBox="0 0 24 24"
-      fill="none"
-      stroke="currentColor"
-      strokeWidth={1.75}
-      strokeLinecap="round"
-      aria-hidden="true"
-    >
-      <path d="M4 20V11M10 20V5M16 20v-7M21 20H3" />
-    </svg>
-  )
-}
-
 /** Número da obra que abre a tela correspondente (opção A do protótipo). */
 function Bloco({
   href,
@@ -116,13 +98,6 @@ export default async function PaginaInicio() {
             titulo: 'Histórico e auditoria',
             detalhe: 'Todos os lançamentos e estornos',
           },
-          {
-            href: '/metricas',
-            icone: <Grafico />,
-            titulo: 'Métricas do piloto',
-            detalhe: 'Metas do PRD semana a semana',
-            tom: 'info' as const,
-          },
         ]
       : []),
   ]
@@ -145,7 +120,7 @@ export default async function PaginaInicio() {
         <SeloPerfil perfil={obraAtual.perfil} empresa={obraAtual.empresa?.nome} />
         {gestao.length > 0 && (
           <Gaveta
-            rotulo="Gestão da obra: TV, avisos, a descontar, histórico e métricas"
+            rotulo="Gestão da obra: TV, avisos, a descontar e histórico"
             icone={<IconeInterface nome="dashboard" tamanho={22} />}
             titulo="Gestão da obra"
             itens={gestao}

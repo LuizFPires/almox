@@ -24,6 +24,7 @@ Registro do que foi entregue em cada milestone (ver `PLAN.md`).
 - **Montar a folha de adesivos:** 3 tamanhos (9, 12 ou 16 por folha, Médio por padrão), aproveitar folha já usada, todos ou um por um.
 
 ### Mudado
+- **Métricas do piloto removidas do app** (tela, menu e planilha).
 - **Início mais limpo:** números que abrem cada tela e gestão (avisos, a descontar, histórico, métricas) num ícone no cabeçalho.
 - **Código das peças:** sai do nome da ferramenta, sem o campo de prefixo.
 - **Desempenho:** funções da Vercel em São Paulo e resposta imediata ao toque na barra inferior.

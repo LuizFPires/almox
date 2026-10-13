@@ -36,7 +36,10 @@ async function paraBuffer(livro: ExcelJS.Workbook): Promise<Buffer> {
   return Buffer.from(await livro.xlsx.writeBuffer())
 }
 
-export async function planilhaHistorico(linhas: LinhaHistorico[]): Promise<Buffer> {
+export async function planilhaHistorico(
+  linhas: LinhaHistorico[],
+  opcoes: { limite?: number } = {},
+): Promise<Buffer> {
   const livro = new ExcelJS.Workbook()
   livro.creator = 'Almox'
   const aba = novaAba(livro, 'Histórico', [
@@ -68,6 +71,12 @@ export async function planilhaHistorico(linhas: LinhaHistorico[]): Promise<Buffe
       usuario: l.usuario,
       recebido: l.recebidoEm ? dataDaObra(l.recebidoEm) : null,
       obs: l.obs,
+    })
+  }
+  // A busca para no limite: avisa na própria planilha que o período tem mais lançamentos.
+  if (opcoes.limite && linhas.length >= opcoes.limite) {
+    aba.addRow({
+      pessoa: `Só os ${opcoes.limite} lançamentos mais recentes do período. Escolha um período menor para ver todos.`,
     })
   }
   return paraBuffer(livro)

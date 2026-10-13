@@ -2,7 +2,10 @@ import 'server-only'
 import type { FiltrosHistorico, LinhaHistorico } from '@/lib/dominio/historico'
 import { criarClienteServidor } from '@/lib/supabase/servidor'
 
-/** Histórico da obra com os filtros (RPC: só o engenheiro; até 2000 linhas). */
+/** A função `historico` do banco devolve no máximo esta quantidade (as mais recentes). */
+export const LIMITE_HISTORICO = 2000
+
+/** Histórico da obra com os filtros (RPC: só o engenheiro; até LIMITE_HISTORICO linhas). */
 export async function buscarHistorico(
   obraId: string,
   f: FiltrosHistorico,

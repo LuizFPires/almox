@@ -1,6 +1,7 @@
 import 'server-only'
 import type { ItemAviso } from '@/lib/envios/mensagens'
 import { criarClienteServidor } from '@/lib/supabase/servidor'
+import { buscarTodas } from './paginar'
 
 type AvisoLinha = {
   id: string
@@ -88,15 +89,22 @@ export async function dadosMedicao(obraId: string) {
       .eq('obra_id', obraId)
       .eq('tipo', 'empreiteira')
       .order('nome'),
-    supabase
-      .from('desconto')
-      .select(
-        'id, codigo, tipo_nome, valor, status, criado_em, empresa_id, pessoa:pessoa!desconto_pessoa_id_obra_id_fkey (nome)',
-      )
-      .eq('obra_id', obraId)
-      .eq('status', 'aberto')
-      .order('criado_em')
-      .overrideTypes<DescontoLinha[], { merge: false }>(),
+    // O total da prévia soma todos os abertos (mais de 1000 em obra longa): em páginas.
+    buscarTodas(
+      (de, ate) =>
+        supabase
+          .from('desconto')
+          .select(
+            'id, codigo, tipo_nome, valor, status, criado_em, empresa_id, pessoa:pessoa!desconto_pessoa_id_obra_id_fkey (nome)',
+          )
+          .eq('obra_id', obraId)
+          .eq('status', 'aberto')
+          .order('criado_em')
+          .order('id')
+          .range(de, ate)
+          .overrideTypes<DescontoLinha[], { merge: false }>(),
+      'Não foi possível carregar a medição.',
+    ),
     supabase
       .from('medicao')
       .select('id, empresa_id, fechada_em, total, proxima')
@@ -104,8 +112,8 @@ export async function dadosMedicao(obraId: string) {
       .order('fechada_em', { ascending: false })
       .limit(30),
   ])
-  if (empresas.error || descontos.error || medicoes.error) {
+  if (empresas.error || medicoes.error) {
     throw new Error('Não foi possível carregar a medição.')
   }
-  return { empresas: empresas.data, descontos: descontos.data, medicoes: medicoes.data }
+  return { empresas: empresas.data, descontos, medicoes: medicoes.data }
 }

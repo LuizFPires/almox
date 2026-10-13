@@ -2,6 +2,7 @@ import 'server-only'
 import type { TipoEstoque, PosseVisivel } from '@/lib/dominio/estoque'
 import type { PessoaLista } from '@/lib/dominio/lista'
 import { criarClienteServidor } from '@/lib/supabase/servidor'
+import { buscarTodas } from './paginar'
 
 // Nunca use select * em pessoa: qr_token é fechado ao cliente.
 
@@ -27,16 +28,22 @@ type PessoaComPosses = {
  */
 export async function pessoasComItens(obraId: string): Promise<PessoaLista[]> {
   const supabase = await criarClienteServidor()
-  const { data, error } = await supabase
-    .from('pessoa')
-    .select(
-      'id, nome, nome_capacete, funcao, ativa, empresa:empresa!pessoa_empresa_id_obra_id_fkey (id, nome, cor, tipo), ' +
-        'posses:posse!posse_pessoa_id_obra_id_fkey (desde, ' +
-        'unidade:unidade!posse_unidade_id_obra_id_fkey (codigo, tipo:tipo_ferramenta!unidade_tipo_id_obra_id_fkey (nome, icone, valor_reposicao)))',
-    )
-    .eq('obra_id', obraId)
-    .overrideTypes<PessoaComPosses[], { merge: false }>()
-  if (error) throw new Error('Não foi possível carregar a lista.')
+  // Com os anos a obra passa de 1000 pessoas (inclusive as que saíram): busca em páginas.
+  const data = await buscarTodas(
+    (de, ate) =>
+      supabase
+        .from('pessoa')
+        .select(
+          'id, nome, nome_capacete, funcao, ativa, empresa:empresa!pessoa_empresa_id_obra_id_fkey (id, nome, cor, tipo), ' +
+            'posses:posse!posse_pessoa_id_obra_id_fkey (desde, ' +
+            'unidade:unidade!posse_unidade_id_obra_id_fkey (codigo, tipo:tipo_ferramenta!unidade_tipo_id_obra_id_fkey (nome, icone, valor_reposicao)))',
+        )
+        .eq('obra_id', obraId)
+        .order('id')
+        .range(de, ate)
+        .overrideTypes<PessoaComPosses[], { merge: false }>(),
+    'Não foi possível carregar a lista.',
+  )
   return data
     .filter((p) => p.empresa)
     .map((p) => ({
@@ -98,16 +105,22 @@ export async function dadosEstoque(
       .eq('obra_id', obraId)
       .order('nome')
       .overrideTypes<TipoComUnidades[], { merge: false }>(),
-    supabase
-      .from('posse')
-      .select('unidade_id, desde, pessoa:pessoa!posse_pessoa_id_obra_id_fkey (nome)')
-      .eq('obra_id', obraId)
-      .overrideTypes<PosseComPessoa[], { merge: false }>(),
+    buscarTodas(
+      (de, ate) =>
+        supabase
+          .from('posse')
+          .select('unidade_id, desde, pessoa:pessoa!posse_pessoa_id_obra_id_fkey (nome)')
+          .eq('obra_id', obraId)
+          .order('unidade_id')
+          .range(de, ate)
+          .overrideTypes<PosseComPessoa[], { merge: false }>(),
+      'Não foi possível carregar o estoque.',
+    ),
   ])
-  if (tipos.error || posses.error) throw new Error('Não foi possível carregar o estoque.')
+  if (tipos.error) throw new Error('Não foi possível carregar o estoque.')
   return {
     tipos: tipos.data,
-    posses: posses.data.map((p) => ({
+    posses: posses.map((p) => ({
       unidadeId: p.unidade_id,
       pessoa: p.pessoa?.nome ?? '',
       desde: p.desde,

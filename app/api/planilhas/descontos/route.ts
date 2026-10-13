@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server'
 import { planilhaDescontos, type LinhaDesconto } from '@/lib/planilhas/montar'
 import { obterSessao } from '@/lib/sessao'
+import { buscarTodas } from '@/lib/dados/paginar'
 import { criarClienteServidor } from '@/lib/supabase/servidor'
 import { diaDaObra } from '@/lib/formatos/datas'
 
@@ -19,26 +20,45 @@ export async function GET() {
     return NextResponse.json({ erro: 'Sem acesso aos avisos.' }, { status: 403 })
   }
   const supabase = await criarClienteServidor()
-  const [lista, abertos] = await Promise.all([
-    supabase
-      .from('desconto')
-      .select(
-        'criado_em, cancelado_em, tipo_nome, codigo, valor, status, ' +
-          'empresa:empresa!desconto_empresa_id_obra_id_fkey (nome), ' +
-          'pessoa:pessoa!desconto_pessoa_id_obra_id_fkey (nome)',
-      )
-      .eq('obra_id', obraAtual.id)
-      .order('criado_em', { ascending: false })
-      .limit(LIMITE)
-      .overrideTypes<LinhaDesconto[], { merge: false }>(),
-    // O total a descontar vem de todos os abertos, não só das linhas listadas.
-    supabase.from('desconto').select('valor').eq('obra_id', obraAtual.id).eq('status', 'aberto'),
-  ])
-  if (lista.error || abertos.error) {
+  // A API corta em 1000 linhas por pedido: as duas buscas vão em páginas.
+  let lista: LinhaDesconto[]
+  let abertos: { valor: number }[]
+  try {
+    ;[lista, abertos] = await Promise.all([
+      buscarTodas(
+        (de, ate) =>
+          supabase
+            .from('desconto')
+            .select(
+              'criado_em, cancelado_em, tipo_nome, codigo, valor, status, ' +
+                'empresa:empresa!desconto_empresa_id_obra_id_fkey (nome), ' +
+                'pessoa:pessoa!desconto_pessoa_id_obra_id_fkey (nome)',
+            )
+            .eq('obra_id', obraAtual.id)
+            .order('criado_em', { ascending: false })
+            .order('id')
+            .range(de, ate)
+            .overrideTypes<LinhaDesconto[], { merge: false }>(),
+        'Não foi possível carregar os descontos.',
+      ).then((linhas) => linhas.slice(0, LIMITE)),
+      // O total a descontar vem de todos os abertos, não só das linhas listadas.
+      buscarTodas(
+        (de, ate) =>
+          supabase
+            .from('desconto')
+            .select('valor')
+            .eq('obra_id', obraAtual.id)
+            .eq('status', 'aberto')
+            .order('id')
+            .range(de, ate),
+        'Não foi possível carregar os descontos.',
+      ),
+    ])
+  } catch {
     return NextResponse.json({ erro: 'Não foi possível carregar os descontos.' }, { status: 500 })
   }
-  const aDescontar = abertos.data.reduce((s, d) => s + d.valor, 0)
-  const arquivo = await planilhaDescontos(lista.data, { aDescontar, limite: LIMITE })
+  const aDescontar = abertos.reduce((s, d) => s + d.valor, 0)
+  const arquivo = await planilhaDescontos(lista, { aDescontar, limite: LIMITE })
   return new NextResponse(new Uint8Array(arquivo), {
     headers: {
       'Content-Type': 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',

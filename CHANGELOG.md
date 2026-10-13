@@ -2,6 +2,21 @@
 
 Registro do que foi entregue em cada milestone (ver `PLAN.md`).
 
+## Plano de correção · bloco 2 (13/10/2026)
+
+Dívidas da análise externa que pesam em obras longas e na impressora de etiquetas.
+
+### Corrigido
+- **Listas, medição e planilhas** não cortam mais em 1000 linhas (obra com anos de cadastro).
+- **Cadastro de ferramenta** salvo de uma vez: falha no meio não deixa cadastro pela metade, e salvar de novo não
+  cria unidades a mais. O código das peças nunca repete.
+- **Sem internet:** o celular calcula o que pode voltar sem QR igual ao servidor (peças mais antigas primeiro).
+- **Avisos:** homônimos ficam em linhas separadas e a anonimização (LGPD) não atinge outra pessoa.
+- **Troca de empresa:** a empreiteira antiga continua vendo o histórico do tempo em que a pessoa era dela; a nova
+  não vê o passado.
+- **Etiquetadora:** pedido repetido não imprime dois adesivos; lote de 100 em uma chamada; o agente não reimprime
+  depois de reiniciar.
+
 ## Plano de correção · bloco 1 (13/10/2026)
 
 Pontos da análise externa (`docs/PLANO-DE-CORRECAO-18-PONTOS.md`) que afetam cobrança e o balcão.

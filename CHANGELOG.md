@@ -17,6 +17,7 @@ Registro do que foi entregue em cada milestone (ver `PLAN.md`).
 - **Avaria:** tela com foto inteira, data e hora, quem devolveu, motivo, detalhes e valor da indenização (o engenheiro ajusta); botão para enviar foto e dados pelo WhatsApp.
 
 ### Mudado
+- **Início mais limpo:** números que abrem cada tela e gestão (avisos, a descontar, histórico, métricas) num ícone no cabeçalho.
 - **Código das peças:** sai do nome da ferramenta, sem o campo de prefixo.
 - **Desempenho:** funções da Vercel em São Paulo e resposta imediata ao toque na barra inferior.
 

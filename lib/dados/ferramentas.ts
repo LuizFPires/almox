@@ -45,9 +45,40 @@ export async function listarTipos(obraId: string): Promise<TipoFerramenta[]> {
   }))
 }
 
+/** Um tipo, direto pelo id (antes carregava todos os tipos com todas as unidades). */
 export async function buscarTipo(obraId: string, id: string): Promise<TipoFerramenta | null> {
-  const tipos = await listarTipos(obraId)
-  return tipos.find((t) => t.id === id) ?? null
+  const supabase = await criarClienteServidor()
+  const { data, error } = await supabase
+    .from('tipo_ferramenta')
+    .select(CAMPOS)
+    .eq('obra_id', obraId)
+    .eq('id', id)
+    .maybeSingle()
+    .overrideTypes<TipoFerramenta, { merge: false }>()
+  if (error) throw new Error('Não foi possível carregar a ferramenta.')
+  if (!data) return null
+  return {
+    ...data,
+    unidades: [...data.unidades].sort((a, b) => compararCodigos(a.codigo, b.codigo)),
+  }
+}
+
+export type TipoResumo = Pick<TipoFerramenta, 'id' | 'nome' | 'icone' | 'prefixo' | 'locadora'>
+
+/**
+ * Tipos da obra sem as unidades: o que o formulário precisa (prefixos usados, ícones próprios
+ * e uso das locadoras). Com centenas de peças, evita trazer todos os códigos à toa.
+ */
+export async function listarTiposResumo(obraId: string): Promise<TipoResumo[]> {
+  const supabase = await criarClienteServidor()
+  const { data, error } = await supabase
+    .from('tipo_ferramenta')
+    .select('id, nome, icone, prefixo, locadora:locadora!tipo_ferramenta_locadora_fk (id, nome)')
+    .eq('obra_id', obraId)
+    .order('nome')
+    .overrideTypes<TipoResumo[], { merge: false }>()
+  if (error) throw new Error('Não foi possível carregar as ferramentas.')
+  return data
 }
 
 /** Histórico de valor e de "alto valor" do tipo (log de alterações, só o engenheiro lê). */

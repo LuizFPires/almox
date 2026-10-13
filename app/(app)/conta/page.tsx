@@ -58,7 +58,7 @@ export default async function PaginaConta() {
         )}
 
         <Link
-          href="/trocar-senha"
+          href="/recuperar-senha"
           className="flex min-h-toque items-center justify-center rounded-botao border border-borda bg-cartao font-semibold"
         >
           Trocar senha

@@ -9,7 +9,7 @@ test.describe('login e perfis', () => {
     await page.goto('/estoque')
     await expect(page).toHaveURL(/\/login\?volta=%2Festoque$/)
     await page.getByLabel('E-mail').fill(USUARIOS.almoxarife)
-    await page.getByLabel('Senha').fill(SENHA_SEED)
+    await page.getByLabel('Senha', { exact: true }).fill(SENHA_SEED)
     await page.getByRole('button', { name: 'Entrar', exact: true }).click()
     await page.waitForURL((url) => url.pathname === '/estoque')
   })
@@ -17,11 +17,11 @@ test.describe('login e perfis', () => {
   test('senha errada mostra erro e mantém o e-mail', async ({ page }) => {
     await page.goto('/login')
     await page.getByLabel('E-mail').fill(USUARIOS.almoxarife)
-    await page.getByLabel('Senha').fill('senha-errada')
+    await page.getByLabel('Senha', { exact: true }).fill('senha-errada')
     await page.getByRole('button', { name: 'Entrar', exact: true }).click()
     // O Next também tem um role=alert (anunciador de rotas), por isso o filtro.
     await expect(page.getByRole('alert').filter({ hasText: 'E-mail' })).toHaveText(
-      'E-mail ou senha não conferem.',
+      'E-mail ou senha incorretos.',
     )
     await expect(page.getByLabel('E-mail')).toHaveValue(USUARIOS.almoxarife)
     await expect(page).toHaveURL(/\/login$/)

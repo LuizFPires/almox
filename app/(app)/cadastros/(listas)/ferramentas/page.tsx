@@ -44,6 +44,11 @@ export default async function PaginaFerramentas() {
                     ALTO VALOR
                   </span>
                 )}
+                {t.propriedade === 'alugada' && (
+                  <span className="ml-2 rounded-full bg-engenheiro-claro px-2 py-0.5 align-middle text-[11px] font-bold text-engenheiro">
+                    ALUGADA{t.locadora ? ` · ${t.locadora.nome}` : ''}
+                  </span>
+                )}
               </span>
               <span className="truncate text-[13px] text-texto-2">
                 {t.unidades.length} un. · {livres} livres · {emUso} em uso

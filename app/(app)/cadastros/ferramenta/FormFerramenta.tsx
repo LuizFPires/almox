@@ -24,6 +24,7 @@ import { normalizarTexto } from '@/lib/formatos/texto'
 import { prepararIcone } from '@/lib/imagem'
 import { criarClienteNavegador } from '@/lib/supabase/navegador'
 import { salvarFerramenta } from './acoes'
+import { EscolherPropriedade, type OpcaoLocadora } from './EscolherPropriedade'
 
 type Props = {
   obraId: string
@@ -34,12 +35,16 @@ type Props = {
     prefixo: string
     valor_reposicao: number
     alto_valor: boolean
+    propriedade: 'propria' | 'alugada'
+    locadora: { id: string; nome: string } | null
     codigos: string[]
   }
   /** Prefixos já usados na obra (o código das peças novas sai do nome, sem colidir). */
   prefixosUsados: string[]
   /** Ícones próprios já enviados nesta obra (ficam na grade para reusar). */
   iconesProprios: IconeArquivo[]
+  /** Locadoras já usadas na obra (escolher de novo). */
+  locadoras: OpcaoLocadora[]
 }
 
 /** "289000" → "2.890,00" para o campo de valor. */
@@ -47,7 +52,7 @@ function centavosParaCampo(centavos: number) {
   return formatarBRL(centavos).replace(/^R\$\s/, '')
 }
 
-export function FormFerramenta({ obraId, tipo, prefixosUsados, iconesProprios }: Props) {
+export function FormFerramenta({ obraId, tipo, prefixosUsados, iconesProprios, locadoras }: Props) {
   const [estado, acao, salvando] = useActionState(salvarFerramenta, {})
   const erros = estado.campos ?? {}
   const v = estado.valores ?? {}
@@ -225,32 +230,6 @@ export function FormFerramenta({ obraId, tipo, prefixosUsados, iconesProprios }:
           erro={erros.nome}
         />
 
-        <Campo
-          rotulo="Valor de reposição (por unidade)"
-          name="valor"
-          inputMode="decimal"
-          defaultValue={v.valor ?? (tipo ? centavosParaCampo(tipo.valor_reposicao) : '')}
-          placeholder="0,00"
-          required
-          prefixo="R$"
-          ajuda="Base para cobrar a reposição na medição da empreiteira."
-          erro={erros.valor}
-        />
-
-        <label className="flex min-h-toque cursor-pointer items-center justify-between gap-3 rounded-cartao bg-cartao px-4 py-3 has-[:focus-visible]:outline-3 has-[:focus-visible]:outline-foco">
-          <span className="flex flex-col">
-            <span className="font-semibold">Alto valor</span>
-            <span className="text-sm text-texto-2">Pede atenção extra na retirada</span>
-          </span>
-          <input
-            type="checkbox"
-            name="alto_valor"
-            checked={alto}
-            onChange={(e) => setAlto(e.target.checked)}
-            className="size-6 accent-escuro"
-          />
-        </label>
-
         <div className="flex items-center justify-between gap-3 rounded-cartao bg-cartao px-4 py-3">
           <span className="flex flex-col">
             <span className="font-semibold">{novo ? 'Quantidade' : 'Adicionar unidades'}</span>
@@ -272,6 +251,45 @@ export function FormFerramenta({ obraId, tipo, prefixosUsados, iconesProprios }:
         {erros.quantidade && (
           <span className="text-sm font-semibold text-erro">{erros.quantidade}</span>
         )}
+
+        <Campo
+          rotulo="Valor de reposição (por unidade)"
+          name="valor"
+          inputMode="decimal"
+          defaultValue={v.valor ?? (tipo ? centavosParaCampo(tipo.valor_reposicao) : '')}
+          placeholder="0,00"
+          required
+          prefixo="R$"
+          ajuda="Base para cobrar a reposição na medição da empreiteira."
+          erro={erros.valor}
+        />
+
+        <EscolherPropriedade
+          locadoras={locadoras}
+          inicial={{
+            propriedade:
+              v.propriedade === 'alugada' || v.propriedade === 'propria'
+                ? v.propriedade
+                : (tipo?.propriedade ?? 'propria'),
+            locadoraId: v.locadora_id || tipo?.locadora?.id || null,
+          }}
+          erro={erros.locadora}
+        />
+
+        <label className="flex min-h-toque cursor-pointer items-center justify-between gap-3 rounded-cartao bg-cartao px-4 py-3 has-[:focus-visible]:outline-3 has-[:focus-visible]:outline-foco">
+          <span className="flex flex-col">
+            <span className="font-semibold">Alto valor</span>
+            <span className="text-sm text-texto-2">Pede atenção extra na retirada</span>
+          </span>
+          <input
+            type="checkbox"
+            name="alto_valor"
+            checked={alto}
+            onChange={(e) => setAlto(e.target.checked)}
+            className="size-6 accent-escuro"
+          />
+        </label>
+
         <p
           className="flex flex-col gap-0.5 rounded-cartao bg-sutil px-3.5 py-3 text-sm"
           aria-live="polite"

@@ -20,6 +20,7 @@ export default async function PaginaNovaFerramenta() {
       />
       <NovaVisita>
         <FormFerramenta
+          chave={crypto.randomUUID()}
           obraId={obraAtual.id}
           prefixosUsados={tipos.map((t) => t.prefixo)}
           iconesProprios={iconesProprios(tipos)}

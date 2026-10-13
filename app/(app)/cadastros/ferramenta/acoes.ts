@@ -5,7 +5,6 @@ import { redirect } from 'next/navigation'
 import { ehIcone, ehIconeArquivo } from '@/components/icones-ferramenta'
 import { exigirEngenheiro } from '@/lib/acesso'
 import { lerValorReposicao, sugerirPrefixo } from '@/lib/dominio/cadastros'
-import { normalizarTexto } from '@/lib/formatos/texto'
 import { valoresDoForm, type Valores } from '@/lib/formulario'
 
 export type EstadoFerramenta = {
@@ -21,7 +20,7 @@ const texto = (form: FormData, chave: string) =>
 
 /**
  * Cria o tipo ou atualiza nome/ícone/valor/alto valor; com quantidade > 0, adiciona
- * unidades pela RPC (códigos sequenciais). Quantidade 0 só atualiza o valor.
+ * unidades (códigos sequenciais). Quantidade 0 só atualiza. Tudo numa RPC transacional.
  */
 export async function salvarFerramenta(
   _: EstadoFerramenta,
@@ -38,6 +37,7 @@ export async function salvarFerramenta(
   const alugada = texto(form, 'propriedade') === 'alugada'
   const locadoraId = texto(form, 'locadora_id')
   const locadoraNova = texto(form, 'locadora_nova')
+  const chave = texto(form, 'chave')
 
   const campos: EstadoFerramenta['campos'] = {}
   if (nome.length < 2) campos.nome = 'Informe o nome da ferramenta.'
@@ -54,94 +54,38 @@ export async function salvarFerramenta(
     campos.locadora = 'Escolha a locadora ou digite o nome de uma nova.'
   }
   if (locadoraNova.length > 80) campos.locadora = 'Nome da locadora com até 80 letras.'
+  if (!/^[0-9a-f-]{36}$/.test(chave)) return { erro: 'Recarregue a tela e tente de novo.', valores }
   if (Object.keys(campos).length > 0 || 'erro' in valor) return { campos, valores }
 
-  // Alugada: usa a locadora escolhida ou cadastra a nova (sem repetir nome com outra grafia).
-  let locadora: string | null = null
-  if (alugada) {
-    if (locadoraId) {
-      locadora = locadoraId
-    } else {
-      const { data: existentes } = await supabase
-        .from('locadora')
-        .select('id, nome')
-        .eq('obra_id', obraId)
-      const chave = normalizarTexto(locadoraNova)
-      const igual = (existentes ?? []).find((l) => normalizarTexto(l.nome) === chave)
-      if (igual) {
-        locadora = igual.id
-      } else {
-        const { data: criada, error } = await supabase
-          .from('locadora')
-          .insert({ obra_id: obraId, nome: locadoraNova })
-          .select('id')
-          .single()
-        if (error) return { campos: { locadora: 'Não foi possível salvar a locadora.' }, valores }
-        locadora = criada.id
-      }
-    }
-  }
-
-  const dados = {
-    nome,
-    icone,
-    valor_reposicao: valor.centavos,
-    alto_valor: altoValor,
-    propriedade: alugada ? ('alugada' as const) : ('propria' as const),
-    locadora_id: locadora,
-  }
-  let tipoId = id
-  if (id) {
-    // Confere que o tipo é da obra ativa: com id de outra obra, o update não acharia nada.
-    const { data: atualizado, error } = await supabase
-      .from('tipo_ferramenta')
-      .update(dados)
-      .eq('id', id)
-      .eq('obra_id', obraId)
-      .select('id')
-      .maybeSingle()
-    if (!error && !atualizado) return { erro: 'Ferramenta não encontrada nesta obra.', valores }
-    if (error) {
-      if (error.code === '23505')
-        return { campos: { nome: 'Já existe ferramenta com esse nome.' }, valores }
-      return { erro: 'Não foi possível salvar. Tente de novo.', valores }
-    }
-  } else {
-    // O código das peças sai do nome (sem campo de prefixo): 2–4 letras que a obra não usa.
-    const { data: usados } = await supabase
-      .from('tipo_ferramenta')
-      .select('prefixo')
-      .eq('obra_id', obraId)
-    const prefixo = sugerirPrefixo(
+  // Tudo numa transação no banco (locadora, ferramenta e unidades): falha no meio não deixa
+  // cadastro pela metade, e a chave do formulário faz a repetição não criar unidades de novo.
+  const { data: usados } = id
+    ? { data: [] }
+    : await supabase.from('tipo_ferramenta').select('prefixo').eq('obra_id', obraId)
+  const { error } = await supabase.rpc('salvar_ferramenta', {
+    p_obra: obraId,
+    p_chave: chave,
+    p_id: id || undefined,
+    p_nome: nome,
+    p_icone: icone,
+    p_valor: valor.centavos,
+    p_alto_valor: altoValor,
+    p_propriedade: alugada ? 'alugada' : 'propria',
+    p_locadora_id: alugada && locadoraId ? locadoraId : undefined,
+    p_locadora_nova: alugada && !locadoraId ? locadoraNova : undefined,
+    p_quantidade: quantidade,
+    // Sugestão a partir do nome; o banco confere e troca se já estiver em uso.
+    p_prefixo: sugerirPrefixo(
       nome,
       (usados ?? []).map((t) => t.prefixo),
-    )
-    const { data, error } = await supabase
-      .from('tipo_ferramenta')
-      .insert({ ...dados, prefixo, obra_id: obraId })
-      .select('id')
-      .single()
-    if (error) {
-      if (error.code === '23505') {
-        return { campos: { nome: 'Já existe ferramenta com esse nome.' }, valores }
-      }
-      return { erro: 'Não foi possível salvar. Tente de novo.', valores }
-    }
-    tipoId = data.id
-  }
-
-  if (quantidade > 0) {
-    const { error } = await supabase.rpc('adicionar_unidades', {
-      p_tipo: tipoId,
-      p_quantidade: quantidade,
-    })
-    if (error) {
-      revalidatePath('/cadastros/ferramentas')
-      return {
-        erro: 'A ferramenta foi salva, mas as unidades não foram adicionadas. Tente adicionar de novo.',
-        valores,
-      }
-    }
+    ),
+  })
+  if (error) {
+    if (error.code === '23505' && error.message.includes('tipo_ferramenta_obra_id_nome_key'))
+      return { campos: { nome: 'Já existe ferramenta com esse nome.' }, valores }
+    if (error.code === 'P0002') return { erro: error.message, valores }
+    if (error.code === 'AL012') return { campos: { nome: error.message }, valores }
+    return { erro: 'Não foi possível salvar. Nada foi gravado: tente de novo.', valores }
   }
 
   revalidatePath('/cadastros/ferramentas')

@@ -1644,6 +1644,23 @@ export type Database = {
         }
         Returns: undefined
       }
+      salvar_ferramenta: {
+        Args: {
+          p_alto_valor: boolean
+          p_chave: string
+          p_icone: string
+          p_id?: string
+          p_locadora_id?: string
+          p_locadora_nova?: string
+          p_nome: string
+          p_obra: string
+          p_prefixo: string
+          p_propriedade: string
+          p_quantidade: number
+          p_valor: number
+        }
+        Returns: string
+      }
       trocar_codigo_tv: { Args: { p_codigo: string }; Returns: string }
     }
     Enums: {

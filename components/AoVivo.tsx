@@ -2,6 +2,7 @@
 
 import { useRouter } from 'next/navigation'
 import { useEffect } from 'react'
+import { esperaAtualizacao } from '@/lib/dominio/ao-vivo'
 import { criarClienteNavegador } from '@/lib/supabase/navegador'
 
 type Props = {
@@ -19,7 +20,8 @@ const EVENTOS = {
 
 /**
  * Atualiza a tela quando entra um lançamento na obra (Supabase Realtime; a RLS vale aqui
- * também, então cada um só é avisado do que pode ver). Junta rajadas num recarregamento.
+ * também, então cada um só é avisado do que pode ver). Junta rajadas num recarregamento, mas
+ * com movimento sem parar atualiza pelo menos a cada 3 s; aba escondida atualiza ao voltar.
  */
 export function AoVivo({ obraId, tabelas }: Props) {
   const router = useRouter()
@@ -28,10 +30,31 @@ export function AoVivo({ obraId, tabelas }: Props) {
   useEffect(() => {
     const supabase = criarClienteNavegador()
     let espera: ReturnType<typeof setTimeout> | undefined
-    const recarregar = () => {
-      clearTimeout(espera)
-      espera = setTimeout(() => router.refresh(), 400)
+    // Primeiro evento ainda não mostrado: com lançamentos sem parar, atualiza no prazo máximo.
+    let primeiro: number | null = null
+    // Chegou evento com a aba escondida: atualiza quando ela voltar a aparecer.
+    let pendente = false
+    const atualizar = () => {
+      primeiro = null
+      if (document.hidden) {
+        pendente = true
+        return
+      }
+      router.refresh()
     }
+    const recarregar = () => {
+      const agora = Date.now()
+      primeiro ??= agora
+      clearTimeout(espera)
+      espera = setTimeout(atualizar, esperaAtualizacao(agora, primeiro))
+    }
+    const aoMostrar = () => {
+      if (!document.hidden && pendente) {
+        pendente = false
+        router.refresh()
+      }
+    }
+    document.addEventListener('visibilitychange', aoMostrar)
     let canal: ReturnType<typeof supabase.channel> | undefined
     let encerrado = false
     // O Realtime aplica a RLS com o token de quem assina: carrega a sessão antes.
@@ -59,6 +82,7 @@ export function AoVivo({ obraId, tabelas }: Props) {
     return () => {
       encerrado = true
       clearTimeout(espera)
+      document.removeEventListener('visibilitychange', aoMostrar)
       if (canal) void supabase.removeChannel(canal)
     }
   }, [obraId, chave, router])

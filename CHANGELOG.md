@@ -2,6 +2,22 @@
 
 Registro do que foi entregue em cada milestone (ver `PLAN.md`).
 
+## Ajustes do piloto (após o M11, 13/10/2026)
+
+### Adicionado
+- **Lista com abas** Agora · Não devolvidas · Avarias, agrupadas por pessoa.
+- **Avaria:** campo "Detalhes (opcional)" além do motivo.
+- **Cadastros:**
+  - engrenagem no cabeçalho com impressora, painel da TV, importar planilha e passo a passo (a lista ganha a tela);
+  - busca geral em pessoas, ferramentas e empresas, sem acento.
+- **Ferramentas:**
+  - 69 ícones prontos, por grupo e com busca;
+  - envio de ícone próprio quando nenhum serve.
+
+### Mudado
+- **Código das peças:** sai do nome da ferramenta, sem o campo de prefixo.
+- **Desempenho:** funções da Vercel em São Paulo e resposta imediata ao toque na barra inferior.
+
 ## M11 — Piloto em obra: preparação (código e documentos em 13/10/2026; piloto em campo pendente)
 
 ### Adicionado

@@ -194,7 +194,7 @@ test.describe('painel da TV', () => {
     const eng = await apiEngenheiro(request)
     await conectarTv(page, eng, `TV versão ${info.project.name}-${Date.now() % 100000}`)
     const completo = (await (await page.request.get('/tv/dados')).json()) as { versao: string }
-    expect(completo.versao).toMatch(/^[0-9a-f]{32}$/)
+    expect(completo.versao).toMatch(/^v\d+$/)
     const igual = (await (
       await page.request.get(`/tv/dados?v=${completo.versao}`)
     ).json()) as object

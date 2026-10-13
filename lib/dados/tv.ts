@@ -44,7 +44,8 @@ export async function lerPainel(
   if (!tokenValido(token)) return { tipo: 'nao_autorizado' }
   const { data, error } = await clienteAnonimo().rpc('painel_tv', {
     p_token: token,
-    p_versao: versao && /^[0-9a-f]{32}$/.test(versao) ? versao : undefined,
+    // Versão do painel: contador da obra ("v123"), mudado por gatilho no banco.
+    p_versao: versao && /^v\d{1,18}$/.test(versao) ? versao : undefined,
   })
   if (error) return error.code === 'AL008' ? { tipo: 'nao_autorizado' } : { tipo: 'erro' }
   const resposta = data as unknown as PainelTv | { versao: string; agora: string }

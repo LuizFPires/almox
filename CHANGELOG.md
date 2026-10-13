@@ -2,6 +2,16 @@
 
 Registro do que foi entregue em cada milestone (ver `PLAN.md`).
 
+## Plano de correção · bloco 3 (13/10/2026)
+
+Limpeza e consumo de recursos; com este bloco, os 18 pontos da análise externa estão tratados.
+
+### Corrigido
+- **Fotos de avaria:** as prévias saem da memória do celular ao sair da devolução.
+- **Agente no Windows:** o log da tarefa não cresce mais para sempre.
+- **TV:** "nada mudou" responde sem remontar o painel (bem menos trabalho do banco com várias TVs).
+- Código sem uso removido.
+
 ## Plano de correção · bloco 2 (13/10/2026)
 
 Dívidas da análise externa que pesam em obras longas e na impressora de etiquetas.

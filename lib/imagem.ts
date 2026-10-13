@@ -17,7 +17,10 @@ export async function comprimirFoto(
   tela.width = largura
   tela.height = altura
   const contexto = tela.getContext('2d')
-  if (!contexto) throw new Error('Não foi possível preparar a foto.')
+  if (!contexto) {
+    imagem.fechar()
+    throw new Error('Não foi possível preparar a foto.')
+  }
   contexto.drawImage(imagem.fonte, 0, 0, largura, altura)
   imagem.fechar()
   if (carimbo) carimbar(contexto, carimbo, largura, altura)
@@ -48,7 +51,10 @@ export async function prepararIcone(arquivo: File, lado = 128): Promise<Blob> {
   tela.width = lado
   tela.height = lado
   const contexto = tela.getContext('2d')
-  if (!contexto) throw new Error('Não foi possível preparar o ícone.')
+  if (!contexto) {
+    imagem.fechar()
+    throw new Error('Não foi possível preparar o ícone.')
+  }
   contexto.drawImage(
     imagem.fonte,
     Math.round((lado - largura) / 2),
@@ -90,7 +96,13 @@ async function abrirImagem(arquivo: Blob): Promise<ImagemAberta> {
   const url = URL.createObjectURL(arquivo)
   const img = new Image()
   img.src = url
-  await img.decode()
+  try {
+    await img.decode()
+  } catch (erro) {
+    // Imagem que não abre: libera a URL antes de desistir.
+    URL.revokeObjectURL(url)
+    throw erro
+  }
   return {
     fonte: img,
     width: img.naturalWidth,

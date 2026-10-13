@@ -69,7 +69,8 @@ export function FotoAvaria({ obraId, tipo, autor, qual, aoVoltar, aoUsar, selo }
       setErro('Não foi possível enviar a foto (sem conexão?). Tente de novo.')
       return
     }
-    // A prévia segue viva com a tela de devolução (que a libera ao refazer ou concluir).
+    // A prévia segue viva com a tela de devolução (que a libera ao refazer, ao tirar a peça das
+    // avariadas ou ao sair da tela).
     aoUsar({
       motivo,
       foto: caminho,

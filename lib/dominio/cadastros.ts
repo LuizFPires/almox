@@ -93,7 +93,11 @@ export function lerValorReposicao(texto: string): { centavos: number } | { erro:
   return { centavos }
 }
 
-/** Prefixo do código das unidades: 2–3 letras do nome, sem acento, sem colidir com os usados. */
+/**
+ * Sugestão de prefixo do código das unidades: 2–4 letras do nome, sem acento, sem colidir com os
+ * usados que a tela conhece. O banco (`salvar_ferramenta`) confere de novo e troca se já estiver em
+ * uso, com trava por obra; a importação também confere antes de gravar.
+ */
 export function sugerirPrefixo(nome: string, usados: readonly string[] = []): string {
   const letras = normalizarTexto(nome)
     .toUpperCase()

@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useLayoutEffect, useRef, useState } from 'react'
+import { useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react'
 import { CirculoFerramenta } from '@/components/IconeFerramenta'
 import { ehIcone } from '@/components/icones-ferramenta'
 import { Marca } from '@/components/Marca'
@@ -41,10 +41,13 @@ export function PainelTv({ inicial }: { inicial: DadosPainel }) {
   useTvLigada()
   const { painel, semConexaoDesde, naoAutorizado, diferencaMs } = usePainel(inicial)
   const agora = useAgora(painel.agora, diferencaMs)
-  const cartoes = montarCartoes(painel, agora)
+  // Recalcula só quando chegam dados novos ou vira o minuto (as trocas de fase da animação
+  // renderizam de novo sem mudar nada disso).
+  const minuto = agora.getTime()
+  const cartoes = useMemo(() => montarCartoes(painel, new Date(minuto)), [painel, minuto])
   const porPagina = painel.config.cartoesPorPagina
-  const paginas = paginar(cartoes, porPagina)
-  const colunas = montarColunas(cartoes, painel)
+  const paginas = useMemo(() => paginar(cartoes, porPagina), [cartoes, porPagina])
+  const colunas = useMemo(() => montarColunas(cartoes, painel), [cartoes, painel])
   const { fase, visivel, trilho, progresso } = useLoopTv({
     nPaginas: paginas.length,
     temColunas: colunas.length > 0,

@@ -90,6 +90,9 @@ export default async function PaginaLancamento({ params }: PageProps<'/lancament
                     src={f.url}
                     alt={`Foto da avaria de ${codigoDe.get(f.unidade_id)}`}
                     className="size-20 rounded-botao object-cover"
+                    width={80}
+                    height={80}
+                    decoding="async"
                   />
                 )}
                 <span className="flex flex-col">

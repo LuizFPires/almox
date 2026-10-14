@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { buscarCadastros, hrefCadastro, type ItemBusca } from './busca-cadastros'
+import { buscarCadastros, hrefCadastro, prepararBusca, type ItemBusca } from './busca-cadastros'
 
 const INDICE: ItemBusca[] = [
   {
@@ -70,5 +70,14 @@ describe('buscarCadastros', () => {
   it('aponta para o cadastro do item', () => {
     expect(hrefCadastro({ tipo: 'ferramenta', id: 'f1' })).toBe('/cadastros/ferramenta/f1')
     expect(hrefCadastro({ tipo: 'pessoa', id: 'p1' })).toBe('/cadastros/pessoa/p1')
+  })
+})
+
+describe('busca preparada', () => {
+  it('dá o mesmo resultado que buscar direto no índice', () => {
+    const preparada = prepararBusca(INDICE)
+    for (const termo of ['jo', 'MARTELETE', 'formas', 'ze carlos', 'xyz', 'pa']) {
+      expect(buscarCadastros(preparada, termo)).toEqual(buscarCadastros(INDICE, termo))
+    }
   })
 })

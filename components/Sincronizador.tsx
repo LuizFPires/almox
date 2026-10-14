@@ -6,6 +6,8 @@ import { atualizarDados, enviarFila, usuarioAtual } from '@/lib/offline/sincroni
 
 const ENVIAR_MS = 30_000
 const DADOS_MS = 5 * 60_000
+/** Preparar o modo sem internet logo depois de a tela abrir, sem disputar com ela. */
+const PREPARAR_DEPOIS_MS = 1500
 
 /**
  * Em toda tela do app: manda a fila de lançamentos feitos sem internet quando a rede volta e,
@@ -25,14 +27,17 @@ export function Sincronizador({ obra, lanca }: { obra: string; lanca: boolean })
     void usuarioAtual()
       .then((u) => (u ? apagarDadosDeOutros(u) : undefined))
       .catch(() => undefined)
+    // A fila vai na hora (lançamento esperando); o resto, logo depois de a tela abrir.
     enviar()
-    baixar()
-    if (lanca) {
-      // A tela sem internet (com o leitor de QR) fica guardada para quando a rede cair.
-      void navigator.serviceWorker?.ready
-        .then((r) => r.active?.postMessage({ tipo: 'guardar-campo' }))
-        .catch(() => undefined)
-    }
+    const tPreparar = window.setTimeout(() => {
+      baixar()
+      if (lanca && vivo) {
+        // A tela sem internet (com o leitor de QR) fica guardada para quando a rede cair.
+        void navigator.serviceWorker?.ready
+          .then((r) => r.active?.postMessage({ tipo: 'guardar-campo' }))
+          .catch(() => undefined)
+      }
+    }, PREPARAR_DEPOIS_MS)
     const aoVoltar = () => {
       enviar()
       baixar()
@@ -49,6 +54,7 @@ export function Sincronizador({ obra, lanca }: { obra: string; lanca: boolean })
     }
     return () => {
       vivo = false
+      window.clearTimeout(tPreparar)
       window.removeEventListener('online', aoVoltar)
       window.clearInterval(tEnviar)
       window.clearInterval(tDados)

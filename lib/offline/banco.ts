@@ -47,14 +47,24 @@ async function transacao<T>(
   }
 }
 
+let avisoMarcado: ReturnType<typeof setTimeout> | undefined
+
+/**
+ * Avisa as outras telas que a fila mudou. Mandar a fila tira um item por vez: os avisos de uma
+ * rajada viram um só (cada aviso faz as telas relerem dados e fila).
+ */
 function avisarMudanca() {
-  try {
-    const canal = new BroadcastChannel(CANAL_FILA)
-    canal.postMessage('mudou')
-    canal.close()
-  } catch {
-    // navegador sem BroadcastChannel: as telas releem no próximo intervalo
-  }
+  if (avisoMarcado) return
+  avisoMarcado = setTimeout(() => {
+    avisoMarcado = undefined
+    try {
+      const canal = new BroadcastChannel(CANAL_FILA)
+      canal.postMessage('mudou')
+      canal.close()
+    } catch {
+      // navegador sem BroadcastChannel: as telas releem no próximo intervalo
+    }
+  }, 150)
 }
 
 export async function guardarDados(dados: DadosGuardados): Promise<void> {
@@ -63,6 +73,13 @@ export async function guardarDados(dados: DadosGuardados): Promise<void> {
 
 /** Dados guardados deste login (de uma obra, ou o mais recente). Os de outro login não servem. */
 export async function lerDados(usuario: string, obra?: string): Promise<DadosGuardados | null> {
+  // Obra conhecida: lê só ela (a chave da loja é a obra), sem copiar as outras.
+  if (obra) {
+    const dados = await transacao<DadosGuardados | undefined>('dados', 'readonly', (s) =>
+      s.get(obra),
+    )
+    return dados && dados.usuario === usuario ? dados : null
+  }
   const todas = (await transacao<DadosGuardados[]>('dados', 'readonly', (s) => s.getAll())) ?? []
   return (
     todas

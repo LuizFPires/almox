@@ -42,6 +42,9 @@ export function ListaAvarias({ grupos, agora }: Props) {
                   src={a.foto}
                   alt={`Foto da avaria de ${a.codigo}`}
                   className="size-12 shrink-0 rounded-[8px] object-cover"
+                  width={48}
+                  height={48}
+                  decoding="async"
                 />
               ) : (
                 <span aria-hidden="true" className="size-12 shrink-0 rounded-[8px] bg-borda" />

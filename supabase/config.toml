@@ -161,9 +161,9 @@ site_url = "http://localhost:3000"
 # The public URL that Auth serves on. Defaults to the API external URL with `/auth/v1` appended.
 # external_url = ""
 # A list of *exact* URLs that auth providers are permitted to redirect to post authentication.
-# Só endereços exatos: curinga em *.vercel.app deixaria outro dono de projeto receber o link.
-# Prévias da Vercel entram por senha (o link mágico volta para o site_url).
-additional_redirect_urls = ["http://localhost:3000/**", "http://localhost:3200/**", "http://127.0.0.1:3000/**", "https://almox-chi.vercel.app/**"]
+# Só endereços exatos (sem curinga): o acesso é por senha e código no e-mail; o único retorno
+# de link é /auth/confirmar. Prévias da Vercel entram por senha.
+additional_redirect_urls = ["http://localhost:3000/auth/confirmar", "http://localhost:3200/auth/confirmar", "http://127.0.0.1:3000/auth/confirmar", "https://almox-chi.vercel.app/auth/confirmar"]
 # How long tokens are valid for, in seconds. Defaults to 3600 (1 hour), maximum 604,800 (1 week).
 jwt_expiry = 3600
 # JWT issuer URL. If not set, defaults to auth.external_url.
@@ -230,13 +230,15 @@ double_confirm_changes = true
 # If enabled, users need to confirm their email address before signing in.
 enable_confirmations = false
 # If enabled, users will need to reauthenticate or have logged in recently to change their password.
-secure_password_change = false
+# Almox: ligado (auditoria 13/10/2026). Trocar a senha é sempre pelo código do e-mail.
+secure_password_change = true
 # Controls the minimum amount of time that must pass before sending another signup confirmation or password reset email.
-max_frequency = "1s"
+max_frequency = "60s"
 # Number of characters used in the email OTP.
-otp_length = 6
+# Almox: código de 8 dígitos válido por 15 min (recuperar e trocar a senha).
+otp_length = 8
 # Number of seconds before the email OTP expires (defaults to 1 hour).
-otp_expiry = 3600
+otp_expiry = 900
 
 # Use a production-ready SMTP server
 # [auth.email.smtp]
@@ -248,16 +250,16 @@ otp_expiry = 3600
 # admin_email = "admin@email.com"
 # sender_name = "Admin"
 
-# Uncomment to customize email template
-# [auth.email.template.invite]
-# subject = "You have been invited"
-# content_path = "./supabase/templates/invite.html"
+# Código de recuperação (o mesmo texto vai para o painel de produção: Authentication › Emails).
+[auth.email.template.recovery]
+subject = "Seu código do Almox"
+content_path = "./supabase/templates/codigo-senha.html"
 
-# Uncomment to customize notification email template
-# [auth.email.notification.password_changed]
-# enabled = true
-# subject = "Your password has been changed"
-# content_path = "./supabase/templates/password_changed_notification.html"
+# Aviso de senha trocada: quem não trocou fica sabendo.
+[auth.email.notification.password_changed]
+enabled = true
+subject = "Sua senha do Almox foi trocada"
+content_path = "./supabase/templates/senha-trocada.html"
 
 [auth.sms]
 # Allow/disallow new user signups via SMS to your project.

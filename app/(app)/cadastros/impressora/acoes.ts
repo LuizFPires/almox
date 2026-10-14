@@ -33,6 +33,7 @@ export async function salvarImpressora(
   }
   const campos: EstadoImpressora['campos'] = {}
   if (dados.nome.length < 2) campos.nome = 'Informe um nome (ex.: Etiquetadora do almoxarifado).'
+  else if (dados.nome.length > 80) campos.nome = 'Use até 80 caracteres.'
   const erroIp = validarIp(dados.ip)
   if (erroIp) campos.ip = erroIp
   const erroPorta = validarPorta(dados.porta)

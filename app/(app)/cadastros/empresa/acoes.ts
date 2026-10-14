@@ -36,9 +36,11 @@ export async function salvarEmpresa(_: EstadoEmpresa, form: FormData): Promise<E
 
   const campos: EstadoEmpresa['campos'] = {}
   if (dados.nome.length < 2) campos.nome = 'Informe o nome da empresa.'
+  else if (dados.nome.length > 120) campos.nome = 'Use até 120 caracteres.'
   // Empreiteira precisa de quem receba o aviso de desconto (RN-13): dono com e-mail.
   // Encarregado fica opcional (empresa nova ainda não tem pessoas).
   if (tipo === 'empreiteira' && !dados.dono_nome) campos.dono_nome = 'Informe o nome do dono.'
+  else if ((dados.dono_nome ?? '').length > 120) campos.dono_nome = 'Use até 120 caracteres.'
   const erroDono = validarEmail(dados.dono_email ?? '', tipo === 'empreiteira')
   if (erroDono) campos.dono_email = erroDono
   const erroEnc = validarEmail(dados.encarregado_email ?? '')
@@ -68,7 +70,8 @@ export async function salvarEmpresa(_: EstadoEmpresa, form: FormData): Promise<E
   if (error) {
     if (error.code === '23505')
       return { campos: { nome: 'Já existe uma empresa com esse nome.' }, valores }
-    if (error.code === '23514') {
+    // 23514 aqui é a troca para "própria" com acessos restritos (os tamanhos já foram conferidos).
+    if (error.code === '23514' && !error.message.includes('_tamanho')) {
       return {
         erro: 'Há acessos de consulta restritos a esta empresa. Mude esses acessos antes de torná-la própria.',
         valores,

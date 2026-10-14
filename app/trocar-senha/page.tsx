@@ -1,5 +1,5 @@
 import type { Metadata } from 'next'
-import Link from 'next/link'
+import { redirect } from 'next/navigation'
 import { connection } from 'next/server'
 import { Suspense } from 'react'
 import { Marca } from '@/components/Marca'
@@ -16,27 +16,17 @@ async function Conteudo() {
   const obrigatoria = Boolean(
     (data?.claims?.app_metadata as Record<string, unknown> | undefined)?.trocar_senha,
   )
+  // Fora da senha provisória, trocar a senha é pelo código do e-mail.
+  if (!obrigatoria) redirect(data?.claims?.sub ? '/recuperar-senha' : '/login')
   return (
     <>
       <div className="flex flex-col gap-2">
-        <h1 className="text-[28px] font-bold tracking-tight">
-          {obrigatoria ? 'Crie sua senha' : 'Trocar senha'}
-        </h1>
+        <h1 className="text-[28px] font-bold tracking-tight">Crie sua senha</h1>
         <p className="text-texto-2">
-          {obrigatoria
-            ? 'Você entrou com uma senha provisória. Crie uma senha só sua para continuar.'
-            : 'Escolha a nova senha de acesso ao Almox.'}
+          Você entrou com uma senha provisória. Crie uma senha só sua para continuar.
         </p>
       </div>
       <FormSenha email={typeof data?.claims?.email === 'string' ? data.claims.email : ''} />
-      {!obrigatoria && (
-        <Link
-          href="/conta"
-          className="flex min-h-toque items-center justify-center font-semibold underline"
-        >
-          Voltar
-        </Link>
-      )}
     </>
   )
 }

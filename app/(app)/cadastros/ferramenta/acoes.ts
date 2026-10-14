@@ -41,6 +41,7 @@ export async function salvarFerramenta(
 
   const campos: EstadoFerramenta['campos'] = {}
   if (nome.length < 2) campos.nome = 'Informe o nome da ferramenta.'
+  else if (nome.length > 80) campos.nome = 'Use até 80 caracteres.'
   // Ícone próprio só da obra ativa (o banco confere de novo).
   if (!ehIcone(icone) || (ehIconeArquivo(icone) && !icone.startsWith(`arquivo:${obraId}/`))) {
     campos.icone = 'Escolha o ícone.'

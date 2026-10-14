@@ -5,6 +5,10 @@ on:
   push:
     branches: [main]
 
+# Só leitura: o CI não publica nada nem usa segredos (auditoria 13/10/2026, INF-11).
+permissions:
+  contents: read
+
 concurrency:
   group: ci-${{ github.ref }}
   cancel-in-progress: true

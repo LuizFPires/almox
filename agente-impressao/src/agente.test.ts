@@ -30,6 +30,12 @@ describe('configuração', () => {
     expect(() => lerConfig({ ...ENV, ALMOX_CHAVE_PUBLICA: 'sb_secret_x' })).toThrow(ErroConfig)
     expect(() => lerConfig({ ...ENV, ALMOX_TOKEN_DISPOSITIVO: 'abc' })).toThrow(ErroConfig)
     expect(() => lerConfig({ ...ENV, ALMOX_SUPABASE_URL: '' })).toThrow(ErroConfig)
+    expect(() => lerConfig({ ...ENV, ALMOX_SUPABASE_URL: 'http://xyz.supabase.co' })).toThrow(
+      ErroConfig,
+    )
+    expect(lerConfig({ ...ENV, ALMOX_SUPABASE_URL: 'http://127.0.0.1:54421' }).url).toBe(
+      'http://127.0.0.1:54421',
+    )
     expect(() => lerConfig({ ...ENV, ALMOX_INTERVALO_MS: 'rápido' })).toThrow(ErroConfig)
   })
 

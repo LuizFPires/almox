@@ -17,7 +17,7 @@ export const semSeed = Boolean(process.env.E2E_BASE_URL)
 export async function entrarComo(page: Page, usuario: keyof typeof USUARIOS, destino = '/inicio') {
   await page.goto(destino === '/inicio' ? '/login' : `/login?volta=${encodeURIComponent(destino)}`)
   await page.getByLabel('E-mail').fill(USUARIOS[usuario])
-  await page.getByLabel('Senha').fill(SENHA_SEED)
+  await page.getByLabel('Senha', { exact: true }).fill(SENHA_SEED)
   await page.getByRole('button', { name: 'Entrar', exact: true }).click()
   await page.waitForURL((url) => url.pathname === destino)
   await expect(page.getByRole('link', { name: /conta e obra/ })).toBeVisible()

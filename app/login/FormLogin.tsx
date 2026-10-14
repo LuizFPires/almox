@@ -1,97 +1,50 @@
 'use client'
 
-import { useActionState, useState } from 'react'
+import Link from 'next/link'
+import { useActionState } from 'react'
 import { Botao } from '@/components/Botao'
-import { entrarComSenha, enviarLinkMagico, type EstadoLogin } from './acoes'
+import { CampoSenha } from '@/components/CampoSenha'
+import { Campo } from '@/components/Formulario'
+import { entrarComSenha } from './acoes'
 
-const CLASSE_CAMPO =
-  'min-h-toque w-full rounded-botao border border-borda bg-cartao px-3 text-base text-texto'
-
-function Mensagem({ estado }: { estado: EstadoLogin }) {
-  if (estado.erro) {
-    return (
-      <p role="alert" className="rounded-botao bg-erro-claro px-3 py-2.5 text-[15px] text-erro">
-        {estado.erro}
-      </p>
-    )
-  }
-  if (estado.aviso) {
-    return (
-      <p
-        role="status"
-        className="rounded-botao bg-sucesso-claro px-3 py-2.5 text-[15px] text-sucesso"
-      >
-        {estado.aviso}
-      </p>
-    )
-  }
-  return null
-}
-
+/** E-mail e senha (com o olho). Esqueceu ou ainda não tem senha: código no e-mail. */
 export function FormLogin({ volta }: { volta: string }) {
-  const [modo, setModo] = useState<'senha' | 'link'>('senha')
-  const [estadoSenha, acaoSenha, entrando] = useActionState(entrarComSenha, {})
-  const [estadoLink, acaoLink, enviando] = useActionState(enviarLinkMagico, {})
+  const [estado, acao, entrando] = useActionState(entrarComSenha, {})
 
   return (
     <div className="flex flex-col gap-4">
-      {modo === 'senha' ? (
-        <form action={acaoSenha} className="flex flex-col gap-3">
-          <input type="hidden" name="volta" value={volta} />
-          <label className="flex flex-col gap-1.5 text-sm font-semibold">
-            E-mail
-            <input
-              name="email"
-              type="email"
-              autoComplete="email"
-              defaultValue={estadoSenha.email}
-              required
-              className={CLASSE_CAMPO}
-            />
-          </label>
-          <label className="flex flex-col gap-1.5 text-sm font-semibold">
-            Senha
-            <input
-              name="senha"
-              type="password"
-              autoComplete="current-password"
-              required
-              className={CLASSE_CAMPO}
-            />
-          </label>
-          <Mensagem estado={estadoSenha} />
-          <Botao type="submit" tamanho="g" larguraTotal disabled={entrando}>
-            {entrando ? 'Entrando…' : 'Entrar'}
-          </Botao>
-        </form>
-      ) : (
-        <form action={acaoLink} className="flex flex-col gap-3">
-          <input type="hidden" name="volta" value={volta} />
-          <label className="flex flex-col gap-1.5 text-sm font-semibold">
-            E-mail
-            <input
-              name="email"
-              type="email"
-              autoComplete="email"
-              defaultValue={estadoLink.email}
-              required
-              className={CLASSE_CAMPO}
-            />
-          </label>
-          <Mensagem estado={estadoLink} />
-          <Botao type="submit" tamanho="g" larguraTotal disabled={enviando}>
-            {enviando ? 'Enviando…' : 'Receber link por e-mail'}
-          </Botao>
-        </form>
-      )}
+      <form action={acao} className="flex flex-col gap-3">
+        <input type="hidden" name="volta" value={volta} />
+        <Campo
+          rotulo="E-mail"
+          name="email"
+          type="email"
+          inputMode="email"
+          autoComplete="username"
+          autoCapitalize="none"
+          defaultValue={estado.email}
+          required
+        />
+        <CampoSenha rotulo="Senha" name="senha" autoComplete="current-password" required />
+        {estado.erro && (
+          <p role="alert" className="rounded-botao bg-erro-claro px-3 py-2.5 text-[15px] text-erro">
+            {estado.erro}
+          </p>
+        )}
+        <Botao type="submit" tamanho="g" larguraTotal disabled={entrando}>
+          {entrando ? 'Entrando…' : 'Entrar'}
+        </Botao>
+        <p className="text-center text-sm text-texto-2">
+          Você continua conectado neste aparelho até sair.
+        </p>
+      </form>
 
-      <button
-        type="button"
-        onClick={() => setModo(modo === 'senha' ? 'link' : 'senha')}
-        className="min-h-toque text-[15px] font-semibold text-texto-3 underline"
+      <Link
+        href="/recuperar-senha"
+        className="flex min-h-toque items-center justify-center text-[15px] font-semibold text-texto-3 underline"
       >
-        {modo === 'senha' ? 'Entrar sem senha, com link no e-mail' : 'Entrar com senha'}
-      </button>
+        Esqueci ou ainda não tenho senha
+      </Link>
     </div>
   )
 }

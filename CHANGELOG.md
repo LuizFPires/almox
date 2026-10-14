@@ -66,6 +66,24 @@ Pontos da análise externa (`docs/PLANO-DE-CORRECAO-18-PONTOS.md`) que afetam co
 - **Sem internet:** toque duplo em "Guardar" não duplica o lançamento.
 - **Folha A4:** "Sim, saíram certas" não fica preso em "Marcando…".
 - **TV:** o relógio se acerta pelo servidor mesmo sem mudança no painel.
+## Segurança · onda 1 (13/10/2026)
+
+Auditoria geral em `docs/seguranca/auditoria-2026-10-13.md` (banco, aplicação e infraestrutura).
+
+### Mudado
+- **Acesso no formato do revel:** e-mail e senha com o olho; sai o "link no e-mail".
+- **Esqueci ou ainda não tenho senha:** código de 8 dígitos no e-mail, válido por 15 minutos.
+- **Trocar a senha (Conta) também pelo código do e-mail**, conferido no servidor; salvar a senha
+  derruba os outros aparelhos conectados. Mensagens claras para muitas tentativas e senha fraca ou vazada.
+
+### Segurança
+- Engenheiro só edita nome e endereço da obra; desativar ou encerrar a obra é do administrador, e
+  toda mudança na obra entra no histórico.
+- O nome do login não é editável pelo próprio usuário.
+- Consulta de empreiteira não vê os logins de consulta das outras empresas.
+- No máximo 10 aparelhos com notificação por login; limites de tamanho nos textos.
+- CSP (parte já aplicada + Report-Only), cookie de sessão `Secure`, CI só leitura, agente só `https`,
+  link da foto de avaria com 10 minutos.
 
 ## Ajustes do piloto (após o M11, 13/10/2026)
 

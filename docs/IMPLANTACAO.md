@@ -14,6 +14,20 @@ de outra pessoa está indicado.
 - [ ] **Resend**: conta criada e domínio da construtora verificado.
   - [ ] `RESEND_API_KEY` e `EMAIL_REMETENTE` na Vercel (Production).
   - Sem isso, os e-mails de aviso **ficam esperando na fila** e saem quando o Resend entrar.
+- [ ] **Segurança (auditoria de 13/10/2026, `docs/seguranca/auditoria-2026-10-13.md`)**:
+  - [ ] **GitHub**: ruleset na `main` (PR com o CI verde, sem force-push nem apagar), secret
+        scanning com push protection e Dependabot ligados.
+  - [ ] **Supabase › Database › Settings**: *Enforce SSL* ligado e redes restritas (o app usa só
+        a API; a conexão direta é para manutenção).
+  - [ ] **Supabase › Authentication**: *Secure password change* ligado; código do e-mail com
+        **8 dígitos** e validade de **900 s**; intervalo entre e-mails de **60 s**; proteção de
+        senha vazada ligada; URL de retorno só `https://almox-chi.vercel.app/auth/confirmar`.
+  - [ ] **Supabase › Authentication › Emails**: modelo *Reset password* com o texto de
+        `supabase/templates/codigo-senha.html` (usa `{{ .Token }}`, não o link) e aviso de
+        *Password changed* ligado com `senha-trocada.html`.
+  - [ ] **SMTP próprio (Resend)** no Auth: sem ele o código de senha só chega para quem é membro
+        da organização do Supabase.
+  - [ ] Apagar `.env.prod-acesso` e `.env.prod-envios` depois de guardar os valores.
 - [ ] **Sentry**: projeto criado; `NEXT_PUBLIC_SENTRY_DSN` na Vercel. Sem ele o app funciona,
       só não avisa os erros.
 - [ ] **Obra no Almox**: o dono do sistema passa o nome, o endereço e o e-mail do engenheiro.

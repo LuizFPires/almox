@@ -41,8 +41,11 @@ export async function salvarPessoa(_: EstadoPessoa, form: FormData): Promise<Est
   const campos: EstadoPessoa['campos'] = {}
   const erroNome = validarNomeCompleto(dados.nome)
   if (erroNome) campos.nome = erroNome
+  else if (dados.nome.length > 120) campos.nome = 'Use até 120 caracteres.'
   if (!dados.nome_capacete) campos.nome_capacete = 'Informe o nome que vai no capacete.'
+  else if (dados.nome_capacete.length > 30) campos.nome_capacete = 'Use até 30 caracteres.'
   if (dados.funcao.length < 2) campos.funcao = 'Escolha ou escreva a função.'
+  else if (dados.funcao.length > 80) campos.funcao = 'Use até 80 caracteres.'
   if (!dados.empresa_id) campos.empresa_id = 'Escolha a empresa.'
   const valores = valoresDoForm(form)
   if (Object.keys(campos).length > 0) return { campos, valores }

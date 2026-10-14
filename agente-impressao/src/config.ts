@@ -29,6 +29,10 @@ export function lerConfig(env: Record<string, string | undefined>): Config {
   if (!/^https?:\/\/[^\s/]+/.test(url)) {
     throw new ErroConfig('ALMOX_SUPABASE_URL ausente ou inválida (copie da tela Impressora).')
   }
+  // O token do mini PC só viaja cifrado; http só para o Supabase local (simulador).
+  if (!url.startsWith('https://') && !/^http:\/\/(localhost|127\.0\.0\.1)(:\d+)?$/.test(url)) {
+    throw new ErroConfig('ALMOX_SUPABASE_URL precisa começar com https://.')
+  }
   if (!chavePublica) throw new ErroConfig('ALMOX_CHAVE_PUBLICA ausente (copie da tela Impressora).')
   if (chavePublica.startsWith('sb_secret_')) {
     throw new ErroConfig('ALMOX_CHAVE_PUBLICA é uma chave secreta. Use a chave pública.')

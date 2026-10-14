@@ -108,6 +108,11 @@ devolver. Não existe "passar para outro" nem "baixar tudo" no fim do dia.
 
 ## Perguntas que sempre aparecem
 
+**Esqueci a senha. E agora?** Na tela de entrar, toque em *Esqueci ou ainda não tenho senha*.
+Chega um código de 8 dígitos no e-mail (vale 15 minutos); digite o código e a senha nova.
+Para trocar a senha com o app aberto é o mesmo caminho (*Conta › Trocar senha*): sempre pelo
+código do e-mail, para ninguém trocar a sua senha pegando o seu celular.
+
 - **"Posso devolver a ferramenta do meu colega?"** Não. Quem pegou, devolve. Por isso
   o capacete é lido na devolução.
 - **"E se eu esquecer de devolver?"** Fica pendente no seu nome. Se você é de

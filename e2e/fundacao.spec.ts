@@ -118,6 +118,9 @@ test.describe('PWA', () => {
     expect(h['permissions-policy']).toContain('camera=(self)')
     expect(h['permissions-policy']).toContain('geolocation=()')
     expect(h['strict-transport-security']).toContain('max-age=')
+    expect(h['content-security-policy']).toContain("frame-ancestors 'none'")
+    expect(h['content-security-policy']).toContain("object-src 'none'")
+    expect(h['content-security-policy-report-only']).toContain("script-src 'self'")
   })
 
   test('tem ícone e meta tags para iPhone', async ({ page }) => {

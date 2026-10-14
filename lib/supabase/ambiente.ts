@@ -1,3 +1,11 @@
+/**
+ * Cookie de sessão só por HTTPS na Vercel (auditoria 13/10/2026, APP-06). Local e e2e rodam
+ * em http://localhost, onde o WebKit recusa cookie `Secure`.
+ */
+export function opcoesCookieServidor() {
+  return { secure: process.env.VERCEL === '1' }
+}
+
 export type AmbientePublico = {
   url: string
   chavePublica: string

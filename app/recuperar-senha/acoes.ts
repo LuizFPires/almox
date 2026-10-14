@@ -2,7 +2,7 @@
 
 import { redirect } from 'next/navigation'
 import {
-  DIGITOS_CODIGO,
+  codigoCompleto,
   limparCodigo,
   mensagemErroCodigo,
   mensagemErroNovaSenha,
@@ -66,8 +66,8 @@ export async function salvarSenha(_: EstadoRecuperar, form: FormData): Promise<E
   if (erroSenha) return { passo, email, erroSenha }
 
   if (passo === 'codigo') {
-    if (codigo.length !== DIGITOS_CODIGO) {
-      return { passo, email, erro: `O código tem ${DIGITOS_CODIGO} dígitos.` }
+    if (!codigoCompleto(codigo)) {
+      return { passo, email, erro: 'Digite o código que chegou no e-mail.' }
     }
     const { error } = await supabase.auth.verifyOtp({ email, token: codigo, type: 'recovery' })
     if (error) return { passo, email, erro: mensagemErroCodigo(error) }

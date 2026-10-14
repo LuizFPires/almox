@@ -5,7 +5,12 @@ import { useActionState, useState } from 'react'
 import { Botao } from '@/components/Botao'
 import { CampoSenha } from '@/components/CampoSenha'
 import { Campo } from '@/components/Formulario'
-import { DIGITOS_CODIGO, limparCodigo, TAMANHO_MINIMO_SENHA } from '@/lib/dominio/senha'
+import {
+  DIGITOS_CODIGO,
+  DIGITOS_CODIGO_MINIMO,
+  limparCodigo,
+  TAMANHO_MINIMO_SENHA,
+} from '@/lib/dominio/senha'
 import { pedirCodigo, salvarSenha, type EstadoRecuperar } from './acoes'
 
 type Props = {
@@ -46,8 +51,8 @@ export function FormRecuperar({ emailDaConta }: Props) {
       >
         <p className="text-texto-2">
           {emailDaConta
-            ? `Para trocar a senha, enviamos um código de ${DIGITOS_CODIGO} dígitos para ${emailDaConta}.`
-            : `Informe seu e-mail. Enviamos um código de ${DIGITOS_CODIGO} dígitos para você criar a senha.`}
+            ? `Para trocar a senha, enviamos um código para ${emailDaConta}.`
+            : 'Informe seu e-mail. Enviamos um código para você criar a senha.'}
         </p>
         <Campo
           rotulo="E-mail"
@@ -95,7 +100,7 @@ export function FormRecuperar({ emailDaConta }: Props) {
             name="codigo"
             inputMode="numeric"
             autoComplete="one-time-code"
-            pattern={`\\d{${DIGITOS_CODIGO}}`}
+            pattern={`\\d{${DIGITOS_CODIGO_MINIMO},${DIGITOS_CODIGO}}`}
             maxLength={DIGITOS_CODIGO}
             value={codigo}
             onChange={(e) => setCodigo(limparCodigo(e.target.value))}

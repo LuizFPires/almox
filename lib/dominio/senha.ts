@@ -34,6 +34,16 @@ export function validarNovaSenha(senha: string, confirmacao: string): string | n
 
 /** Dígitos do código enviado ao e-mail (Auth: `otp_length`). Vale 15 min (`otp_expiry`). */
 export const DIGITOS_CODIGO = 8
+/**
+ * Menor código aceito: o Auth de produção pode ainda mandar 6 dígitos (padrão do Supabase) até o
+ * painel passar para 8. A tela aceita os dois; o Auth é quem confere o código.
+ */
+export const DIGITOS_CODIGO_MINIMO = 6
+
+/** Código com a quantidade de dígitos que o Auth pode mandar (6 a 8). */
+export function codigoCompleto(codigo: string): boolean {
+  return codigo.length >= DIGITOS_CODIGO_MINIMO && codigo.length <= DIGITOS_CODIGO
+}
 
 /** Só os dígitos do código colado ou digitado (o e-mail pode vir com espaços). */
 export function limparCodigo(texto: string): string {

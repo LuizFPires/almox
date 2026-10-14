@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest'
 import {
   gerarSenhaProvisoria,
+  codigoCompleto,
   limparCodigo,
   MENSAGEM_MUITAS_TENTATIVAS,
   mensagemErroCodigo,
@@ -83,5 +84,13 @@ describe('mensagens do acesso', () => {
 
   it('código errado ou vencido', () => {
     expect(mensagemErroCodigo({ code: 'otp_expired', status: 403 })).toContain('vencido')
+  })
+})
+
+describe('código de 6 a 8 dígitos', () => {
+  it('aceita o que o Auth pode mandar enquanto o painel muda para 8', () => {
+    expect(codigoCompleto('123456')).toBe(true)
+    expect(codigoCompleto('12345678')).toBe(true)
+    expect(codigoCompleto('12345')).toBe(false)
   })
 })

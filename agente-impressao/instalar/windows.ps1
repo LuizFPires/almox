@@ -38,7 +38,9 @@ if ($LASTEXITCODE -ne 0) { throw 'Nao foi possivel ajustar as permissoes da past
 & icacls $logs /grant '*S-1-5-19:(OI)(CI)M' /Q | Out-Null
 if ($LASTEXITCODE -ne 0) { throw 'Nao foi possivel liberar a pasta de logs.' }
 
-$comando = "/c `"`"$node`" src\agente.ts >> logs\agente.log 2>&1`""
+# O agente ja grava logs\agente-AAAA-MM-DD.log (14 dias). A saida da tela vai fora; so os erros
+# da execucao atual ficam em logs\agente-falha.log (sobrescrito a cada inicio: nao cresce).
+$comando = "/c `"`"$node`" src\agente.ts > NUL 2> logs\agente-falha.log`""
 $acao = New-ScheduledTaskAction -Execute 'cmd.exe' -Argument $comando -WorkingDirectory $pasta
 $gatilho = New-ScheduledTaskTrigger -AtStartup
 $ajustes = New-ScheduledTaskSettingsSet -RestartCount 999 -RestartInterval (New-TimeSpan -Minutes 1) `
@@ -49,5 +51,5 @@ Register-ScheduledTask -TaskName $nomeTarefa -Action $acao -Trigger $gatilho -Se
   -Principal $conta -Force | Out-Null
 Start-ScheduledTask -TaskName $nomeTarefa
 
-Write-Host "Agente instalado e ligado. Log: $pasta\logs\agente.log"
+Write-Host "Agente instalado e ligado. Log: $pasta\logs\agente-AAAA-MM-DD.log"
 Write-Host 'Confira na tela Impressora do app: deve aparecer "Agente online".'

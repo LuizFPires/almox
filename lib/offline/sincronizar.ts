@@ -12,8 +12,33 @@ export async function usuarioAtual(cliente: Cliente = criarClienteNavegador()) {
   return data.session?.user.id ?? null
 }
 
-/** Baixa e guarda os dados da obra para lançar sem internet (só almoxarife e engenheiro). */
-export async function atualizarDados(obra: string, cliente: Cliente = criarClienteNavegador()) {
+/** Download em andamento por obra: pedidos iguais ao mesmo tempo usam o mesmo. */
+const baixando = new Map<string, Promise<boolean>>()
+
+/**
+ * Baixa e guarda os dados da obra para lançar sem internet (só almoxarife e engenheiro). Se já
+ * há um download dessa obra em andamento, espera ele em vez de baixar de novo. `depoisDoEnvio`:
+ * a fila acabou de mudar o servidor, então baixa de novo depois do que estiver em andamento
+ * (esse pode ter começado antes do envio e guardar um retrato velho).
+ */
+export function atualizarDados(
+  obra: string,
+  cliente: Cliente = criarClienteNavegador(),
+  { depoisDoEnvio = false }: { depoisDoEnvio?: boolean } = {},
+) {
+  const emAndamento = baixando.get(obra)
+  if (emAndamento && !depoisDoEnvio) return emAndamento
+  const pedido = (emAndamento ?? Promise.resolve(false))
+    .catch(() => false)
+    .then(() => baixarDados(obra, cliente))
+    .finally(() => {
+      if (baixando.get(obra) === pedido) baixando.delete(obra)
+    })
+  baixando.set(obra, pedido)
+  return pedido
+}
+
+async function baixarDados(obra: string, cliente: Cliente): Promise<boolean> {
   const usuario = await usuarioAtual(cliente)
   if (!usuario) return false
   const { data, error } = await cliente.rpc('dados_offline', { p_obra: obra })
@@ -90,7 +115,7 @@ export async function enviarFila(cliente: Cliente = criarClienteNavegador()): Pr
       }
       obras.add(item.obra)
     }
-    for (const obra of obras) await atualizarDados(obra, cliente)
+    for (const obra of obras) await atualizarDados(obra, cliente, { depoisDoEnvio: true })
     return enviados
   }
   // Duas telas abertas não mandam a fila ao mesmo tempo.

@@ -1,5 +1,5 @@
 import { NextResponse, type NextRequest } from 'next/server'
-import { buscarHistorico } from '@/lib/dados/historico'
+import { buscarHistorico, LIMITE_HISTORICO } from '@/lib/dados/historico'
 import { lerFiltros, periodoValido } from '@/lib/dominio/historico'
 import { planilhaHistorico } from '@/lib/planilhas/montar'
 import { obterSessao } from '@/lib/sessao'
@@ -14,7 +14,9 @@ export async function GET(request: NextRequest) {
   if (!periodoValido(filtros)) {
     return NextResponse.json({ erro: 'Escolha um período de até um ano.' }, { status: 400 })
   }
-  const arquivo = await planilhaHistorico(await buscarHistorico(obraAtual.id, filtros))
+  const arquivo = await planilhaHistorico(await buscarHistorico(obraAtual.id, filtros), {
+    limite: LIMITE_HISTORICO,
+  })
   return new NextResponse(new Uint8Array(arquivo), {
     headers: {
       'Content-Type': 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',

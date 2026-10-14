@@ -34,7 +34,8 @@ export default async function PaginaLista({ searchParams }: PageProps<'/lista'>)
   const [pessoas, empresas, emManutencao] = await Promise.all([
     pessoasComItens(obraAtual.id),
     empresasDaLista(obraAtual.id),
-    pecasEmManutencao(obraAtual.id),
+    // Os links das fotos só fazem falta na aba Avarias; nas outras basta contar.
+    pecasEmManutencao(obraAtual.id, { comFotos: aba === 'avarias' }),
   ])
   const pendencias = pendenciasPorPessoa(pessoas, agora)
   const avarias = avariasPorPessoa(emManutencao)

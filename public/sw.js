@@ -1,11 +1,14 @@
 // Service worker do Almox: torna o app instalável (M0), mostra uma tela offline quando a
 // navegação falha, recebe as notificações dos avisos (Web Push, M9) e guarda a tela de lançar
 // sem internet (/campo, M10) com os arquivos dela.
-// Troque a versão sempre que offline.html ou este arquivo mudarem, para o SW reinstalar.
+// Troque a versão quando offline.html mudar (o cache dela se refaz). Trocar apaga também a cópia
+// guardada de /campo até o app abrir de novo com internet: só mude o comportamento sem trocar.
 const VERSAO = 'almox-v7'
 const ESTATICOS = 'almox-estaticos-v1'
 const OFFLINE = '/offline.html'
 const CAMPO = '/campo'
+/** Sinal fraco: quanto esperar a rede antes de abrir a cópia guardada de /campo. */
+const ESPERA_CAMPO_MS = 3000
 
 self.addEventListener('install', (evento) => {
   evento.waitUntil(
@@ -104,22 +107,26 @@ self.addEventListener('fetch', (evento) => {
 
   if (request.mode !== 'navigate') return
   if (url.pathname === CAMPO) {
-    // Com internet, a versão nova (e guarda); sem, a guardada.
+    // Com internet, a versão nova (e guarda); sem, a guardada. Sinal fraco (a rede não responde
+    // nem falha): depois de ESPERA_CAMPO_MS abre a guardada; a da rede, se chegar, fica para a
+    // próxima vez.
+    const daRede = fetch(request).then((resposta) => {
+      if (resposta.ok && !resposta.redirected) {
+        const copia = resposta.clone()
+        caches.open(VERSAO).then((c) => c.put(CAMPO, copia))
+      }
+      return resposta
+    })
     evento.respondWith(
-      fetch(request)
-        .then((resposta) => {
-          if (resposta.ok && !resposta.redirected) {
-            const copia = resposta.clone()
-            caches.open(VERSAO).then((c) => c.put(CAMPO, copia))
-          }
-          return resposta
-        })
-        .catch(() =>
-          caches
-            .match(CAMPO)
-            .then((r) => r ?? caches.match(OFFLINE))
-            .then((r) => r ?? Response.error()),
-        ),
+      caches.match(CAMPO).then((guardada) => {
+        const reserva = () =>
+          Promise.resolve(guardada ?? caches.match(OFFLINE)).then((r) => r ?? Response.error())
+        if (!guardada) return daRede.catch(reserva)
+        return Promise.race([
+          daRede.catch(reserva),
+          new Promise((resolver) => setTimeout(() => resolver(guardada), ESPERA_CAMPO_MS)),
+        ])
+      }),
     )
     return
   }

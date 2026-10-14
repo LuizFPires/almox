@@ -28,6 +28,8 @@ import { EscolherPropriedade, type OpcaoLocadora } from './EscolherPropriedade'
 
 type Props = {
   obraId: string
+  /** Chave desta operação (nova a cada visita): salvar de novo não repete o cadastro. */
+  chave: string
   tipo?: {
     id: string
     nome: string
@@ -52,7 +54,14 @@ function centavosParaCampo(centavos: number) {
   return formatarBRL(centavos).replace(/^R\$\s/, '')
 }
 
-export function FormFerramenta({ obraId, tipo, prefixosUsados, iconesProprios, locadoras }: Props) {
+export function FormFerramenta({
+  obraId,
+  chave,
+  tipo,
+  prefixosUsados,
+  iconesProprios,
+  locadoras,
+}: Props) {
   const [estado, acao, salvando] = useActionState(salvarFerramenta, {})
   const erros = estado.campos ?? {}
   const v = estado.valores ?? {}
@@ -152,6 +161,7 @@ export function FormFerramenta({ obraId, tipo, prefixosUsados, iconesProprios, l
   return (
     <form action={acao} className="flex flex-1 flex-col">
       <div className="flex flex-1 flex-col gap-5 px-5 pt-2 pb-6">
+        <input type="hidden" name="chave" value={chave} />
         {tipo && <input type="hidden" name="id" value={tipo.id} />}
 
         <fieldset className="flex min-w-0 flex-col gap-3">

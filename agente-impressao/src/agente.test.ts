@@ -1,9 +1,11 @@
 import type { Server } from 'node:net'
+import { join } from 'node:path'
 import { afterEach, describe, expect, it } from 'vitest'
 import { criarApi, ErroApi, type Api, type Trabalho } from './api.ts'
 import { proximaEspera, rodarCiclo } from './ciclo.ts'
 import { ErroConfig, lerConfig } from './config.ts'
 import { descreverErroRede, destinoPermitido, enviarParaImpressora } from './impressora.ts'
+import { ImpressosGravados } from './memoria.ts'
 import { iniciarSimulador, type Recebida } from './simulador.ts'
 
 const TOKEN = 'a'.repeat(64)
@@ -220,5 +222,26 @@ describe('ciclo da fila', () => {
     expect(proximaEspera(2000, 1, false)).toBe(4000)
     expect(proximaEspera(2000, 10, false)).toBe(30_000)
     expect(proximaEspera(2000, 1, true)).toBe(60_000)
+  })
+})
+
+describe('impressos gravados em arquivo', () => {
+  it('sobrevive a reinício e ignora lixo no arquivo', async () => {
+    const { mkdtempSync, writeFileSync, readFileSync } = await import('node:fs')
+    const { tmpdir } = await import('node:os')
+    const pasta = mkdtempSync(join(tmpdir(), 'almox-agente-'))
+    const arquivo = join(pasta, 'logs', 'impressos.json')
+    const id = '11111111-2222-4333-8444-555555555555'
+    const antes = new ImpressosGravados(arquivo)
+    antes.add(id)
+    // "Reiniciou": outra instância lê o que ficou.
+    const depois = new ImpressosGravados(arquivo)
+    expect(depois.has(id)).toBe(true)
+    depois.delete(id)
+    expect(JSON.parse(readFileSync(arquivo, 'utf8'))).toEqual([])
+    writeFileSync(arquivo, '["nome de alguém", 42, "' + id + '"]')
+    expect([...new ImpressosGravados(arquivo)]).toEqual([id])
+    writeFileSync(arquivo, '{estragado')
+    expect(new ImpressosGravados(arquivo).size).toBe(0)
   })
 })

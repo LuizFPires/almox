@@ -8,6 +8,7 @@ import { dirname, join } from 'node:path'
 import { fileURLToPath } from 'node:url'
 import { criarApi, ErroApi } from './api.ts'
 import { proximaEspera, rodarCiclo } from './ciclo.ts'
+import { ImpressosGravados } from './memoria.ts'
 import { ErroConfig, lerConfig } from './config.ts'
 import { enviarParaImpressora } from './impressora.ts'
 import { criarAlerta, criarLog } from './monitoramento.ts'
@@ -45,8 +46,9 @@ const { intervaloMs, timeoutImpressoraMs } = config
 const enviar = (ip: string, porta: number, payload: string) =>
   enviarParaImpressora(ip, porta, payload, timeoutImpressoraMs)
 
-// Impressos que ainda não foram confirmados (não imprime de novo se voltarem da fila).
-const impressos = new Set<string>()
+// Impressos que ainda não foram confirmados (não imprime de novo se voltarem da fila), gravados
+// em arquivo para valer também depois de o agente reiniciar.
+const impressos = new ImpressosGravados(join(pasta, 'logs', 'impressos.json'))
 let parar = false
 let relogio: NodeJS.Timeout | undefined
 let falhasSeguidas = 0

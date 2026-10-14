@@ -67,6 +67,8 @@ export async function salvarPessoa(_: EstadoPessoa, form: FormData): Promise<Est
   if (error) {
     if (error.code === '23503')
       return { campos: { empresa_id: 'Empresa inválida para esta obra.' }, valores }
+    // Troca de empresa com ferramenta na mão ou desconto em aberto (a mensagem vem do banco).
+    if (error.code === 'AL010') return { campos: { empresa_id: error.message }, valores }
     return { erro: 'Não foi possível salvar. Tente de novo.', valores }
   }
   if (!salva) return { erro: 'Pessoa não encontrada nesta obra.', valores }
@@ -115,4 +117,23 @@ export async function alternarAtiva(form: FormData) {
   if (error || !data) redirect(`/cadastros/pessoa/${id}?erro=situacao`)
   revalidatePath('/cadastros/pessoas')
   redirect('/cadastros/pessoas')
+}
+
+const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i
+
+/**
+ * Só a situação dos trabalhos de impressão (acompanhar o adesivo sem recarregar a página
+ * inteira a cada 3 s). Até 10 ids, da obra ativa; a RLS confere o resto.
+ */
+export async function situacaoTrabalhos(ids: string[]): Promise<{ id: string; status: string }[]> {
+  const { supabase, obraId } = await exigirEngenheiro()
+  const validos = ids.filter((i) => UUID.test(i)).slice(0, 10)
+  if (validos.length === 0) return []
+  const { data, error } = await supabase
+    .from('trabalho_impressao')
+    .select('id, status')
+    .eq('obra_id', obraId)
+    .in('id', validos)
+  if (error) throw new Error('Não foi possível ver a impressão.')
+  return data
 }

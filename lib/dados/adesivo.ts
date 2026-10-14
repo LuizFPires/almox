@@ -91,3 +91,39 @@ export async function enfileirarAdesivo(
   }
   return { ok: true, id }
 }
+
+/**
+ * Lote de adesivos para a impressora de etiquetas numa ida ao banco (antes eram ~3 por pessoa):
+ * lê a impressora uma vez, monta os adesivos juntos e enfileira tudo. Quem já está na fila fica
+ * de fora no banco. Devolve quantos entraram.
+ */
+export async function enfileirarLoteAdesivos(
+  obraId: string,
+  pessoas: string[],
+): Promise<{ ok: true; enviados: number } | { ok: false; motivo: MotivoFalha }> {
+  if (pessoas.length === 0) return { ok: true, enviados: 0 }
+  const supabase = await criarClienteServidor()
+  const { data: impressora } = await supabase
+    .from('impressora')
+    .select('linguagem')
+    .eq('obra_id', obraId)
+    .eq('ativa', true)
+    .maybeSingle()
+  if (!impressora) return { ok: false, motivo: 'sem-impressora' }
+  let dados: Awaited<ReturnType<typeof dadosAdesivos>>
+  try {
+    dados = await dadosAdesivos(obraId, pessoas)
+  } catch {
+    return { ok: false, motivo: 'falhou' }
+  }
+  const { data, error } = await supabase.rpc('enfileirar_adesivos', {
+    p_obra: obraId,
+    p_itens: dados.map((d) => ({
+      pessoa: d.pessoaId,
+      descricao: `Adesivo de ${d.nomeCapacete} (${d.matricula})`,
+      payload: gerarAdesivo(impressora.linguagem, d, 1),
+    })),
+  })
+  if (error) return { ok: false, motivo: error.code === 'P0002' ? 'sem-impressora' : 'falhou' }
+  return { ok: true, enviados: data ?? 0 }
+}

@@ -1,7 +1,7 @@
 'use client'
 
 import Link from 'next/link'
-import { useState } from 'react'
+import { useDeferredValue, useMemo, useState } from 'react'
 import { CirculoFerramenta } from '@/components/IconeFerramenta'
 import { ehIcone } from '@/components/icones-ferramenta'
 import { IconeInterface } from '@/components/IconeInterface'
@@ -24,7 +24,12 @@ type Props = {
 export function ListaQuemEsta({ pessoas, empresas, agora }: Props) {
   const [busca, setBusca] = useState('')
   const momento = new Date(agora)
-  const grupos = agruparPorEmpresa(pessoas, empresas, busca, momento)
+  // A digitação não espera o agrupamento: o resultado acompanha a busca adiada.
+  const buscaAdiada = useDeferredValue(busca)
+  const grupos = useMemo(
+    () => agruparPorEmpresa(pessoas, empresas, buscaAdiada, new Date(agora)),
+    [pessoas, empresas, buscaAdiada, agora],
+  )
 
   return (
     <>
@@ -46,7 +51,7 @@ export function ListaQuemEsta({ pessoas, empresas, agora }: Props) {
       </label>
       {grupos.length === 0 && (
         <p className="py-6 text-center text-[15px] text-texto-2">
-          {busca.trim() ? 'Ninguém encontrado.' : 'Ninguém está com ferramenta agora.'}
+          {buscaAdiada.trim() ? 'Ninguém encontrado.' : 'Ninguém está com ferramenta agora.'}
         </p>
       )}
       {grupos.map((g) => (

@@ -2,7 +2,7 @@
 
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
-import { useEffect, useRef, useState, type ReactNode } from 'react'
+import { type ReactNode, useDeferredValue, useEffect, useMemo, useRef, useState } from 'react'
 import { AbasCadastros } from '@/components/AbasCadastros'
 import { CirculoFerramenta } from '@/components/IconeFerramenta'
 import { IconeInterface } from '@/components/IconeInterface'
@@ -10,6 +10,7 @@ import { ehIcone } from '@/components/icones-ferramenta'
 import {
   LIMITE_POR_GRUPO,
   buscarCadastros,
+  prepararBusca,
   hrefCadastro,
   type ItemBusca,
 } from '@/lib/dominio/busca-cadastros'
@@ -87,8 +88,12 @@ export function BuscaCadastros({ indice, children }: Props) {
     if (jaDigitado) setTermo(jaDigitado)
   }, [])
   const novo = NOVO[caminho]
-  const resultado = buscarCadastros(indice, termo)
-  const buscando = termo.trim().length > 0
+  // Textos sem acento preparados uma vez; a digitação não espera a filtragem (resultado adiado).
+  const preparada = useMemo(() => prepararBusca(indice), [indice])
+  const termoAdiado = useDeferredValue(termo)
+  const resultado = useMemo(() => buscarCadastros(preparada, termoAdiado), [preparada, termoAdiado])
+  // Pelo termo adiado, o mesmo do resultado: sem "Nada encontrado" piscando ao digitar.
+  const buscando = termoAdiado.trim().length > 0
 
   return (
     <>
@@ -126,7 +131,7 @@ export function BuscaCadastros({ indice, children }: Props) {
           children
         ) : resultado.length === 0 ? (
           <p className="py-6 text-center text-[15px] text-texto-2">
-            Nada encontrado com “{termo.trim()}”.
+            Nada encontrado com “{termoAdiado.trim()}”.
           </p>
         ) : (
           resultado.map((g) => (

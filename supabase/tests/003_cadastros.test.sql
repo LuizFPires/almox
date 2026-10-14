@@ -45,7 +45,11 @@ select throws_ok(
   '42501', null, 'prefixo não muda depois de criado'
 );
 
-update public.pessoa set empresa_id = 'e0000000-0000-4000-8000-000000000003' where nome = 'Adriano Costa';
+-- Pessoa sem ferramenta (com ferramenta na mão a troca é recusada: teste 030).
+insert into public.pessoa (obra_id, empresa_id, nome, nome_capacete, funcao)
+select 'a0000000-0000-4000-8000-000000000001', empresa_id, 'Troca Teste', 'TROCA', 'Servente'
+  from public.pessoa where nome = 'Adriano Costa';
+update public.pessoa set empresa_id = 'e0000000-0000-4000-8000-000000000003' where nome = 'Troca Teste';
 select is(
   (select count(*)::int from public.alteracao where tabela = 'pessoa' and campo = 'empresa_id'
      and para = 'e0000000-0000-4000-8000-000000000003' and de is not null),

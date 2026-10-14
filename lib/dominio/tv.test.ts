@@ -142,6 +142,23 @@ describe('loop', () => {
     expect(deslocamentoMaximo(colunas)).toBe(1000)
   })
 
+  it('colunas com 5 mil pessoas: rápido, cada uma na sua empresa, em ordem alfabética', () => {
+    const muitas = Array.from({ length: 5000 }, (_, i) =>
+      pessoa(`Pessoa ${String(i).padStart(4, '0')}`, i % 2 ? 'a' : 'c'),
+    )
+    const cartoes = montarCartoes(painel(muitas), agora)
+    const inicio = performance.now()
+    const colunas = montarColunas(cartoes, painel(muitas))
+    // Antes: ~12,5 milhões de comparações (quadrático). Agora: linear.
+    expect(performance.now() - inicio).toBeLessThan(500)
+    expect(colunas.map((c) => [c.id, c.pessoas.length])).toEqual([
+      ['c', 2500],
+      ['a', 2500],
+    ])
+    const nomes = colunas[0]!.pessoas.map((p) => p.nome)
+    expect(nomes).toEqual([...nomes].sort((x, y) => x.localeCompare(y, 'pt-BR')))
+  })
+
   it('coluna simples tem 480 px, como no protótipo', () => {
     expect(larguraColuna(1)).toBe(480)
   })

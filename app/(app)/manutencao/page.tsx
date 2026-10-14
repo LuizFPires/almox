@@ -55,6 +55,9 @@ export default async function PaginaManutencao({ searchParams }: PageProps<'/man
                   src={p.foto}
                   alt={`Foto da avaria de ${p.codigo}`}
                   className="size-20 rounded-botao object-cover"
+                  width={80}
+                  height={80}
+                  decoding="async"
                 />
               )}
               <span className="flex min-w-0 flex-col">

@@ -138,7 +138,7 @@ select is(
   '16', 'configuração da obra vai junto'
 );
 select ok(
-  (select valor::jsonb ->> 'versao' ~ '^[0-9a-f]{32}$' from t_ctx where chave = 'painel'),
+  (select valor::jsonb ->> 'versao' ~ '^v[0-9]+$' from t_ctx where chave = 'painel'),
   'painel traz a versão'
 );
 select is(

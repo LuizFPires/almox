@@ -166,11 +166,15 @@ export function subtituloPagina(indice: number, porPagina: number, total: number
 
 /** Colunas por empresa, na ordem do cadastro (própria primeiro); só empresas com alguém. */
 export function montarColunas(cartoes: CartaoTv[], painel: PainelTv): ColunaEmpresa[] {
+  // Cartões por id e grupos que só crescem: linear no número de pessoas (antes, quadrático).
+  const cartaoPorId = new Map(cartoes.map((c) => [c.id, c]))
   const porEmpresa = new Map<string, CartaoTv[]>()
   for (const p of painel.pessoas) {
-    const cartao = cartoes.find((c) => c.id === p.id)
+    const cartao = cartaoPorId.get(p.id)
     if (!cartao) continue
-    porEmpresa.set(p.empresaId, [...(porEmpresa.get(p.empresaId) ?? []), cartao])
+    const grupo = porEmpresa.get(p.empresaId)
+    if (grupo) grupo.push(cartao)
+    else porEmpresa.set(p.empresaId, [cartao])
   }
   return painel.empresas
     .filter((e) => porEmpresa.has(e.id))

@@ -39,6 +39,8 @@ export function FotoAvaria({ obraId, tipo, autor, qual, aoVoltar, aoUsar, selo }
   const [motivo, setMotivo] = useState<Motivo | null>(null)
   const [detalhes, setDetalhes] = useState('')
   const [enviando, setEnviando] = useState(false)
+  // Comprimir uma foto de câmera leva alguns segundos num celular simples: avisa enquanto isso.
+  const [preparando, setPreparando] = useState(false)
   const [erro, setErro] = useState<string | null>(null)
 
   useEffect(() => () => void (foto && URL.revokeObjectURL(foto.previa)), [foto])
@@ -46,6 +48,7 @@ export function FotoAvaria({ obraId, tipo, autor, qual, aoVoltar, aoUsar, selo }
   async function escolher(arquivo: File | undefined) {
     if (!arquivo) return
     setErro(null)
+    setPreparando(true)
     try {
       const agora = new Date()
       // Carimbo gravado na imagem (decisão do M6): ferramenta · data e hora · quem fotografou.
@@ -53,6 +56,8 @@ export function FotoAvaria({ obraId, tipo, autor, qual, aoVoltar, aoUsar, selo }
       setFoto({ blob, previa: URL.createObjectURL(blob), hora: agora.toISOString() })
     } catch {
       setErro('Não foi possível ler a foto. Tente de novo.')
+    } finally {
+      setPreparando(false)
     }
   }
 
@@ -69,7 +74,8 @@ export function FotoAvaria({ obraId, tipo, autor, qual, aoVoltar, aoUsar, selo }
       setErro('Não foi possível enviar a foto (sem conexão?). Tente de novo.')
       return
     }
-    // A prévia segue viva com a tela de devolução (que a libera ao refazer ou concluir).
+    // A prévia segue viva com a tela de devolução (que a libera ao refazer, ao tirar a peça das
+    // avariadas ou ao sair da tela).
     aoUsar({
       motivo,
       foto: caminho,
@@ -102,7 +108,14 @@ export function FotoAvaria({ obraId, tipo, autor, qual, aoVoltar, aoUsar, selo }
           aria-label={`Fotografar a avaria da ${tipo.toLowerCase()}`}
           onChange={(e) => void escolher(e.target.files?.[0])}
         />
-        {foto ? (
+        {preparando ? (
+          <p
+            role="status"
+            className="flex min-h-56 items-center justify-center rounded-cartao bg-[#101720] px-6 text-center font-semibold text-white"
+          >
+            Preparando a foto…
+          </p>
+        ) : foto ? (
           <div className="flex flex-col gap-2">
             {/* eslint-disable-next-line @next/next/no-img-element -- prévia local (blob:) */}
             <img
@@ -194,10 +207,10 @@ export function FotoAvaria({ obraId, tipo, autor, qual, aoVoltar, aoUsar, selo }
           variante="escura"
           tamanho="g"
           larguraTotal
-          disabled={!foto || !motivo || enviando}
+          disabled={!foto || !motivo || enviando || preparando}
           onClick={() => void usar()}
         >
-          {enviando ? 'Enviando a foto…' : textoBotao}
+          {preparando ? 'Preparando a foto…' : enviando ? 'Enviando a foto…' : textoBotao}
         </Botao>
       </RodapeAcao>
     </>

@@ -133,12 +133,12 @@ test.describe('lançar sem internet', () => {
       await sim.click()
       await retirar(pagina, nome, 2)
 
-      // 2ª e 3ª: escolhidas na lista (manual).
+      // 2ª e 3ª: escolhidas na lista (manual). Na 3ª, toque duplo em "Guardar": um só lançamento.
       for (const quem of ['Márcio Dias', 'Nilton Barbosa']) {
         await pagina.getByRole('button', { name: 'Sem capacete? Escolher na lista' }).click()
         await pagina.getByLabel('Buscar pessoa').fill(quem.split(' ')[0] ?? quem)
         await pagina.getByRole('button', { name: new RegExp(quem) }).click()
-        await retirar(pagina, nome, 1)
+        await retirar(pagina, nome, 1, quem === 'Nilton Barbosa')
       }
 
       // "Não é ele" sem internet: vai para a fila e não registra nada.
@@ -191,6 +191,26 @@ test.describe('lançar sem internet', () => {
     }
   })
 
+  test('sinal fraco (a rede não responde): abre a tela guardada em poucos segundos', async ({
+    page,
+    context,
+  }) => {
+    await entrarComo(page, 'almoxarife', '/inicio')
+    // Segunda visita: o service worker controla a página e guarda /campo.
+    await page.reload()
+    await expect
+      .poll(() => page.evaluate(async () => Boolean(await caches.match('/campo'))), {
+        timeout: 20_000,
+      })
+      .toBe(true)
+    // A rede "pendura": o pedido de /campo nunca responde nem falha.
+    await context.route('**/campo', () => new Promise(() => {}))
+    const inicio = Date.now()
+    await page.goto('/campo', { waitUntil: 'commit' })
+    await expect(page.getByText('Lançar sem internet').first()).toBeVisible({ timeout: 10_000 })
+    expect(Date.now() - inicio).toBeLessThan(9_000)
+  })
+
   test('sem login, a tela sem internet não abre (nem com dados de outro login no celular)', async ({
     page,
   }) => {
@@ -202,14 +222,15 @@ test.describe('lançar sem internet', () => {
 })
 
 /** Retirada na tela sem internet: toca o tipo, revisa, confere e guarda na fila. */
-async function retirar(pagina: Page, nome: string, quantidade: number) {
+async function retirar(pagina: Page, nome: string, quantidade: number, toqueDuplo = false) {
   await pagina.getByRole('button', { name: 'Retirada' }).click()
   for (let i = 0; i < quantidade; i++) {
     await pagina.getByRole('button', { name: new RegExp(`^${nome}:`) }).click()
   }
   await pagina.getByRole('button', { name: /^Continuar/ }).click()
   await pagina.getByRole('checkbox').click()
-  await pagina.getByRole('button', { name: 'Guardar retirada' }).click()
+  const guardar = pagina.getByRole('button', { name: 'Guardar retirada' })
+  await (toqueDuplo ? guardar.dblclick() : guardar.click())
   await expect(pagina.getByRole('heading', { name: 'Retirada guardada no celular' })).toBeVisible()
   await pagina.getByRole('button', { name: 'Lançar outro' }).click()
 }

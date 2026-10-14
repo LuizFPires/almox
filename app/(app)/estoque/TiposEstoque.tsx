@@ -30,11 +30,15 @@ export function TiposEstoque({ tipos, agora }: Props) {
     <ul className="flex flex-col gap-2">
       {tipos.map((t) => {
         const estaAberto = aberto === t.id
-        const blocos = [
-          ...Array<string>(t.livres).fill('bg-sucesso'),
-          ...Array<string>(t.noCanteiro).fill('bg-amarelo'),
-          ...Array<string>(t.manutencao).fill('bg-erro'),
-        ]
+        // Um bloco por peça só quando a barra é contável; acima disso, a barra é proporcional.
+        const blocos =
+          t.total > 0 && t.total <= MAX_BLOCOS
+            ? [
+                ...Array<string>(t.livres).fill('bg-sucesso'),
+                ...Array<string>(t.noCanteiro).fill('bg-amarelo'),
+                ...Array<string>(t.manutencao).fill('bg-erro'),
+              ]
+            : []
         const pct = (n: number) => `${(n / t.total) * 100}%`
         return (
           <li key={t.id} className="rounded-cartao bg-cartao">
@@ -65,7 +69,7 @@ export function TiposEstoque({ tipos, agora }: Props) {
                   <span className="text-[12px] text-texto-2">livres</span>
                 </span>
               </span>
-              {t.total > 0 && t.total <= MAX_BLOCOS && (
+              {blocos.length > 0 && (
                 <span aria-hidden="true" className="flex h-2.5 gap-[3px]">
                   {blocos.map((cor, i) => (
                     <span key={i} className={`flex-1 rounded-[3px] ${cor}`} />
@@ -85,24 +89,29 @@ export function TiposEstoque({ tipos, agora }: Props) {
               hidden={!estaAberto}
               className="flex flex-col gap-1.5 border-t border-borda px-4 py-3 text-[14px]"
             >
-              {t.total === 0 && <p className="text-texto-2">Nenhuma peça cadastrada.</p>}
-              {t.total > 0 && t.linhas.length === 0 && t.comOutrasEmpresas === 0 && (
-                <p className="text-sucesso">Todas no almoxarifado</p>
-              )}
-              {t.linhas.map((l) =>
-                l.tipo === 'pessoa' ? (
-                  <p key={l.codigo} className={l.pendente ? 'text-erro' : ''}>
-                    <span className="font-mono text-[13px]">{l.codigo}</span> · {l.pessoa} ·{' '}
-                    {textoDesde(l.desde, momento)}
-                  </p>
-                ) : (
-                  <p key={l.codigo} className="text-erro">
-                    <span className="font-mono text-[13px]">{l.codigo}</span> · em manutenção
-                  </p>
-                ),
-              )}
-              {t.comOutrasEmpresas > 0 && (
-                <p className="text-texto-2">{t.comOutrasEmpresas} com outras empresas</p>
+              {/* Só monta as linhas do grupo aberto (estoque grande tem milhares). */}
+              {estaAberto && (
+                <>
+                  {t.total === 0 && <p className="text-texto-2">Nenhuma peça cadastrada.</p>}
+                  {t.total > 0 && t.linhas.length === 0 && t.comOutrasEmpresas === 0 && (
+                    <p className="text-sucesso">Todas no almoxarifado</p>
+                  )}
+                  {t.linhas.map((l) =>
+                    l.tipo === 'pessoa' ? (
+                      <p key={l.codigo} className={l.pendente ? 'text-erro' : ''}>
+                        <span className="font-mono text-[13px]">{l.codigo}</span> · {l.pessoa} ·{' '}
+                        {textoDesde(l.desde, momento)}
+                      </p>
+                    ) : (
+                      <p key={l.codigo} className="text-erro">
+                        <span className="font-mono text-[13px]">{l.codigo}</span> · em manutenção
+                      </p>
+                    ),
+                  )}
+                  {t.comOutrasEmpresas > 0 && (
+                    <p className="text-texto-2">{t.comOutrasEmpresas} com outras empresas</p>
+                  )}
+                </>
               )}
             </div>
           </li>

@@ -2,11 +2,16 @@ import type { Metadata } from 'next'
 import { notFound } from 'next/navigation'
 import { Cabecalho } from '@/components/Cabecalho'
 import { Cartao } from '@/components/Cartao'
-import { buscarTipo, historicoDoTipo, listarTipos } from '@/lib/dados/ferramentas'
+import {
+  buscarTipo,
+  historicoDoTipo,
+  iconesProprios,
+  listarLocadoras,
+  listarTiposResumo,
+} from '@/lib/dados/ferramentas'
 import { formatarDataHora } from '@/lib/formatos/datas'
 import { formatarBRL } from '@/lib/formatos/moeda'
 import { obterSessao } from '@/lib/sessao'
-import { iconesProprios, listarLocadoras } from '@/lib/dados/ferramentas'
 import { FormFerramenta } from '../FormFerramenta'
 
 export const metadata: Metadata = { title: 'Editar ferramenta · Almox' }
@@ -27,10 +32,13 @@ export default async function PaginaEditarFerramenta({
 }: PageProps<'/cadastros/ferramenta/[id]'>) {
   const { id } = await params
   const { obraAtual } = await obterSessao()
-  const [tipo, tipos, historico] = await Promise.all([
+  // Locadoras dependem dos tipos (uso de cada uma), mas correm junto com o resto.
+  const resumo = listarTiposResumo(obraAtual.id)
+  const [tipo, tipos, historico, locadoras] = await Promise.all([
     buscarTipo(obraAtual.id, id),
-    listarTipos(obraAtual.id),
+    resumo,
     historicoDoTipo(obraAtual.id, id),
+    resumo.then((t) => listarLocadoras(obraAtual.id, t)),
   ])
   if (!tipo) notFound()
 
@@ -42,11 +50,12 @@ export default async function PaginaEditarFerramenta({
         voltarPara="/cadastros/ferramentas"
       />
       <FormFerramenta
+        chave={crypto.randomUUID()}
         tipo={{ ...tipo, codigos: tipo.unidades.map((u) => u.codigo) }}
         obraId={obraAtual.id}
         prefixosUsados={tipos.map((t) => t.prefixo)}
         iconesProprios={iconesProprios(tipos)}
-        locadoras={await listarLocadoras(obraAtual.id, tipos)}
+        locadoras={locadoras}
       />
 
       <section className="flex flex-col gap-2 px-5 pb-4" aria-labelledby="titulo-unidades">

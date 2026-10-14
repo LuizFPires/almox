@@ -2,6 +2,70 @@
 
 Registro do que foi entregue em cada milestone (ver `PLAN.md`).
 
+## Performance · bloco 2 (13/10/2026)
+
+O que pesa em obras grandes.
+
+### Mudado
+- **Início:** os números são contados no banco, sem trazer peça por peça.
+- **Estoque:** só monta o detalhe do grupo aberto.
+- **Buscas** (Cadastros e lista): não refazem tudo a cada letra; a digitação não trava.
+- **Escolher na lista:** mostra 60 pessoas por vez ("Mostrar mais"); a busca acha todas.
+- **Sem internet:** menos releituras e downloads repetidos; a preparação não disputa com a abertura do app.
+- **Fotos de avaria:** miniaturas só baixam quando aparecem na tela.
+- **Editar ferramenta:** carrega só o necessário.
+- **TV:** organizar as colunas ficou leve mesmo com muitas pessoas.
+
+## Performance · bloco 1 (13/10/2026)
+
+O que o almoxarife sente todo dia (análise em `docs/ANALISE-DE-PERFORMANCE-E-FLUIDEZ.md`).
+
+### Mudado
+- **Ficha da pessoa** aparece logo; a equipe da empresa carrega depois.
+- **Lista** abre mais rápido: as fotos das avarias só são preparadas na aba Avarias.
+- **Sinal fraco:** a tela sem internet abre pela cópia do celular em 3 s, em vez de ficar carregando.
+- **Ao vivo:** com movimento sem parar, a lista e o início atualizam pelo menos a cada 3 s.
+- **Avisos de espera:** "Preparando a foto…" e "Conferindo…".
+- **Impressão:** acompanhar o adesivo não recarrega a página inteira a cada poucos segundos.
+
+## Plano de correção · bloco 3 (13/10/2026)
+
+Limpeza e consumo de recursos; com este bloco, os 18 pontos da análise externa estão tratados.
+
+### Corrigido
+- **Fotos de avaria:** as prévias saem da memória do celular ao sair da devolução.
+- **Agente no Windows:** o log da tarefa não cresce mais para sempre.
+- **TV:** "nada mudou" responde sem remontar o painel (bem menos trabalho do banco com várias TVs).
+- Código sem uso removido.
+
+## Plano de correção · bloco 2 (13/10/2026)
+
+Dívidas da análise externa que pesam em obras longas e na impressora de etiquetas.
+
+### Corrigido
+- **Listas, medição e planilhas** não cortam mais em 1000 linhas (obra com anos de cadastro).
+- **Cadastro de ferramenta** salvo de uma vez: falha no meio não deixa cadastro pela metade, e salvar de novo não
+  cria unidades a mais. O código das peças nunca repete.
+- **Sem internet:** o celular calcula o que pode voltar sem QR igual ao servidor (peças mais antigas primeiro).
+- **Avisos:** homônimos ficam em linhas separadas e a anonimização (LGPD) não atinge outra pessoa.
+- **Troca de empresa:** a empreiteira antiga continua vendo o histórico do tempo em que a pessoa era dela; a nova
+  não vê o passado.
+- **Etiquetadora:** pedido repetido não imprime dois adesivos; lote de 100 em uma chamada; o agente não reimprime
+  depois de reiniciar.
+
+## Plano de correção · bloco 1 (13/10/2026)
+
+Pontos da análise externa (`docs/PLANO-DE-CORRECAO-18-PONTOS.md`) que afetam cobrança e o balcão.
+
+### Corrigido
+- **Encerramento × devolução ao mesmo tempo:** a empreiteira não é mais cobrada por ferramenta devolvida no
+  instante do encerramento (corrida reproduzida com duas conexões e fechada).
+- **Troca de empresa com ferramenta na mão** é recusada: a cobrança iria para a empresa nova.
+- **Pessoa inativa que ainda tem ferramenta** devolve pelo QR (com e sem internet); retirada continua bloqueada.
+- **Notificação** na fila não vai para quem perdeu o acesso.
+- **Sem internet:** toque duplo em "Guardar" não duplica o lançamento.
+- **Folha A4:** "Sim, saíram certas" não fica preso em "Marcando…".
+- **TV:** o relógio se acerta pelo servidor mesmo sem mudança no painel.
 ## Segurança · onda 1 (13/10/2026)
 
 Auditoria geral em `docs/seguranca/auditoria-2026-10-13.md` (banco, aplicação e infraestrutura).

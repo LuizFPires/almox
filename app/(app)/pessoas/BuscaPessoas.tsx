@@ -1,7 +1,7 @@
 'use client'
 
 import Link from 'next/link'
-import { useState } from 'react'
+import { useDeferredValue, useMemo, useState } from 'react'
 import { IconeInterface } from '@/components/IconeInterface'
 import { filtrarPessoas } from '@/lib/dominio/busca'
 import { contarItens } from '@/lib/dominio/ficha'
@@ -15,6 +15,9 @@ type Pessoa = {
   itens: number
 }
 
+/** Quantas pessoas montar por vez (obra grande tem centenas; a busca alcança todas). */
+const LOTE = 60
+
 function iniciais(nome: string) {
   const partes = nome.split(' ').filter(Boolean)
   return (
@@ -25,7 +28,11 @@ function iniciais(nome: string) {
 /** Busca e lista da escolha manual (F-08); abrir conta como "sem QR". */
 export function BuscaPessoas({ pessoas }: { pessoas: Pessoa[] }) {
   const [busca, setBusca] = useState('')
-  const achadas = filtrarPessoas(pessoas, busca)
+  const [quantas, setQuantas] = useState(LOTE)
+  // A digitação não espera a filtragem; só os primeiros LOTE vão para a tela.
+  const buscaAdiada = useDeferredValue(busca)
+  const achadas = useMemo(() => filtrarPessoas(pessoas, buscaAdiada), [pessoas, buscaAdiada])
+  const mostradas = achadas.slice(0, quantas)
   return (
     <>
       <label className="relative flex items-center">
@@ -38,7 +45,10 @@ export function BuscaPessoas({ pessoas }: { pessoas: Pessoa[] }) {
         <input
           type="search"
           value={busca}
-          onChange={(e) => setBusca(e.target.value)}
+          onChange={(e) => {
+            setBusca(e.target.value)
+            setQuantas(LOTE)
+          }}
           placeholder="Buscar pelo nome"
           autoComplete="off"
           className="min-h-14 w-full rounded-cartao border-[1.5px] border-escuro bg-cartao pr-4 pl-12 text-[17px]"
@@ -48,7 +58,7 @@ export function BuscaPessoas({ pessoas }: { pessoas: Pessoa[] }) {
         <p className="py-6 text-center text-[15px] text-texto-2">Ninguém com esse nome.</p>
       )}
       <ul className="flex flex-col gap-2">
-        {achadas.map((p) => (
+        {mostradas.map((p) => (
           <li key={p.id}>
             <Link
               href={`/pessoa/${p.id}?via=manual`}
@@ -73,6 +83,16 @@ export function BuscaPessoas({ pessoas }: { pessoas: Pessoa[] }) {
           </li>
         ))}
       </ul>
+      {achadas.length > mostradas.length && (
+        <button
+          type="button"
+          onClick={() => setQuantas((n) => n + LOTE)}
+          className="min-h-toque rounded-cartao border border-borda bg-cartao px-4 font-semibold"
+        >
+          Mostrar mais {Math.min(LOTE, achadas.length - mostradas.length)} de{' '}
+          {achadas.length - mostradas.length}
+        </button>
+      )}
     </>
   )
 }

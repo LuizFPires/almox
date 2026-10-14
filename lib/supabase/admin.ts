@@ -10,7 +10,8 @@ import type { Database } from './tipos-banco'
  */
 export function criarClienteAdmin() {
   const { url } = lerAmbientePublico()
-  const chave = process.env.SUPABASE_SECRET_KEY
+  // SUPABASE_SERVICE_ROLE_KEY: nome antigo, que a integração com a Vercel pode usar nas prévias.
+  const chave = process.env.SUPABASE_SECRET_KEY || process.env.SUPABASE_SERVICE_ROLE_KEY
   if (!chave) throw new Error('SUPABASE_SECRET_KEY ausente. Veja .env.example.')
   return createClient<Database>(url, chave, {
     auth: { persistSession: false, autoRefreshToken: false },

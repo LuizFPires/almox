@@ -19,4 +19,13 @@ describe('lerAmbientePublico', () => {
       /NEXT_PUBLIC_SUPABASE_URL, NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY/,
     )
   })
+
+  it('aceita o nome antigo da chave pública (prévias do Branching)', () => {
+    expect(
+      lerAmbientePublico({
+        NEXT_PUBLIC_SUPABASE_URL: 'https://abc.supabase.co',
+        NEXT_PUBLIC_SUPABASE_ANON_KEY: 'chave-antiga',
+      }),
+    ).toEqual({ url: 'https://abc.supabase.co', chavePublica: 'chave-antiga' })
+  })
 })

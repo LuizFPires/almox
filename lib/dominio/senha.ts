@@ -21,9 +21,9 @@ function sortear(n: number): Uint8Array {
   return crypto.getRandomValues(new Uint8Array(n))
 }
 
-export const TAMANHO_MINIMO_SENHA = 10
+export const TAMANHO_MINIMO_SENHA = 8
 
-/** Nova senha: pelo menos 10 caracteres, igual à confirmação. Devolve o erro ou null. */
+/** Nova senha: pelo menos 8 caracteres (como no revel), igual à confirmação. Devolve o erro ou null. */
 export function validarNovaSenha(senha: string, confirmacao: string): string | null {
   if (senha.length < TAMANHO_MINIMO_SENHA) {
     return `Use pelo menos ${TAMANHO_MINIMO_SENHA} caracteres.`

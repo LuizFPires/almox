@@ -20,11 +20,14 @@ export type Sessao = {
   usuario: { id: string; nome: string; email: string }
   obras: ObraDoUsuario[]
   obraAtual: ObraDoUsuario
+  /** Administrador: cria e encerra obras e gera senha de qualquer obra (Administração). */
+  administrador: boolean
 }
 
 /**
  * Camada de acesso à sessão: lê o usuário logado (JWT validado), suas obras e a
  * obra escolhida. Chame dentro de um <Suspense>. Sem login → /login; sem obra → /sem-acesso.
+ * Obra desativada ou encerrada pelo administrador não aparece (os dados continuam no banco).
  * Falha ao consultar o banco vira erro (tela de erro), nunca redirecionamento: o proxy
  * mandaria de /login de volta para /inicio e o usuário ficaria preso num laço.
  */
@@ -40,16 +43,17 @@ export const obterSessao = cache(async (): Promise<Sessao> => {
   if (appMetadata?.trocar_senha) redirect('/trocar-senha')
   const email = typeof dadosClaims?.claims?.email === 'string' ? dadosClaims.claims.email : ''
 
-  const [resUsuario, resVinculos] = await Promise.all([
+  const [resUsuario, resVinculos, resAdmin] = await Promise.all([
     supabase.from('usuario').select('id, nome').eq('id', id).maybeSingle(),
     supabase
       .from('usuario_obra')
       .select(
-        'perfil, obra:obra!usuario_obra_obra_id_fkey (id, nome), empresa:empresa!usuario_obra_empresa_id_obra_id_fkey (id, nome)',
+        'perfil, obra:obra!usuario_obra_obra_id_fkey (id, nome, ativa), empresa:empresa!usuario_obra_empresa_id_obra_id_fkey (id, nome)',
       )
       .eq('usuario_id', id),
+    supabase.from('administrador').select('usuario_id').eq('usuario_id', id).maybeSingle(),
   ])
-  if (resUsuario.error || resVinculos.error) {
+  if (resUsuario.error || resVinculos.error || resAdmin.error) {
     throw new Error('Não foi possível carregar a sua sessão. Tente de novo.')
   }
   if (!resUsuario.data) redirect('/sem-acesso')
@@ -57,7 +61,7 @@ export const obterSessao = cache(async (): Promise<Sessao> => {
   const vinculos = resVinculos.data
 
   const obras: ObraDoUsuario[] = (vinculos ?? [])
-    .filter((v) => v.obra)
+    .filter((v) => v.obra?.ativa)
     .map((v) => ({
       id: v.obra!.id,
       nome: v.obra!.nome,
@@ -70,5 +74,5 @@ export const obterSessao = cache(async (): Promise<Sessao> => {
   const escolhida = (await cookies()).get(COOKIE_OBRA)?.value
   const obraAtual = obras.find((o) => o.id === escolhida) ?? obras[0]!
 
-  return { usuario, obras, obraAtual }
+  return { usuario, obras, obraAtual, administrador: Boolean(resAdmin.data) }
 })

@@ -19,6 +19,7 @@ const ERROS = {
   empresa: 'Consulta restrita só pode ser de empreiteira.',
   salvar: 'Não foi possível alterar o acesso. Tente de novo.',
   remover: 'Não foi possível remover o acesso. Tente de novo.',
+  ultimo: 'A obra precisa de pelo menos um engenheiro. Dê o perfil a outra pessoa antes.',
 } as const
 
 export default async function PaginaAcesso({

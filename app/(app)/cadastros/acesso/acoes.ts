@@ -39,6 +39,10 @@ function lerSenhaInicial(form: FormData): { senha: string } | { erro: string } {
   return { senha }
 }
 
+/** O banco recusou porque a obra ficaria sem engenheiro. */
+const ultimoEngenheiro = (error: { message?: string } | null) =>
+  error?.message === 'ultimo_engenheiro'
+
 function lerPerfil(form: FormData) {
   const perfil = texto(form, 'perfil') as Perfil
   const empresa = texto(form, 'empresa_id')
@@ -134,7 +138,14 @@ export async function alterarAcesso(form: FormData) {
     .eq('obra_id', obraId)
     .select('usuario_id')
     .maybeSingle()
-  if (error || !data) redirect(`${voltar}?erro=${error?.code === '23514' ? 'empresa' : 'salvar'}`)
+  if (error || !data) {
+    const motivo = ultimoEngenheiro(error)
+      ? 'ultimo'
+      : error?.code === '23514'
+        ? 'empresa'
+        : 'salvar'
+    redirect(`${voltar}?erro=${motivo}`)
+  }
   revalidatePath('/cadastros/usuarios')
   redirect('/cadastros/usuarios')
 }
@@ -150,7 +161,9 @@ export async function removerAcesso(form: FormData) {
     .eq('obra_id', obraId)
     .select('usuario_id')
     .maybeSingle()
-  if (error || !data) redirect(`/cadastros/acesso/${usuarioId}?erro=remover`)
+  if (error || !data) {
+    redirect(`/cadastros/acesso/${usuarioId}?erro=${ultimoEngenheiro(error) ? 'ultimo' : 'remover'}`)
+  }
   revalidatePath('/cadastros/usuarios')
   redirect('/cadastros/usuarios')
 }

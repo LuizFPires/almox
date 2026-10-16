@@ -4,6 +4,7 @@ import { revalidatePath } from 'next/cache'
 import { redirect } from 'next/navigation'
 import { exigirEngenheiro } from '@/lib/acesso'
 import { validarEmail } from '@/lib/dominio/cadastros'
+import { podeGerarNovaSenha } from '@/lib/dominio/nova-senha'
 import { gerarSenhaProvisoria, TAMANHO_MINIMO_SENHA } from '@/lib/dominio/senha'
 import { valoresDoForm, type Valores } from '@/lib/formulario'
 import { criarClienteAdmin } from '@/lib/supabase/admin'
@@ -157,10 +158,10 @@ export async function removerAcesso(form: FormData) {
 export type EstadoNovaSenha = { erro?: string; senha?: string }
 
 /**
- * Nova senha provisória para quem ainda não criou a própria (perdeu a primeira, digitou errado).
- * Só vale para login só desta obra e ainda com a senha provisória: quem já criou a dele, ou
- * tem acesso a outra obra, não pode ter a senha trocada pelo engenheiro daqui (seria entrar na
- * conta de outra pessoa).
+ * Senha nova para alguém da obra: quem perdeu a do primeiro acesso ou esqueceu a própria (sem
+ * e-mail, é o único jeito de voltar a entrar). As regras de quem pode receber estão em
+ * `podeGerarNovaSenha`. A pessoa cria uma senha só dela no próximo login, e fica registrado no
+ * histórico quem gerou.
  */
 export async function novaSenhaProvisoria(
   _: EstadoNovaSenha,
@@ -172,31 +173,30 @@ export async function novaSenhaProvisoria(
   // A RLS confere que o login é desta obra (o engenheiro só lê os vínculos da obra dele).
   const { data: vinculo } = await supabase
     .from('usuario_obra')
-    .select('usuario_id')
+    .select('usuario_id, perfil')
     .eq('usuario_id', usuarioId)
     .eq('obra_id', obraId)
     .maybeSingle()
   if (!vinculo) return { erro: 'Acesso não encontrado nesta obra.' }
 
   const admin = criarClienteAdmin()
-  // Login ligado também a outra obra: o engenheiro daqui não troca a senha (entraria numa
-  // conta que é de outra obra). Quem resolve é o engenheiro de lá ou o administrador.
-  const { data: vinculos, error: erroVinculos } = await admin
-    .from('usuario_obra')
-    .select('obra_id')
-    .eq('usuario_id', usuarioId)
-  if (erroVinculos) return { erro: 'Não foi possível conferir o acesso. Tente de novo.' }
-  if ((vinculos ?? []).some((v) => v.obra_id !== obraId)) {
-    return {
-      erro: 'Este login também tem acesso a outra obra: só o administrador gera outra senha.',
-    }
+  const [{ data: vinculos, error: erroVinculos }, { data: atual }] = await Promise.all([
+    admin.from('usuario_obra').select('obra_id').eq('usuario_id', usuarioId),
+    admin.auth.admin.getUserById(usuarioId),
+  ])
+  if (erroVinculos || !atual.user) {
+    return { erro: 'Não foi possível conferir o acesso. Tente de novo.' }
   }
-  const { data: atual } = await admin.auth.admin.getUserById(usuarioId)
-  if (!atual.user?.app_metadata?.trocar_senha) {
-    return {
-      erro: 'Esta pessoa já criou a própria senha. Ela troca em "Esqueci ou ainda não tenho senha".',
-    }
-  }
+  const decisao = podeGerarNovaSenha(
+    {
+      senhaPendente: Boolean(atual.user.app_metadata?.trocar_senha),
+      perfil: vinculo.perfil,
+      obras: (vinculos ?? []).map((v) => v.obra_id),
+    },
+    obraId,
+  )
+  if (!decisao.pode) return { erro: decisao.motivo }
+
   const senhaInicial = lerSenhaInicial(form)
   if ('erro' in senhaInicial) return { erro: senhaInicial.erro }
   const { error } = await admin.auth.admin.updateUserById(usuarioId, {
@@ -211,5 +211,16 @@ export async function novaSenhaProvisoria(
           : 'Não foi possível trocar a senha. Tente de novo.',
     }
   }
+  // Histórico da obra: quem gerou a senha nova, sem a senha.
+  await admin.from('alteracao').insert({
+    obra_id: obraId,
+    tabela: 'usuario',
+    registro_id: usuarioId,
+    campo: 'senha',
+    de: null,
+    para: 'nova senha gerada pelo engenheiro',
+    usuario_id: usuario.id,
+    usuario_nome: usuario.nome || null,
+  })
   return { senha: senhaInicial.senha }
 }

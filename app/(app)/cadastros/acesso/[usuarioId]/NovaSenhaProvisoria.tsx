@@ -12,7 +12,7 @@ export function NovaSenhaProvisoria({ usuarioId }: { usuarioId: string }) {
   if (estado.senha) {
     return (
       <div className="flex flex-col gap-2 pb-3">
-        <p className="text-[15px]">Nova senha do primeiro acesso (aparece só agora):</p>
+        <p className="text-[15px]">Senha nova (aparece só agora):</p>
         <p
           aria-label="Senha do primeiro acesso"
           className="rounded-botao bg-sutil px-4 py-3 text-center font-mono text-2xl font-bold tracking-wider select-all"
@@ -29,7 +29,7 @@ export function NovaSenhaProvisoria({ usuarioId }: { usuarioId: string }) {
     <form action={acao} className="flex flex-col gap-3 pb-3">
       <input type="hidden" name="usuario_id" value={usuarioId} />
       <p className="text-sm text-texto-2">
-        Para quem perdeu ou não recebeu a senha do primeiro acesso. A anterior para de valer.
+        A senha anterior para de valer. No próximo login a pessoa cria uma senha só dela.
       </p>
       <SenhaInicial />
       <ErroFormulario mensagem={estado.erro} />

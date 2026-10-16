@@ -80,33 +80,43 @@ test.describe('dar acesso: senha do primeiro acesso', () => {
 
   test('almoxarife que esqueceu a própria senha: o engenheiro gera uma nova', async ({
     page,
+    browser,
   }, info) => {
     const email = `esqueceu-${info.project.name}-${Date.now()}@teste.exemplo`
     await entrarComo(page, 'engenheiro', '/inicio')
     await darAcesso(page, email, 'primeira-2026')
-    // A pessoa entra e cria a senha dela.
-    await entrar(page, email, 'primeira-2026')
-    await page.waitForURL((u) => u.pathname === '/trocar-senha')
-    await page.getByLabel('Nova senha', { exact: true }).fill('dela-mesma-2026')
-    await page.getByLabel('Repita a nova senha', { exact: true }).fill('dela-mesma-2026')
-    await page.getByRole('button', { name: 'Salvar nova senha' }).click()
-    await page.waitForURL((u) => u.pathname === '/inicio')
 
-    // Esqueceu: o engenheiro gera outra no acesso dela.
-    await page.context().clearCookies()
-    await entrarComo(page, 'engenheiro', '/inicio')
-    await page.goto('/cadastros/usuarios')
-    await page.getByText(email).filter({ visible: true }).click()
-    await page.waitForURL((u) => u.pathname.startsWith('/cadastros/acesso/'))
-    await page.getByText('Esqueceu a senha: gerar uma senha nova').click()
-    await page.getByLabel('Eu escolho a senha').filter({ visible: true }).check()
-    await campo(page, 'Senha inicial').fill('voltou-2026!')
-    await page.getByRole('button', { name: 'Gerar nova senha' }).click()
-    await expect(page.getByLabel('Senha do primeiro acesso').filter({ visible: true })).toHaveText(
-      'voltou-2026!',
-    )
-    // Entra com a nova e é obrigada a criar outra só dela.
-    await entrar(page, email, 'voltou-2026!')
-    await page.waitForURL((u) => u.pathname === '/trocar-senha')
+    // A pessoa, no celular dela, entra e cria a senha dela.
+    const celular = await browser.newContext({
+      ...info.project.use,
+      baseURL: new URL(page.url()).origin,
+    })
+    const pessoa = await celular.newPage()
+    try {
+      await entrar(pessoa, email, 'primeira-2026')
+      await pessoa.waitForURL((u) => u.pathname === '/trocar-senha')
+      await pessoa.getByLabel('Nova senha', { exact: true }).fill('dela-mesma-2026')
+      await pessoa.getByLabel('Repita a nova senha', { exact: true }).fill('dela-mesma-2026')
+      await pessoa.getByRole('button', { name: 'Salvar nova senha' }).click()
+      await pessoa.waitForURL((u) => u.pathname === '/inicio')
+
+      // Esqueceu: o engenheiro gera outra no acesso dela.
+      await page.goto('/cadastros/usuarios')
+      await page.getByText(email).filter({ visible: true }).click()
+      await page.waitForURL((u) => u.pathname.startsWith('/cadastros/acesso/'))
+      await page.getByText('Esqueceu a senha: gerar uma senha nova').click()
+      await page.getByLabel('Eu escolho a senha').filter({ visible: true }).check()
+      await campo(page, 'Senha inicial').fill('voltou-2026!')
+      await page.getByRole('button', { name: 'Gerar nova senha' }).click()
+      await expect(
+        page.getByLabel('Senha do primeiro acesso').filter({ visible: true }),
+      ).toHaveText('voltou-2026!')
+
+      // Entra com a nova e é obrigada a criar outra só dela.
+      await entrar(pessoa, email, 'voltou-2026!')
+      await pessoa.waitForURL((u) => u.pathname === '/trocar-senha')
+    } finally {
+      await celular.close()
+    }
   })
 })

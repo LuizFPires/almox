@@ -140,7 +140,15 @@ export async function ligarEngenheiro(
     p_usuario: usuarioId,
   })
   if (error) {
-    if (!jaExistia) await admin.auth.admin.deleteUser(usuarioId)
+    if (!jaExistia) {
+      const { error: erroDesfazer } = await admin.auth.admin.deleteUser(usuarioId)
+      if (erroDesfazer) {
+        return {
+          erro: 'O login foi criado, mas não ficou ligado à obra. Tente de novo e gere uma senha nova para ele.',
+          valores,
+        }
+      }
+    }
     return { erro: 'Não foi possível ligar o engenheiro. Tente de novo.', valores }
   }
   // Sem revalidar aqui: a tela recarregada fecharia o bloco e esconderia a senha. O "Pronto"
@@ -172,11 +180,12 @@ export async function senhaNovaAdmin(
     return { erro: 'Acesso não encontrado nesta obra.' }
   }
   const admin = criarClienteAdmin()
-  const { data: outroAdmin } = await admin
+  const { data: outroAdmin, error: erroAdmin } = await admin
     .from('administrador')
     .select('usuario_id')
     .eq('usuario_id', usuarioId)
     .maybeSingle()
+  if (erroAdmin) return { erro: 'Não foi possível conferir o acesso. Tente de novo.' }
   if (outroAdmin) return { erro: 'Senha de outro administrador não se troca por aqui.' }
 
   const senhaInicial = lerSenhaInicial(form)

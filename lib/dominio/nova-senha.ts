@@ -5,6 +5,8 @@ export type AlvoNovaSenha = {
   perfil: 'engenheiro' | 'almoxarife' | 'consulta'
   /** Obras a que o login tem acesso. */
   obras: string[]
+  /** É administrador do Almox (senha dele nunca passa pelo engenheiro). */
+  administrador: boolean
 }
 
 export type DecisaoNovaSenha = { pode: true } | { pode: false; motivo: string }
@@ -13,11 +15,15 @@ export type DecisaoNovaSenha = { pode: true } | { pode: false; motivo: string }
  * O engenheiro pode gerar uma senha nova para alguém da obra dele? Sem e-mail, é o único jeito
  * de quem esqueceu a senha voltar a entrar. Limites, para ninguém tomar a conta de outra pessoa:
  * - login que também é de outra obra: só o administrador (a conta não é só desta obra);
- * - outro engenheiro que já criou a própria senha: só o administrador.
+ * - outro engenheiro que já criou a própria senha: só o administrador;
+ * - administrador: nunca (quem gerasse a senha dele viraria administrador).
  * O administrador faz isso em Administração › obra › acessos.
  * A pessoa é obrigada a criar uma senha nova no próximo login.
  */
 export function podeGerarNovaSenha(alvo: AlvoNovaSenha, obraAtual: string): DecisaoNovaSenha {
+  if (alvo.administrador) {
+    return { pode: false, motivo: 'Senha de administrador do Almox: só ele mesmo troca.' }
+  }
   if (alvo.obras.some((o) => o !== obraAtual)) {
     return {
       pode: false,

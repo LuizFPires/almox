@@ -16,12 +16,14 @@ grant select on public.administrador to authenticated;
 create policy administrador_ler on public.administrador for select to authenticated
   using (usuario_id = (select auth.uid()));
 
+-- Com a senha do primeiro acesso pendente, não vale (como o resto do banco: privado.senha_pendente).
 create function privado.eh_administrador() returns boolean
 language sql stable
 security definer
 set search_path = ''
 as $$
-  select exists (select 1 from public.administrador where usuario_id = (select auth.uid()))
+  select not privado.senha_pendente()
+     and exists (select 1 from public.administrador where usuario_id = (select auth.uid()))
 $$;
 revoke all on function privado.eh_administrador() from public, anon;
 grant execute on function privado.eh_administrador() to authenticated;

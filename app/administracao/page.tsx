@@ -1,7 +1,9 @@
 import type { Metadata } from 'next'
 import Link from 'next/link'
 import { Cabecalho } from '@/components/Cabecalho'
+import { Botao } from '@/components/Botao'
 import { exigirAdministrador } from '@/lib/administracao'
+import { sair } from '../login/acoes'
 import { situacaoObra } from './situacao'
 
 export const metadata: Metadata = { title: 'Administração · Almox' }
@@ -48,6 +50,11 @@ export default async function PaginaAdministracao() {
             )
           })}
         </ul>
+        <form action={sair} className="mt-4">
+          <Botao type="submit" variante="secundaria" tamanho="g" larguraTotal>
+            Sair
+          </Botao>
+        </form>
       </main>
     </>
   )

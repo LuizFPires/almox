@@ -12,8 +12,8 @@ export default function PaginaSemAcesso() {
       <div className="flex flex-col gap-2">
         <h1 className="text-[28px] font-bold tracking-tight">Sem obra liberada</h1>
         <p className="text-texto-2">
-          Seu login existe, mas ainda não foi ligado a nenhuma obra. Peça ao engenheiro da obra para
-          liberar o seu acesso.
+          Seu login existe, mas não está ligado a nenhuma obra em andamento (ou a obra foi
+          encerrada). Peça ao engenheiro da obra para liberar o seu acesso.
         </p>
       </div>
       <form action={sair}>

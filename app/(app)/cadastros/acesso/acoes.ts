@@ -182,11 +182,17 @@ export async function novaSenhaProvisoria(
   if (!vinculo) return { erro: 'Acesso não encontrado nesta obra.' }
 
   const admin = criarClienteAdmin()
-  const [{ data: vinculos, error: erroVinculos }, { data: atual }] = await Promise.all([
+  const [
+    { data: vinculos, error: erroVinculos },
+    { data: atual },
+    { data: ehAdmin, error: erroAdmin },
+  ] = await Promise.all([
     admin.from('usuario_obra').select('obra_id').eq('usuario_id', usuarioId),
     admin.auth.admin.getUserById(usuarioId),
+    admin.from('administrador').select('usuario_id').eq('usuario_id', usuarioId).maybeSingle(),
   ])
-  if (erroVinculos || !atual.user) {
+  // Na dúvida, recusa: senha de administrador nas mãos do engenheiro seria virar administrador.
+  if (erroVinculos || erroAdmin || !atual.user) {
     return { erro: 'Não foi possível conferir o acesso. Tente de novo.' }
   }
   const decisao = podeGerarNovaSenha(
@@ -194,6 +200,7 @@ export async function novaSenhaProvisoria(
       senhaPendente: Boolean(atual.user.app_metadata?.trocar_senha),
       perfil: vinculo.perfil,
       obras: (vinculos ?? []).map((v) => v.obra_id),
+      administrador: Boolean(ehAdmin),
     },
     obraId,
   )

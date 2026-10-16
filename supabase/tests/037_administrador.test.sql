@@ -1,6 +1,6 @@
 -- Administrador (multi-obra): só ele cria e encerra obra e liga engenheiro em qualquer obra.
 begin;
-select plan(14);
+select plan(15);
 
 create temp table t (k text primary key, v uuid) on commit drop;
 grant all on t to authenticated;
@@ -16,6 +16,11 @@ select throws_ok(
   '42501', null, 'almoxarife não se liga como engenheiro de outra obra');
 select throws_ok($$insert into public.administrador values ('b0000000-0000-4000-8000-000000000002')$$,
   '42501', null, 'ninguém se torna administrador pelo app');
+
+-- Administradora com a senha do primeiro acesso pendente: ainda não vale.
+select set_config('request.jwt.claims', '{"sub":"b0000000-0000-4000-8000-000000000001","role":"authenticated","app_metadata":{"trocar_senha":true}}', true);
+select throws_ok($$select * from public.admin_listar_obras()$$, '42501', null,
+  'administrador com senha pendente não alcança as funções');
 
 -- Administradora (a engenheira do seed).
 select set_config('request.jwt.claims', '{"sub":"b0000000-0000-4000-8000-000000000001","role":"authenticated"}', true);

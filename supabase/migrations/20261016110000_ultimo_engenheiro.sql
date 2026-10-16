@@ -9,6 +9,11 @@ set search_path = ''
 as $$
 begin
   if pg_trigger_depth() = 1 and old.perfil = 'engenheiro'
+     and (tg_op = 'DELETE' or new.perfil <> 'engenheiro') then
+    -- Um por vez na obra: dois engenheiros tirando um ao outro ao mesmo tempo não passam.
+    perform pg_advisory_xact_lock(hashtext('ultimo_engenheiro:' || old.obra_id::text));
+  end if;
+  if pg_trigger_depth() = 1 and old.perfil = 'engenheiro'
      and (tg_op = 'DELETE' or new.perfil <> 'engenheiro')
      and not exists (
        select 1 from public.usuario_obra

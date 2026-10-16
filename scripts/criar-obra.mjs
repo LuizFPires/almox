@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 /**
- * Cria uma obra e dá acesso de engenheiro a ela (M11 · obra do piloto). O app não cria obra:
- * isto é do dono do sistema, com a chave secreta do projeto.
+ * Cria uma obra e dá acesso de engenheiro a ela (M11 · obra do piloto). Hoje o administrador
+ * faz isso no app (Conta › Administração); o script fica para a primeira obra de um projeto novo.
  *
  *   node scripts/criar-obra.mjs --env <arquivo> --obra "Nome da obra" [--endereco "..."] \
  *     --email engenheiro@empresa.com.br --nome "Nome do engenheiro" [--confirmar]

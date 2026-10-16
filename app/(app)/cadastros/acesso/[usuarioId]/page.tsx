@@ -6,8 +6,10 @@ import { ErroFormulario } from '@/components/Formulario'
 import { listarAcessos } from '@/lib/dados/acessos'
 import { listarEmpresas } from '@/lib/dados/empresas'
 import { obterSessao } from '@/lib/sessao'
+import { criarClienteAdmin } from '@/lib/supabase/admin'
 import { alterarAcesso, removerAcesso } from '../acoes'
 import { CamposPerfil } from '../CamposPerfil'
+import { NovaSenhaProvisoria } from './NovaSenhaProvisoria'
 
 export const metadata: Metadata = { title: 'Acesso · Almox' }
 
@@ -32,6 +34,9 @@ export default async function PaginaAcesso({
   const acesso = acessos.find((a) => a.usuario_id === usuarioId)
   // O próprio vínculo não se altera por aqui (evita deixar a obra sem engenheiro).
   if (!acesso || acesso.usuario_id === usuario.id) notFound()
+  // Ainda com a senha do primeiro acesso? (só aí o engenheiro pode gerar outra)
+  const { data: login } = await criarClienteAdmin().auth.admin.getUserById(acesso.usuario_id)
+  const senhaPendente = Boolean(login.user?.app_metadata?.trocar_senha)
 
   return (
     <>
@@ -54,6 +59,14 @@ export default async function PaginaAcesso({
           Salvar perfil
         </Botao>
       </form>
+      {senhaPendente && (
+        <details className="mx-5 mb-3 rounded-cartao bg-cartao px-4 py-2">
+          <summary className="flex min-h-toque cursor-pointer items-center font-semibold">
+            Ainda não entrou: gerar nova senha do primeiro acesso
+          </summary>
+          <NovaSenhaProvisoria usuarioId={acesso.usuario_id} />
+        </details>
+      )}
       <details className="mx-5 mb-8 rounded-cartao bg-cartao px-4 py-2">
         <summary className="flex min-h-toque cursor-pointer items-center font-semibold text-erro">
           Remover acesso a esta obra

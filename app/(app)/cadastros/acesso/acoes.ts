@@ -4,7 +4,7 @@ import { revalidatePath } from 'next/cache'
 import { redirect } from 'next/navigation'
 import { exigirEngenheiro } from '@/lib/acesso'
 import { validarEmail } from '@/lib/dominio/cadastros'
-import { gerarSenhaProvisoria } from '@/lib/dominio/senha'
+import { gerarSenhaProvisoria, TAMANHO_MINIMO_SENHA } from '@/lib/dominio/senha'
 import { valoresDoForm, type Valores } from '@/lib/formulario'
 import { criarClienteAdmin } from '@/lib/supabase/admin'
 
@@ -14,7 +14,7 @@ const PERFIS: Perfil[] = ['engenheiro', 'almoxarife', 'consulta']
 export type EstadoAcesso = {
   valores?: Valores
   erro?: string
-  campos?: Partial<Record<'nome' | 'email' | 'perfil' | 'empresa_id', string>>
+  campos?: Partial<Record<'nome' | 'email' | 'perfil' | 'empresa_id' | 'senha_inicial', string>>
   /** Mostrada uma única vez, só quando o login foi criado agora. */
   criado?: { email: string; senha: string | null; jaExistia: boolean; senhaPendente: boolean }
 }
@@ -23,6 +23,20 @@ const texto = (form: FormData, chave: string) =>
   String(form.get(chave) ?? '')
     .replace(/\s+/g, ' ')
     .trim()
+
+/**
+ * Senha do primeiro acesso: gerada pelo app (padrão) ou escolhida pelo engenheiro. Nos dois
+ * casos a pessoa é obrigada a criar a dela ao entrar. Devolve a senha ou o erro do campo.
+ */
+function lerSenhaInicial(form: FormData): { senha: string } | { erro: string } {
+  if (form.get('senha_inicial_modo') !== 'escolher') return { senha: gerarSenhaProvisoria() }
+  // A senha não passa pelo `texto` (que junta espaços): vale exatamente o que foi digitado.
+  const senha = String(form.get('senha_inicial') ?? '')
+  if (senha.length < TAMANHO_MINIMO_SENHA) {
+    return { erro: `Use pelo menos ${TAMANHO_MINIMO_SENHA} caracteres.` }
+  }
+  return { senha }
+}
 
 function lerPerfil(form: FormData) {
   const perfil = texto(form, 'perfil') as Perfil
@@ -47,6 +61,8 @@ export async function darAcesso(_: EstadoAcesso, form: FormData): Promise<Estado
   const erroEmail = validarEmail(email, true)
   if (erroEmail) campos.email = erroEmail
   if (!PERFIS.includes(perfil)) campos.perfil = 'Escolha o perfil.'
+  const senhaInicial = lerSenhaInicial(form)
+  if ('erro' in senhaInicial) campos.senha_inicial = senhaInicial.erro
   if (Object.keys(campos).length > 0) return { campos, valores }
 
   const admin = criarClienteAdmin()
@@ -63,7 +79,8 @@ export async function darAcesso(_: EstadoAcesso, form: FormData): Promise<Estado
   // Login que já existe (de outra obra): só ganha o vínculo. NUNCA troque nem mostre a
   // senha dele aqui — o engenheiro desta obra entraria na conta de quem é de outra obra.
   if (!usuarioId) {
-    senha = gerarSenhaProvisoria()
+    // O erro da senha escolhida já voltou acima: aqui ela sempre existe.
+    senha = 'senha' in senhaInicial ? senhaInicial.senha : gerarSenhaProvisoria()
     const { data, error } = await admin.auth.admin.createUser({
       email,
       password: senha,
@@ -71,8 +88,11 @@ export async function darAcesso(_: EstadoAcesso, form: FormData): Promise<Estado
       user_metadata: { nome },
       app_metadata: { trocar_senha: true },
     })
-    if (error || !data.user)
-      return { erro: 'Não foi possível criar o login. Tente de novo.', valores }
+    if (error || !data.user) {
+      return error?.code === 'weak_password'
+        ? { campos: { senha_inicial: 'Senha fraca ou já vazada. Escolha outra.' }, valores }
+        : { erro: 'Não foi possível criar o login. Tente de novo.', valores }
+    }
     usuarioId = data.user.id
   }
 
@@ -132,4 +152,51 @@ export async function removerAcesso(form: FormData) {
   if (error || !data) redirect(`/cadastros/acesso/${usuarioId}?erro=remover`)
   revalidatePath('/cadastros/usuarios')
   redirect('/cadastros/usuarios')
+}
+
+export type EstadoNovaSenha = { erro?: string; senha?: string }
+
+/**
+ * Nova senha provisória para quem ainda não criou a própria (perdeu a primeira, digitou errado).
+ * Só vale para login desta obra que ainda está com a senha provisória: quem já criou a dele
+ * não pode ter a senha trocada pelo engenheiro (seria entrar na conta de outra pessoa).
+ */
+export async function novaSenhaProvisoria(
+  _: EstadoNovaSenha,
+  form: FormData,
+): Promise<EstadoNovaSenha> {
+  const { supabase, obraId, usuario } = await exigirEngenheiro()
+  const usuarioId = texto(form, 'usuario_id')
+  if (!usuarioId || usuarioId === usuario.id) return { erro: 'Acesso não encontrado.' }
+  // A RLS confere que o login é desta obra (o engenheiro só lê os vínculos da obra dele).
+  const { data: vinculo } = await supabase
+    .from('usuario_obra')
+    .select('usuario_id')
+    .eq('usuario_id', usuarioId)
+    .eq('obra_id', obraId)
+    .maybeSingle()
+  if (!vinculo) return { erro: 'Acesso não encontrado nesta obra.' }
+
+  const admin = criarClienteAdmin()
+  const { data: atual } = await admin.auth.admin.getUserById(usuarioId)
+  if (!atual.user?.app_metadata?.trocar_senha) {
+    return {
+      erro: 'Esta pessoa já criou a própria senha. Ela troca em "Esqueci ou ainda não tenho senha".',
+    }
+  }
+  const senhaInicial = lerSenhaInicial(form)
+  if ('erro' in senhaInicial) return { erro: senhaInicial.erro }
+  const { error } = await admin.auth.admin.updateUserById(usuarioId, {
+    password: senhaInicial.senha,
+    app_metadata: { trocar_senha: true },
+  })
+  if (error) {
+    return {
+      erro:
+        error.code === 'weak_password'
+          ? 'Senha fraca ou já vazada. Escolha outra.'
+          : 'Não foi possível trocar a senha. Tente de novo.',
+    }
+  }
+  return { senha: senhaInicial.senha }
 }

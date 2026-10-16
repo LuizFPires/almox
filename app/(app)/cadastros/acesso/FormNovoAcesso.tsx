@@ -8,6 +8,7 @@ import { Campo, ErroFormulario } from '@/components/Formulario'
 import { RodapeAcao } from '@/components/RodapeAcao'
 import { darAcesso } from './acoes'
 import { CamposPerfil } from './CamposPerfil'
+import { SenhaInicial } from './SenhaInicial'
 
 export function FormNovoAcesso({ empreiteiras }: { empreiteiras: { id: string; nome: string }[] }) {
   const [estado, acao, salvando] = useActionState(darAcesso, {})
@@ -29,7 +30,7 @@ export function FormNovoAcesso({ empreiteiras }: { empreiteiras: { id: string; n
           )}
           {estado.criado.senha ? (
             <>
-              <p className="text-[15px]">Senha provisória (aparece só agora):</p>
+              <p className="text-[15px]">Senha do primeiro acesso (aparece só agora):</p>
               <p
                 aria-label="Senha provisória"
                 className="rounded-botao bg-sutil px-4 py-3 text-center font-mono text-2xl font-bold tracking-wider select-all"
@@ -44,7 +45,7 @@ export function FormNovoAcesso({ empreiteiras }: { empreiteiras: { id: string; n
           ) : (
             <p className="text-sm text-texto-2">
               {estado.criado.senhaPendente
-                ? 'Ela ainda não entrou pela primeira vez: use a senha provisória que recebeu de quem liberou o primeiro acesso.'
+                ? 'Ela ainda não entrou pela primeira vez. Se perdeu a senha do primeiro acesso, gere outra na tela dela em Acessos.'
                 : 'A pessoa entra com a senha que já usa.'}
             </p>
           )}
@@ -80,6 +81,7 @@ export function FormNovoAcesso({ empreiteiras }: { empreiteiras: { id: string; n
           empreiteiras={empreiteiras}
           erros={erros}
         />
+        <SenhaInicial erro={erros.senha_inicial} />
         <ErroFormulario mensagem={estado.erro} />
       </div>
       <RodapeAcao>

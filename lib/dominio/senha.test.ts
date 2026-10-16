@@ -35,8 +35,8 @@ describe('senha provisória', () => {
 })
 
 describe('nova senha', () => {
-  it('exige 10 caracteres e confirmação igual', () => {
-    expect(validarNovaSenha('curta', 'curta')).toBe('Use pelo menos 10 caracteres.')
+  it('exige 8 caracteres e confirmação igual', () => {
+    expect(validarNovaSenha('curta', 'curta')).toBe('Use pelo menos 8 caracteres.')
     expect(validarNovaSenha('uma-senha-boa', 'outra-senha')).toBe('As duas senhas não são iguais.')
     expect(validarNovaSenha('uma-senha-boa', 'uma-senha-boa')).toBeNull()
   })

@@ -5,8 +5,9 @@ import { redirect } from 'next/navigation'
 import { exigirEngenheiro } from '@/lib/acesso'
 import { validarEmail } from '@/lib/dominio/cadastros'
 import { podeGerarNovaSenha } from '@/lib/dominio/nova-senha'
-import { gerarSenhaProvisoria, TAMANHO_MINIMO_SENHA } from '@/lib/dominio/senha'
+import { gerarSenhaProvisoria } from '@/lib/dominio/senha'
 import { valoresDoForm, type Valores } from '@/lib/formulario'
+import { lerSenhaInicial } from '@/lib/senha-inicial'
 import { criarClienteAdmin } from '@/lib/supabase/admin'
 
 type Perfil = 'engenheiro' | 'almoxarife' | 'consulta'
@@ -25,19 +26,9 @@ const texto = (form: FormData, chave: string) =>
     .replace(/\s+/g, ' ')
     .trim()
 
-/**
- * Senha do primeiro acesso: gerada pelo app (padrão) ou escolhida pelo engenheiro. Nos dois
- * casos a pessoa é obrigada a criar a dela ao entrar. Devolve a senha ou o erro do campo.
- */
-function lerSenhaInicial(form: FormData): { senha: string } | { erro: string } {
-  if (form.get('senha_inicial_modo') !== 'escolher') return { senha: gerarSenhaProvisoria() }
-  // A senha não passa pelo `texto` (que junta espaços): vale exatamente o que foi digitado.
-  const senha = String(form.get('senha_inicial') ?? '')
-  if (senha.length < TAMANHO_MINIMO_SENHA) {
-    return { erro: `Use pelo menos ${TAMANHO_MINIMO_SENHA} caracteres.` }
-  }
-  return { senha }
-}
+/** O banco recusou porque a obra ficaria sem engenheiro. */
+const ultimoEngenheiro = (error: { message?: string } | null) =>
+  error?.message === 'ultimo_engenheiro'
 
 function lerPerfil(form: FormData) {
   const perfil = texto(form, 'perfil') as Perfil
@@ -134,7 +125,14 @@ export async function alterarAcesso(form: FormData) {
     .eq('obra_id', obraId)
     .select('usuario_id')
     .maybeSingle()
-  if (error || !data) redirect(`${voltar}?erro=${error?.code === '23514' ? 'empresa' : 'salvar'}`)
+  if (error || !data) {
+    const motivo = ultimoEngenheiro(error)
+      ? 'ultimo'
+      : error?.code === '23514'
+        ? 'empresa'
+        : 'salvar'
+    redirect(`${voltar}?erro=${motivo}`)
+  }
   revalidatePath('/cadastros/usuarios')
   redirect('/cadastros/usuarios')
 }
@@ -150,7 +148,11 @@ export async function removerAcesso(form: FormData) {
     .eq('obra_id', obraId)
     .select('usuario_id')
     .maybeSingle()
-  if (error || !data) redirect(`/cadastros/acesso/${usuarioId}?erro=remover`)
+  if (error || !data) {
+    redirect(
+      `/cadastros/acesso/${usuarioId}?erro=${ultimoEngenheiro(error) ? 'ultimo' : 'remover'}`,
+    )
+  }
   revalidatePath('/cadastros/usuarios')
   redirect('/cadastros/usuarios')
 }
@@ -180,11 +182,17 @@ export async function novaSenhaProvisoria(
   if (!vinculo) return { erro: 'Acesso não encontrado nesta obra.' }
 
   const admin = criarClienteAdmin()
-  const [{ data: vinculos, error: erroVinculos }, { data: atual }] = await Promise.all([
+  const [
+    { data: vinculos, error: erroVinculos },
+    { data: atual },
+    { data: ehAdmin, error: erroAdmin },
+  ] = await Promise.all([
     admin.from('usuario_obra').select('obra_id').eq('usuario_id', usuarioId),
     admin.auth.admin.getUserById(usuarioId),
+    admin.from('administrador').select('usuario_id').eq('usuario_id', usuarioId).maybeSingle(),
   ])
-  if (erroVinculos || !atual.user) {
+  // Na dúvida, recusa: senha de administrador nas mãos do engenheiro seria virar administrador.
+  if (erroVinculos || erroAdmin || !atual.user) {
     return { erro: 'Não foi possível conferir o acesso. Tente de novo.' }
   }
   const decisao = podeGerarNovaSenha(
@@ -192,6 +200,7 @@ export async function novaSenhaProvisoria(
       senhaPendente: Boolean(atual.user.app_metadata?.trocar_senha),
       perfil: vinculo.perfil,
       obras: (vinculos ?? []).map((v) => v.obra_id),
+      administrador: Boolean(ehAdmin),
     },
     obraId,
   )

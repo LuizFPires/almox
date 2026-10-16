@@ -12,7 +12,7 @@ import { BotaoSair } from './BotaoSair'
 export const metadata: Metadata = { title: 'Conta · Almox' }
 
 export default async function PaginaConta() {
-  const { usuario, obras, obraAtual } = await obterSessao()
+  const { usuario, obras, obraAtual, administrador } = await obterSessao()
 
   return (
     <>
@@ -55,6 +55,15 @@ export default async function PaginaConta() {
         {/* Quem recebe aviso: engenheiro e os logins de consulta (dono e encarregado). */}
         {obraAtual.perfil !== 'almoxarife' && (
           <AtivarNotificacoes chavePublica={chavePublicaVapid()} />
+        )}
+
+        {administrador && (
+          <Link
+            href="/administracao"
+            className="flex min-h-toque items-center justify-center rounded-botao border border-borda bg-cartao font-semibold"
+          >
+            Administração (obras e engenheiros)
+          </Link>
         )}
 
         <Link

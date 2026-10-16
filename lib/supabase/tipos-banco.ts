@@ -23,6 +23,30 @@ export type Database = {
   }
   public: {
     Tables: {
+      administrador: {
+        Row: {
+          criado_em: string
+          usuario_id: string
+        }
+        ComputedFields: never
+        Insert: {
+          criado_em?: string
+          usuario_id: string
+        }
+        Update: {
+          criado_em?: string
+          usuario_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: 'administrador_usuario_id_fkey'
+            columns: ['usuario_id']
+            isOneToOne: true
+            referencedRelation: 'usuario'
+            referencedColumns: ['id']
+          },
+        ]
+      }
       alteracao: {
         Row: {
           campo: string
@@ -1437,6 +1461,35 @@ export type Database = {
     }
     Functions: {
       adicionar_unidades: { Args: { p_quantidade: number; p_tipo: string }; Returns: string[] }
+      admin_criar_obra: { Args: { p_endereco?: string; p_nome: string }; Returns: string }
+      admin_editar_obra: {
+        Args: { p_endereco?: string; p_nome: string; p_obra: string }
+        Returns: undefined
+      }
+      admin_ligar_engenheiro: { Args: { p_obra: string; p_usuario: string }; Returns: undefined }
+      admin_listar_acessos: {
+        Args: { p_obra: string }
+        Returns: {
+          email: string
+          empresa: string
+          nome: string
+          perfil: Database['public']['Enums']['perfil']
+          usuario_id: string
+        }[]
+      }
+      admin_listar_obras: {
+        Args: Record<PropertyKey, never>
+        Returns: {
+          acessos: number
+          ativa: boolean
+          encerrada_em: string
+          endereco: string
+          engenheiros: number
+          id: string
+          nome: string
+        }[]
+      }
+      admin_situacao_obra: { Args: { p_obra: string; p_situacao: string }; Returns: undefined }
       agente_concluir: {
         Args: { p_erro: string; p_ok: boolean; p_token: string; p_trabalho: string }
         Returns: undefined

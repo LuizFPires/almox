@@ -149,6 +149,9 @@ insert into public.usuario_obra (usuario_id, obra_id, perfil, empresa_id) values
   -- Dono da Fôrmas Ribeiro: consulta restrita à própria empresa.
   ('b0000000-0000-4000-8000-000000000004', 'a0000000-0000-4000-8000-000000000001', 'consulta', 'e0000000-0000-4000-8000-000000000003');
 
+-- A engenheira também é administradora (cria e encerra obras, gera senhas de qualquer obra).
+insert into public.administrador (usuario_id) values ('b0000000-0000-4000-8000-000000000001');
+
 -- Retiradas do dia (unidades livres em ordem de código, RN-08) ----------------------------
 
 do $$

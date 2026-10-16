@@ -4,7 +4,7 @@ import { useActionState } from 'react'
 import { Botao } from '@/components/Botao'
 import { ErroFormulario } from '@/components/Formulario'
 import { novaSenhaProvisoria } from '../acoes'
-import { SenhaInicial } from '../SenhaInicial'
+import { SenhaInicial } from '@/components/SenhaInicial'
 
 /** Para quem ainda não entrou: nova senha do primeiro acesso (a anterior para de valer). */
 export function NovaSenhaProvisoria({ usuarioId }: { usuarioId: string }) {

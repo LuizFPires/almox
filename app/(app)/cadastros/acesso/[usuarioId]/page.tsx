@@ -19,6 +19,7 @@ const ERROS = {
   empresa: 'Consulta restrita só pode ser de empreiteira.',
   salvar: 'Não foi possível alterar o acesso. Tente de novo.',
   remover: 'Não foi possível remover o acesso. Tente de novo.',
+  ultimo: 'A obra precisa de pelo menos um engenheiro. Dê o perfil a outra pessoa antes.',
 } as const
 
 export default async function PaginaAcesso({
@@ -37,16 +38,24 @@ export default async function PaginaAcesso({
   if (!acesso || acesso.usuario_id === usuario.id) notFound()
   // Senha nova pelo engenheiro (primeiro acesso perdido ou senha esquecida): mesma regra da ação.
   const admin = criarClienteAdmin()
-  const [{ data: login }, { data: vinculos }] = await Promise.all([
-    admin.auth.admin.getUserById(acesso.usuario_id),
-    admin.from('usuario_obra').select('obra_id').eq('usuario_id', acesso.usuario_id),
-  ])
+  const [{ data: login }, { data: vinculos }, { data: ehAdmin, error: erroAdmin }] =
+    await Promise.all([
+      admin.auth.admin.getUserById(acesso.usuario_id),
+      admin.from('usuario_obra').select('obra_id').eq('usuario_id', acesso.usuario_id),
+      admin
+        .from('administrador')
+        .select('usuario_id')
+        .eq('usuario_id', acesso.usuario_id)
+        .maybeSingle(),
+    ])
   const senhaPendente = Boolean(login.user?.app_metadata?.trocar_senha)
   const novaSenha = podeGerarNovaSenha(
     {
       senhaPendente,
       perfil: acesso.perfil,
       obras: (vinculos ?? []).map((v) => v.obra_id),
+      // Sem conseguir conferir, trata como administrador (a ação também recusa).
+      administrador: Boolean(ehAdmin) || Boolean(erroAdmin),
     },
     obraAtual.id,
   )

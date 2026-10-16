@@ -45,7 +45,8 @@ Um sistema com três partes:
 
 ### 4.1 Na versão 1
 
-- Cadastros (só o engenheiro): obras, empresas (construtora e empreiteiras, com dono e encarregado), pessoas, tipos de ferramenta com quantidade e valor de reposição.
+- Obras: criadas, encerradas e com o engenheiro ligado pelo **administrador** (perfil acima das obras, PLAN › Decisões de 17/10/2026).
+- Cadastros (só o engenheiro): dados da obra, empresas (construtora e empreiteiras, com dono e encarregado), pessoas, tipos de ferramenta com quantidade e valor de reposição.
 - Impressão do adesivo do capacete (QR + nome) numa impressora de etiquetas ligada ao Wi-Fi da obra.
 - Identificação por QR do capacete, com conferência visual da pessoa.
 - Retirada e devolução por quantidade (toques no ícone), registro de avaria com foto obrigatória.
@@ -262,5 +263,5 @@ O Almox segue o **contrato único de conector** do ecossistema:
 2. **Cláusula contratual:** o desconto precisa estar previsto no contrato com cada empreiteira. Redação a validar com o jurídico.
 3. **Avaria por mau uso:** também é cobrada da empreiteira? Com qual critério? *(Decidido em 13/10/2026: indenização para qualquer pessoa, sugerida pelo valor de reposição e ajustável pelo engenheiro — ver PLAN › Decisões.)*
 4. **Turnos noturnos / fim de semana:** o encerramento automático das 23:59 atende?
-5. **Multi-obra:** o engenheiro de várias obras alterna pelo seletor de obra (o modelo já prevê isso).
+5. **Multi-obra:** o engenheiro de várias obras alterna pelo seletor de obra. *(Decidido em 17/10/2026: o administrador cria e encerra obras e liga engenheiros; cada obra tem os próprios acessos, empresas e capacetes — ver PLAN › Decisões.)*
 6. **Termo de responsabilidade** assinado na integração do trabalhador, tornando válidos os lançamentos com o QR dele. Modelo a criar com o jurídico.

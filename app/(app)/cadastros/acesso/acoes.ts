@@ -158,8 +158,9 @@ export type EstadoNovaSenha = { erro?: string; senha?: string }
 
 /**
  * Nova senha provisória para quem ainda não criou a própria (perdeu a primeira, digitou errado).
- * Só vale para login desta obra que ainda está com a senha provisória: quem já criou a dele
- * não pode ter a senha trocada pelo engenheiro (seria entrar na conta de outra pessoa).
+ * Só vale para login só desta obra e ainda com a senha provisória: quem já criou a dele, ou
+ * tem acesso a outra obra, não pode ter a senha trocada pelo engenheiro daqui (seria entrar na
+ * conta de outra pessoa).
  */
 export async function novaSenhaProvisoria(
   _: EstadoNovaSenha,
@@ -178,6 +179,18 @@ export async function novaSenhaProvisoria(
   if (!vinculo) return { erro: 'Acesso não encontrado nesta obra.' }
 
   const admin = criarClienteAdmin()
+  // Login ligado também a outra obra: o engenheiro daqui não troca a senha (entraria numa
+  // conta que é de outra obra). Quem resolve é o engenheiro de lá ou o administrador.
+  const { data: vinculos, error: erroVinculos } = await admin
+    .from('usuario_obra')
+    .select('obra_id')
+    .eq('usuario_id', usuarioId)
+  if (erroVinculos) return { erro: 'Não foi possível conferir o acesso. Tente de novo.' }
+  if ((vinculos ?? []).some((v) => v.obra_id !== obraId)) {
+    return {
+      erro: 'Este login também tem acesso a outra obra: só o administrador gera outra senha.',
+    }
+  }
   const { data: atual } = await admin.auth.admin.getUserById(usuarioId)
   if (!atual.user?.app_metadata?.trocar_senha) {
     return {

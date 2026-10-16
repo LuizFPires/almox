@@ -34,9 +34,15 @@ export default async function PaginaAcesso({
   const acesso = acessos.find((a) => a.usuario_id === usuarioId)
   // O próprio vínculo não se altera por aqui (evita deixar a obra sem engenheiro).
   if (!acesso || acesso.usuario_id === usuario.id) notFound()
-  // Ainda com a senha do primeiro acesso? (só aí o engenheiro pode gerar outra)
-  const { data: login } = await criarClienteAdmin().auth.admin.getUserById(acesso.usuario_id)
-  const senhaPendente = Boolean(login.user?.app_metadata?.trocar_senha)
+  // Ainda com a senha do primeiro acesso e só nesta obra? (só aí o engenheiro gera outra)
+  const admin = criarClienteAdmin()
+  const [{ data: login }, { data: vinculos }] = await Promise.all([
+    admin.auth.admin.getUserById(acesso.usuario_id),
+    admin.from('usuario_obra').select('obra_id').eq('usuario_id', acesso.usuario_id),
+  ])
+  const senhaPendente =
+    Boolean(login.user?.app_metadata?.trocar_senha) &&
+    (vinculos ?? []).every((v) => v.obra_id === obraAtual.id)
 
   return (
     <>

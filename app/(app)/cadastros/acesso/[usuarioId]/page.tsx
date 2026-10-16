@@ -6,6 +6,7 @@ import { ErroFormulario } from '@/components/Formulario'
 import { listarAcessos } from '@/lib/dados/acessos'
 import { listarEmpresas } from '@/lib/dados/empresas'
 import { obterSessao } from '@/lib/sessao'
+import { podeGerarNovaSenha } from '@/lib/dominio/nova-senha'
 import { criarClienteAdmin } from '@/lib/supabase/admin'
 import { alterarAcesso, removerAcesso } from '../acoes'
 import { CamposPerfil } from '../CamposPerfil'
@@ -34,15 +35,21 @@ export default async function PaginaAcesso({
   const acesso = acessos.find((a) => a.usuario_id === usuarioId)
   // O próprio vínculo não se altera por aqui (evita deixar a obra sem engenheiro).
   if (!acesso || acesso.usuario_id === usuario.id) notFound()
-  // Ainda com a senha do primeiro acesso e só nesta obra? (só aí o engenheiro gera outra)
+  // Senha nova pelo engenheiro (primeiro acesso perdido ou senha esquecida): mesma regra da ação.
   const admin = criarClienteAdmin()
   const [{ data: login }, { data: vinculos }] = await Promise.all([
     admin.auth.admin.getUserById(acesso.usuario_id),
     admin.from('usuario_obra').select('obra_id').eq('usuario_id', acesso.usuario_id),
   ])
-  const senhaPendente =
-    Boolean(login.user?.app_metadata?.trocar_senha) &&
-    (vinculos ?? []).every((v) => v.obra_id === obraAtual.id)
+  const senhaPendente = Boolean(login.user?.app_metadata?.trocar_senha)
+  const novaSenha = podeGerarNovaSenha(
+    {
+      senhaPendente,
+      perfil: acesso.perfil,
+      obras: (vinculos ?? []).map((v) => v.obra_id),
+    },
+    obraAtual.id,
+  )
 
   return (
     <>
@@ -65,13 +72,17 @@ export default async function PaginaAcesso({
           Salvar perfil
         </Botao>
       </form>
-      {senhaPendente && (
+      {novaSenha.pode ? (
         <details className="mx-5 mb-3 rounded-cartao bg-cartao px-4 py-2">
           <summary className="flex min-h-toque cursor-pointer items-center font-semibold">
-            Ainda não entrou: gerar nova senha do primeiro acesso
+            {senhaPendente
+              ? 'Ainda não entrou: gerar nova senha do primeiro acesso'
+              : 'Esqueceu a senha: gerar uma senha nova'}
           </summary>
           <NovaSenhaProvisoria usuarioId={acesso.usuario_id} />
         </details>
+      ) : (
+        <p className="mx-5 mb-3 text-sm text-texto-2">{novaSenha.motivo}</p>
       )}
       <details className="mx-5 mb-8 rounded-cartao bg-cartao px-4 py-2">
         <summary className="flex min-h-toque cursor-pointer items-center font-semibold text-erro">

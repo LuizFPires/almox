@@ -2,6 +2,7 @@ import type { Metadata } from 'next'
 import { Suspense } from 'react'
 import { Marca } from '@/components/Marca'
 import { destinoSeguro } from '@/lib/dominio/destino'
+import { codigoPorEmail } from '@/lib/configuracao'
 import { FormLogin } from './FormLogin'
 
 export const metadata: Metadata = { title: 'Entrar · Almox' }
@@ -28,7 +29,7 @@ async function Formulario({
           pedido. Peça outro.
         </p>
       )}
-      <FormLogin volta={destinoSeguro(volta)} />
+      <FormLogin volta={destinoSeguro(volta)} codigoPorEmail={codigoPorEmail()} />
     </>
   )
 }

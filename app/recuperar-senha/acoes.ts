@@ -103,3 +103,39 @@ export async function salvarSenha(_: EstadoRecuperar, form: FormData): Promise<E
   await supabase.auth.signOut({ scope: 'others' })
   redirect('/inicio')
 }
+
+export type EstadoTrocarComSenha = { erro?: string; erroSenha?: string }
+
+/**
+ * Trocar a senha sem e-mail: pede a senha atual (conferida no Auth) antes da nova. Vale
+ * enquanto o código por e-mail não chega para todos (`codigoPorEmail`). Salvar derruba os
+ * outros aparelhos conectados.
+ */
+export async function trocarComSenhaAtual(
+  _: EstadoTrocarComSenha,
+  form: FormData,
+): Promise<EstadoTrocarComSenha> {
+  const { supabase, email } = await emailDaSessao()
+  if (!email) redirect('/login')
+  const atual = String(form.get('atual') ?? '')
+  const senha = String(form.get('senha') ?? '')
+  const confirmacao = String(form.get('confirmacao') ?? '')
+  if (!atual) return { erro: 'Digite a senha que você usa hoje.' }
+  const erroSenha = validarNovaSenha(senha, confirmacao)
+  if (erroSenha) return { erroSenha }
+
+  // Confere a senha atual (também conta como login recente para o Auth aceitar a troca).
+  const { error: erroAtual } = await supabase.auth.signInWithPassword({ email, password: atual })
+  if (erroAtual) {
+    return {
+      erro:
+        erroAtual.status === 429
+          ? 'Muitas tentativas. Aguarde alguns minutos e tente de novo.'
+          : 'A senha atual não confere.',
+    }
+  }
+  const { error } = await supabase.auth.updateUser({ password: senha })
+  if (error) return { erroSenha: mensagemErroNovaSenha(error) }
+  await supabase.auth.signOut({ scope: 'others' })
+  redirect('/inicio')
+}

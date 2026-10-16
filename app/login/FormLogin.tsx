@@ -8,7 +8,7 @@ import { Campo } from '@/components/Formulario'
 import { entrarComSenha } from './acoes'
 
 /** E-mail e senha (com o olho). Esqueceu ou ainda não tem senha: código no e-mail. */
-export function FormLogin({ volta }: { volta: string }) {
+export function FormLogin({ volta, codigoPorEmail }: { volta: string; codigoPorEmail: boolean }) {
   const [estado, acao, entrando] = useActionState(entrarComSenha, {})
 
   return (
@@ -43,7 +43,9 @@ export function FormLogin({ volta }: { volta: string }) {
         href="/recuperar-senha"
         className="flex min-h-toque items-center justify-center text-[15px] font-semibold text-texto-3 underline"
       >
-        Esqueci ou ainda não tenho senha
+        {codigoPorEmail
+          ? 'Esqueci ou ainda não tenho senha'
+          : 'Primeiro acesso ou esqueceu a senha?'}
       </Link>
     </div>
   )

@@ -78,14 +78,35 @@ test.describe('dar acesso: senha do primeiro acesso', () => {
     await page.waitForURL((u) => u.pathname === '/trocar-senha')
   })
 
-  test('quem já criou a própria senha não tem a opção de nova senha', async ({ page }) => {
+  test('almoxarife que esqueceu a própria senha: o engenheiro gera uma nova', async ({
+    page,
+  }, info) => {
+    const email = `esqueceu-${info.project.name}-${Date.now()}@teste.exemplo`
+    await entrarComo(page, 'engenheiro', '/inicio')
+    await darAcesso(page, email, 'primeira-2026')
+    // A pessoa entra e cria a senha dela.
+    await entrar(page, email, 'primeira-2026')
+    await page.waitForURL((u) => u.pathname === '/trocar-senha')
+    await page.getByLabel('Nova senha', { exact: true }).fill('dela-mesma-2026')
+    await page.getByLabel('Repita a nova senha', { exact: true }).fill('dela-mesma-2026')
+    await page.getByRole('button', { name: 'Salvar nova senha' }).click()
+    await page.waitForURL((u) => u.pathname === '/inicio')
+
+    // Esqueceu: o engenheiro gera outra no acesso dela.
+    await page.context().clearCookies()
     await entrarComo(page, 'engenheiro', '/inicio')
     await page.goto('/cadastros/usuarios')
-    await page.getByText('almoxarife@almox.exemplo').filter({ visible: true }).click()
+    await page.getByText(email).filter({ visible: true }).click()
     await page.waitForURL((u) => u.pathname.startsWith('/cadastros/acesso/'))
-    await expect(page.getByText('Salvar perfil')).toBeVisible()
-    await expect(
-      page.getByText('Ainda não entrou: gerar nova senha do primeiro acesso'),
-    ).toHaveCount(0)
+    await page.getByText('Esqueceu a senha: gerar uma senha nova').click()
+    await page.getByLabel('Eu escolho a senha').filter({ visible: true }).check()
+    await campo(page, 'Senha inicial').fill('voltou-2026!')
+    await page.getByRole('button', { name: 'Gerar nova senha' }).click()
+    await expect(page.getByLabel('Senha do primeiro acesso').filter({ visible: true })).toHaveText(
+      'voltou-2026!',
+    )
+    // Entra com a nova e é obrigada a criar outra só dela.
+    await entrar(page, email, 'voltou-2026!')
+    await page.waitForURL((u) => u.pathname === '/trocar-senha')
   })
 })

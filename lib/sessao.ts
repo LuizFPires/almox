@@ -69,10 +69,12 @@ export const obterSessao = cache(async (): Promise<Sessao> => {
       empresa: v.empresa ? { id: v.empresa.id, nome: v.empresa.nome } : null,
     }))
     .sort((a, b) => a.nome.localeCompare(b.nome, 'pt-BR'))
-  if (obras.length === 0) redirect('/sem-acesso')
+  const administrador = Boolean(resAdmin.data)
+  // Administrador sem obra ativa: a Administração não depende de obra.
+  if (obras.length === 0) redirect(administrador ? '/administracao' : '/sem-acesso')
 
   const escolhida = (await cookies()).get(COOKIE_OBRA)?.value
   const obraAtual = obras.find((o) => o.id === escolhida) ?? obras[0]!
 
-  return { usuario, obras, obraAtual, administrador: Boolean(resAdmin.data) }
+  return { usuario, obras, obraAtual, administrador }
 })

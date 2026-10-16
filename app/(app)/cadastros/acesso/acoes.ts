@@ -5,8 +5,9 @@ import { redirect } from 'next/navigation'
 import { exigirEngenheiro } from '@/lib/acesso'
 import { validarEmail } from '@/lib/dominio/cadastros'
 import { podeGerarNovaSenha } from '@/lib/dominio/nova-senha'
-import { gerarSenhaProvisoria, TAMANHO_MINIMO_SENHA } from '@/lib/dominio/senha'
+import { gerarSenhaProvisoria } from '@/lib/dominio/senha'
 import { valoresDoForm, type Valores } from '@/lib/formulario'
+import { lerSenhaInicial } from '@/lib/senha-inicial'
 import { criarClienteAdmin } from '@/lib/supabase/admin'
 
 type Perfil = 'engenheiro' | 'almoxarife' | 'consulta'
@@ -24,20 +25,6 @@ const texto = (form: FormData, chave: string) =>
   String(form.get(chave) ?? '')
     .replace(/\s+/g, ' ')
     .trim()
-
-/**
- * Senha do primeiro acesso: gerada pelo app (padrão) ou escolhida pelo engenheiro. Nos dois
- * casos a pessoa é obrigada a criar a dela ao entrar. Devolve a senha ou o erro do campo.
- */
-function lerSenhaInicial(form: FormData): { senha: string } | { erro: string } {
-  if (form.get('senha_inicial_modo') !== 'escolher') return { senha: gerarSenhaProvisoria() }
-  // A senha não passa pelo `texto` (que junta espaços): vale exatamente o que foi digitado.
-  const senha = String(form.get('senha_inicial') ?? '')
-  if (senha.length < TAMANHO_MINIMO_SENHA) {
-    return { erro: `Use pelo menos ${TAMANHO_MINIMO_SENHA} caracteres.` }
-  }
-  return { senha }
-}
 
 /** O banco recusou porque a obra ficaria sem engenheiro. */
 const ultimoEngenheiro = (error: { message?: string } | null) =>
@@ -162,7 +149,9 @@ export async function removerAcesso(form: FormData) {
     .select('usuario_id')
     .maybeSingle()
   if (error || !data) {
-    redirect(`/cadastros/acesso/${usuarioId}?erro=${ultimoEngenheiro(error) ? 'ultimo' : 'remover'}`)
+    redirect(
+      `/cadastros/acesso/${usuarioId}?erro=${ultimoEngenheiro(error) ? 'ultimo' : 'remover'}`,
+    )
   }
   revalidatePath('/cadastros/usuarios')
   redirect('/cadastros/usuarios')

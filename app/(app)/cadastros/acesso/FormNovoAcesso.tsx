@@ -8,7 +8,7 @@ import { Campo, ErroFormulario } from '@/components/Formulario'
 import { RodapeAcao } from '@/components/RodapeAcao'
 import { darAcesso } from './acoes'
 import { CamposPerfil } from './CamposPerfil'
-import { SenhaInicial } from './SenhaInicial'
+import { SenhaInicial } from '@/components/SenhaInicial'
 
 export function FormNovoAcesso({ empreiteiras }: { empreiteiras: { id: string; nome: string }[] }) {
   const [estado, acao, salvando] = useActionState(darAcesso, {})

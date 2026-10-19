@@ -146,7 +146,7 @@ function Escala({ children }: { children: React.ReactNode }) {
     return () => window.removeEventListener('resize', ajustar)
   }, [])
   return (
-    <div className="fixed inset-0 flex items-center justify-center overflow-hidden bg-tv-fundo">
+    <div className="fixed inset-0 flex items-center justify-center overflow-hidden bg-tv-fundo [color-scheme:dark]">
       <div
         className="shrink-0"
         style={{ width: LARGURA_TELA * escala, height: ALTURA_TELA * escala }}
@@ -296,7 +296,7 @@ function Ferramenta({ ferramenta: f, compacto }: { ferramenta: FerramentaTv; com
           <span className={`block rounded-full bg-sutil ${compacto ? 'size-14' : 'size-[76px]'}`} />
         )}
         {f.quantidade > 1 && (
-          <span className="absolute -right-2 -bottom-1 rounded-full bg-amarelo px-2 text-lg font-bold text-escuro">
+          <span className="absolute -right-2 -bottom-1 rounded-full bg-amarelo px-2 text-xl font-extrabold text-black">
             ×{f.quantidade}
           </span>
         )}

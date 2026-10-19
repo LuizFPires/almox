@@ -1,4 +1,4 @@
-import type { Metadata } from 'next'
+import type { Metadata, Viewport } from 'next'
 import { cookies } from 'next/headers'
 import { Suspense, type ReactNode } from 'react'
 import { COOKIE_TV, lerPainel } from '@/lib/dados/tv'
@@ -7,6 +7,12 @@ import { Pareamento } from './Pareamento'
 import { TentarDeNovo } from './TentarDeNovo'
 
 export const metadata: Metadata = { title: 'Painel · Almox' }
+
+/**
+ * A TV já é escura: avisa o navegador para não aplicar o "modo escuro forçado" do Android TV,
+ * que clareia texto escuro (ex.: o ×2 preto sobre o amarelo ficava branco).
+ */
+export const viewport: Viewport = { colorScheme: 'dark' }
 
 /** Painel da TV (F-13): entra pela credencial da TV guardada em cookie (sem login). */
 export default function PaginaTv({ searchParams }: PageProps<'/tv'>) {

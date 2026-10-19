@@ -7,6 +7,7 @@ import { podeLancar } from '@/lib/dominio/permissoes'
 import { obterSessao } from '@/lib/sessao'
 import { desconectarTv } from './acoes'
 import { FormConectarTv } from './FormConectarTv'
+import { ManualTv } from './ManualTv'
 
 /**
  * Conectar a TV do almoxarifado (engenheiro ou almoxarife): o código que a TV mostra é
@@ -47,6 +48,8 @@ export async function TelaConectarTv({
                 Não foi possível desconectar a TV. Tente de novo.
               </p>
             )}
+
+            <ManualTv aberto={tvs.length === 0} />
 
             <section aria-labelledby="titulo-tvs" className="flex flex-col gap-2">
               <h2

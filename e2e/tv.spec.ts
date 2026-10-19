@@ -150,6 +150,9 @@ test.describe('painel da TV', () => {
       await entrarComo(page, 'almoxarife', '/inicio')
       await page.goto(`/conectar-tv/${codigo}`)
       await expect(page.getByLabel('Código que aparece na TV')).toHaveValue(codigo)
+      // Passo a passo de ligar a TV, com o endereço que vai no navegador dela.
+      await page.getByText('Primeira vez? Passo a passo para ligar a TV').click()
+      await expect(page.getByText('almox-chi.vercel.app/tv', { exact: true })).toBeVisible()
       await page.getByLabel('Nome da TV (opcional)').fill(nome)
       await page.getByRole('button', { name: 'Conectar TV' }).click()
       await expect(page.getByText(`“${nome}” conectada`)).toBeVisible()

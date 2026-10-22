@@ -21,7 +21,7 @@ de outra pessoa está indicado.
         a API; a conexão direta é para manutenção).
   - [ ] **Supabase › Authentication**: *Secure password change* ligado; código do e-mail com
         **8 dígitos** e validade de **900 s**; intervalo entre e-mails de **60 s**; proteção de
-        senha vazada ligada; URL de retorno só `https://almox-chi.vercel.app/auth/confirmar`.
+        senha vazada ligada; URL de retorno só `https://almox-controle.vercel.app/auth/confirmar`.
   - [ ] **Supabase › Authentication › Emails**: modelo *Reset password* com o texto de
         `supabase/templates/codigo-senha.html` (usa `{{ .Token }}`, não o link) e aviso de
         *Password changed* ligado com `senha-trocada.html`.
@@ -58,7 +58,7 @@ de outra pessoa está indicado.
 
 ### Wi-Fi do almoxarifado
 Faça o teste **no ponto onde o almoxarife fica** e **junto da TV**, no horário de pico (7h):
-- [ ] Abrir `almox-chi.vercel.app` no celular do almoxarife em até 5 s.
+- [ ] Abrir `almox-controle.vercel.app` no celular do almoxarife em até 5 s.
 - [ ] Teste de velocidade com pelo menos 2 Mbps.
 - [ ] O celular não perde o sinal ao andar até as prateleiras.
 
@@ -69,7 +69,7 @@ repetidor perto do balcão evita fila de lançamentos para mandar depois.
 - [ ] Aparelho ligado na TV pelo HDMI, no Wi-Fi da obra, com o HDMI-CEC ligado na TV
       (Anynet+ na Samsung, SimpLink na LG).
 - [ ] **Fully Kiosk Browser** instalado pelo Google Play, com endereço inicial
-      `almox-chi.vercel.app/tv`, "abrir ao iniciar" e "manter a tela ligada".
+      `almox-controle.vercel.app/tv`, "abrir ao iniciar" e "manter a tela ligada".
 - [ ] A TV mostra um código de 6 números e um QR: no celular do engenheiro ou do almoxarife,
       leia o QR (ou *Início › ícone de grade › Conectar TV*) e toque em **Conectar TV**.
 - [ ] O painel aparece sozinho em poucos segundos.

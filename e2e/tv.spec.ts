@@ -152,7 +152,7 @@ test.describe('painel da TV', () => {
       await expect(page.getByLabel('Código que aparece na TV')).toHaveValue(codigo)
       // Passo a passo de ligar a TV, com o endereço que vai no navegador dela.
       // Vem aberto se a obra ainda não tem TV; senão, abre ao tocar.
-      const endereco = page.getByText('almox-chi.vercel.app/tv', { exact: true })
+      const endereco = page.getByText('almox-controle.vercel.app/tv', { exact: true })
       if (!(await endereco.isVisible())) {
         await page.getByText('Primeira vez? Passo a passo para ligar a TV').click()
       }

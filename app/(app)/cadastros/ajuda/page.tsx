@@ -59,7 +59,7 @@ export default function PaginaAjuda() {
             Na loja da TV (Google Play), instale o <b>Fully Kiosk Browser</b>. Nas configurações
             dele, ponha o endereço inicial:
             <span className="rounded-botao bg-sutil px-3 py-2 font-mono text-[13px] break-all">
-              almox-chi.vercel.app/tv
+              almox-controle.vercel.app/tv
             </span>
             e ligue “abrir ao iniciar” e “manter a tela ligada”. Dica: o app <b>Google TV</b> no
             celular vira teclado da TV.

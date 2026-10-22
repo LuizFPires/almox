@@ -143,7 +143,7 @@ test.describe('cadastros do engenheiro', () => {
     for (const secao of ['1. Painel na TV', '2. Adesivos dos capacetes', 'Se algo não funcionar']) {
       await expect(page.getByRole('region', { name: secao })).toBeVisible()
     }
-    await expect(page.getByText('almox-chi.vercel.app/tv')).toBeVisible()
+    await expect(page.getByText('almox-controle.vercel.app/tv')).toBeVisible()
   })
 
   test('almoxarife não cadastra: nem pela tela, nem pela API', async ({ page }) => {

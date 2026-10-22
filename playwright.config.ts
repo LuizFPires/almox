@@ -2,7 +2,7 @@ import { defineConfig, devices } from '@playwright/test'
 
 const PORTA = 3200
 const noCI = !!process.env.CI
-// Com E2E_BASE_URL (ex.: https://almox-chi.vercel.app) os testes rodam contra o deploy.
+// Com E2E_BASE_URL (ex.: https://almox-controle.vercel.app) os testes rodam contra o deploy.
 const urlExterna = process.env.E2E_BASE_URL
 
 export default defineConfig({

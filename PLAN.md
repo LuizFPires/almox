@@ -39,7 +39,7 @@ Legenda: ⬜ A fazer · 🟨 Em andamento · ✅ Concluído · ⛔ Bloqueado
 **Entregas**
 - [x] Repositório com Next.js (App Router) + TypeScript estrito + Tailwind
 - [x] Projeto Supabase (dev e prod) criado e variáveis de ambiente documentadas em `.env.example` — `almox-dev` e `almox-prod` (São Paulo)
-- [x] Deploy contínuo (Vercel) a partir da branch `main`; preview por PR — produção em https://almox-chi.vercel.app (Production → almox-prod, Preview → almox-dev)
+- [x] Deploy contínuo (Vercel) a partir da branch `main`; preview por PR — produção em https://almox-controle.vercel.app (Production → almox-prod, Preview → almox-dev)
 - [x] PWA: manifest, ícones, service worker básico, instalável em Android e iPhone
 - [x] Design tokens do protótipo no tema do Tailwind (`@theme` em `globals.css`, Tailwind v4) (cores, fontes Barlow / Barlow Condensed / JetBrains Mono, raios, espaçamentos)
 - [x] Componentes base: `Botao`, `Cartao`, `Contador`, `IconeFerramenta` (biblioteca de ícones SVG do protótipo), `Cabecalho`, `BarraInferior`, `Rodape de ação`
@@ -462,3 +462,4 @@ Legenda: ⬜ A fazer · 🟨 Em andamento · ✅ Concluído · ⛔ Bloqueado
 | 17/10/2026 | **Trabalhador que muda de obra ganha cadastro e adesivo novos** (dono): pessoa, empresa e QR continuam por obra; o histórico de cada obra fica separado. |
 | 17/10/2026 | **Toda obra fica com pelo menos um engenheiro**: o banco recusa rebaixar ou remover o último. **Obra desativada ou encerrada some do app** (escolha de obra); os dados ficam, e o administrador reativa. |
 | 17/10/2026 | **Desativar é para obra parada** (revisão): o banco não recusa lançamento em obra desativada (fila offline e aparelhos abertos ainda enviam). O administrador desativa ou encerra quando o almoxarifado já fechou; se precisar, reativa para conferir. Senha de administrador nunca passa pelo engenheiro, e administrador com senha pendente não alcança as funções do banco. |
+| 22/10/2026 | **Domínio de produção: `almox-controle.vercel.app`** (dono). `almox-chi.vercel.app` redireciona (307). O endereço só aparece em textos (passo a passo da TV, Ajuda) e na lista de retorno do Auth; nenhuma variável de ambiente depende dele. Login, PWA e TV ficam por domínio: quem usava o antigo entra de novo, reinstala o app e reconecta a TV. |

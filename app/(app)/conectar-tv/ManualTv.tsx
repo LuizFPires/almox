@@ -1,7 +1,7 @@
 import type { ReactNode } from 'react'
 
 /** Endereço que vai no navegador da TV. */
-const ENDERECO_TV = 'almox-chi.vercel.app/tv'
+const ENDERECO_TV = 'almox-controle.vercel.app/tv'
 
 type Passo = { titulo: string; tempo: string; itens: ReactNode[] }
 

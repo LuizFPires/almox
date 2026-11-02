@@ -10,6 +10,7 @@ describe('ehRotaPublica', () => {
     expect(ehRotaPublica('/auth/confirmar')).toBe(true)
     expect(ehRotaPublica('/tv')).toBe(true)
     expect(ehRotaPublica('/api/envios')).toBe(true)
+    expect(ehRotaPublica('/api/versao')).toBe(true)
     expect(ehRotaPublica('/api/outra')).toBe(false)
   })
 

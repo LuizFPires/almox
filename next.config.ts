@@ -1,7 +1,16 @@
 import type { NextConfig } from 'next'
 import { CSP_APLICADA, montarCspCompleta } from './lib/seguranca/csp'
 
+/**
+ * Versão do build, embutida no app e respondida em /api/versao: o app avisa "versão nova" quando
+ * as duas diferem. Na Vercel é o commit do deploy; local, a hora do build.
+ */
+const VERSAO_APP =
+  process.env.VERCEL_GIT_COMMIT_SHA?.slice(0, 7) ||
+  new Date().toISOString().slice(0, 16).replace('T', ' ')
+
 const nextConfig: NextConfig = {
+  env: { NEXT_PUBLIC_VERSAO_APP: VERSAO_APP },
   cacheComponents: true,
   // Planilha do cadastro inicial (M11) vai por Server Action: até 5 MB (o padrão é 1 MB).
   experimental: { serverActions: { bodySizeLimit: '5mb' } },

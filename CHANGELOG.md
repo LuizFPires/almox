@@ -16,6 +16,11 @@ e-mail próprio está ligado (`CODIGO_POR_EMAIL=1`, passo a passo em `docs/IMPLA
   outra obra não aparece aí; continua pelo e-mail exato, como antes.
 - Conta que não confirma o e-mail em 24 h é apagada pelo banco (limpeza diária).
 
+- **Versão nova do app:** faixa "Tem uma versão nova do Almox" com o botão **Atualizar** quando o
+  servidor já roda outro build (conferido ao abrir, ao voltar para a tela e a cada 10 min), e
+  botão **Atualizar o app** em Conta e obra, com a versão em uso. Quem fica dias com o app aberto
+  não precisa mais fechar e abrir para pegar o deploy.
+
 ### Mudado
 - **Login:** botões grandes **Esqueci a senha** e **Criar conta** no lugar do link miúdo; o e-mail
   digitado já vai preenchido para a recuperação.

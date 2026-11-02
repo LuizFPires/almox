@@ -16,17 +16,26 @@ import { pedirCodigo, salvarSenha, type EstadoRecuperar } from './acoes'
 type Props = {
   /** Conectado: o código vai para o e-mail da própria conta. */
   emailDaConta: string | null
+  /** E-mail já digitado no login (sem sessão). */
+  emailSugerido?: string
+  /** Começa já no passo do código (Criar conta acabou de mandar um). */
+  inicial?: EstadoRecuperar
+  /** Conta recém-criada: o texto diz que o código foi enviado, sem o "se houver acesso". */
+  contaNova?: boolean
 }
 
 /**
  * Definir, recuperar ou trocar a senha, sempre pelo código de 8 dígitos enviado ao e-mail
  * (também com a sessão aberta: celular desbloqueado na obra não troca a senha de ninguém).
  */
-export function FormRecuperar({ emailDaConta }: Props) {
-  const inicial: EstadoRecuperar = { passo: 'email', email: emailDaConta ?? '' }
-  const [pedido, pedir, pedindo] = useActionState(pedirCodigo, inicial)
+export function FormRecuperar({ emailDaConta, emailSugerido, inicial, contaNova = false }: Props) {
+  const primeiro: EstadoRecuperar = inicial ?? {
+    passo: 'email',
+    email: emailDaConta ?? emailSugerido ?? '',
+  }
+  const [pedido, pedir, pedindo] = useActionState(pedirCodigo, primeiro)
   const [salvo, salvar, salvando] = useActionState(salvarSenha, { passo: 'codigo' })
-  // O passo vem da última ação respondida; "Pedir outro código" volta ao e-mail.
+  // O passo vem da última ação respondida; "Reenviar código" volta ao e-mail.
   const [ultima, setUltima] = useState<'pedido' | 'salvo'>('pedido')
   const [outroCodigo, setOutroCodigo] = useState(false)
   const estado = ultima === 'salvo' ? salvo : pedido
@@ -52,7 +61,7 @@ export function FormRecuperar({ emailDaConta }: Props) {
         <p className="text-texto-2">
           {emailDaConta
             ? `Para trocar a senha, enviamos um código para ${emailDaConta}.`
-            : 'Informe seu e-mail. Enviamos um código para você criar a senha.'}
+            : 'Informe o e-mail da sua conta. Enviamos um código para você criar uma senha nova.'}
         </p>
         <Campo
           rotulo="E-mail"
@@ -92,8 +101,18 @@ export function FormRecuperar({ emailDaConta }: Props) {
       {passo === 'codigo' ? (
         <>
           <p role="status" className="text-texto-2">
-            Se houver acesso para <strong className="text-texto">{email}</strong>, o código chega em
-            instantes. Vale 15 minutos. Confira também o spam. Pediu mais de um? Vale o último.
+            {contaNova ? (
+              <>
+                Enviamos um código para <strong className="text-texto">{email}</strong>. Ele chega
+                em instantes e vale 15 minutos. Confira também o spam.
+              </>
+            ) : (
+              <>
+                Se houver conta para <strong className="text-texto">{email}</strong>, o código chega
+                em instantes. Vale 15 minutos. Confira também o spam. Pediu mais de um? Vale o
+                último.
+              </>
+            )}
           </p>
           <Campo
             rotulo="Código do e-mail"
@@ -142,11 +161,13 @@ export function FormRecuperar({ emailDaConta }: Props) {
         required
       />
       <Botao type="submit" tamanho="g" larguraTotal disabled={salvando}>
-        {salvando ? 'Salvando…' : 'Salvar senha'}
+        {salvando ? 'Salvando…' : contaNova ? 'Criar conta' : 'Salvar senha'}
       </Botao>
-      <p className="text-center text-sm text-texto-2">
-        Ao salvar, os outros aparelhos conectados nesta conta saem.
-      </p>
+      {!contaNova && (
+        <p className="text-center text-sm text-texto-2">
+          Ao salvar, os outros aparelhos conectados nesta conta saem.
+        </p>
+      )}
       {passo === 'codigo' && (
         <button
           type="button"
@@ -157,7 +178,7 @@ export function FormRecuperar({ emailDaConta }: Props) {
           }}
           className="flex min-h-toque items-center justify-center font-semibold underline"
         >
-          Pedir outro código
+          Não chegou? Reenviar código
         </button>
       )}
     </form>

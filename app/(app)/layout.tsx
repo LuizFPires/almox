@@ -1,4 +1,5 @@
 import { Suspense } from 'react'
+import { NovaVersao } from '@/components/NovaVersao'
 import { Sincronizador } from '@/components/Sincronizador'
 import { podeLancar } from '@/lib/dominio/permissoes'
 import { obterSessao } from '@/lib/sessao'
@@ -28,6 +29,7 @@ export default function LayoutApp({ children }: LayoutProps<'/'>) {
       <Suspense fallback={null}>
         <SincronizadorDaSessao />
       </Suspense>
+      <NovaVersao />
     </div>
   )
 }

@@ -26,7 +26,22 @@ de outra pessoa está indicado.
         `supabase/templates/codigo-senha.html` (usa `{{ .Token }}`, não o link) e aviso de
         *Password changed* ligado com `senha-trocada.html`.
   - [ ] **SMTP próprio (Resend)** no Auth: sem ele o código de senha só chega para quem é membro
-        da organização do Supabase.
+        da organização do Supabase, e "Esqueci a senha" e "Criar conta" não funcionam sozinhos.
+        Passo a passo (uns 10 minutos, com a conta do Resend já com o domínio verificado):
+    1. No Resend, crie uma **API key** só para o Auth (*Sending access*). Pode ser a mesma
+       `RESEND_API_KEY` dos avisos, mas uma chave própria facilita revogar.
+    2. **Supabase › Project Settings › Authentication › SMTP Settings**: ligue *Enable Custom SMTP*
+       e preencha: *Sender email* `avisos@<domínio verificado>` (o mesmo de `EMAIL_REMETENTE`),
+       *Sender name* `Almox`, *Host* `smtp.resend.com`, *Port* `465`, *Username* `resend`,
+       *Password* a API key. Salve.
+    3. Ainda em **Authentication › Rate Limits**: suba *emails sent per hour* para pelo menos
+       **30** (o padrão do SMTP próprio é baixo; cada código ou conta nova gasta um).
+    4. **Authentication › Emails**: o modelo *Reset password* precisa mostrar `{{ .Token }}`
+       (texto de `supabase/templates/codigo-senha.html`). "Criar conta" usa esse mesmo modelo.
+    5. **Vercel › Production**: `CODIGO_POR_EMAIL=1` e redeploy. Antes disso o app mostra o caminho
+       sem e-mail (engenheiro gera a senha) e esconde o fluxo por código.
+    6. Teste: na tela de login, **Esqueci a senha** com o seu e-mail; o código chega em até 1 min.
+       Depois **Criar conta** com um e-mail de fora da organização do Supabase.
   - [ ] Apagar `.env.prod-acesso` e `.env.prod-envios` depois de guardar os valores.
 - [ ] **Sentry**: projeto criado; `NEXT_PUBLIC_SENTRY_DSN` na Vercel. Sem ele o app funciona,
       só não avisa os erros.

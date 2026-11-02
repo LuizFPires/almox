@@ -4,11 +4,20 @@ import { lerAmbientePublico, opcoesCookieServidor } from './ambiente'
 import type { Database } from './tipos-banco'
 
 /**
- * Rotas abertas: login, recuperar a senha pelo código do e-mail, retorno de links do Auth, a
- * TV (credencial própria, M8), o processador de envios (agendamento com segredo, M9) e os
- * relatórios da CSP (o navegador manda sem sessão).
+ * Rotas abertas: login, criar conta e recuperar a senha pelo código do e-mail, retorno de links
+ * do Auth, a TV (credencial própria, M8), o processador de envios (agendamento com segredo, M9),
+ * os relatórios da CSP (o navegador manda sem sessão) e a versão do app.
  */
-const ROTAS_PUBLICAS = ['/login', '/recuperar-senha', '/auth', '/tv', '/api/envios', '/api/csp']
+const ROTAS_PUBLICAS = [
+  '/login',
+  '/criar-conta',
+  '/recuperar-senha',
+  '/auth',
+  '/tv',
+  '/api/envios',
+  '/api/csp',
+  '/api/versao',
+]
 
 export function ehRotaPublica(caminho: string): boolean {
   return ROTAS_PUBLICAS.some((rota) => caminho === rota || caminho.startsWith(`${rota}/`))

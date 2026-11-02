@@ -1625,6 +1625,15 @@ export type Database = {
           usuario_id: string
         }[]
       }
+      listar_contas_sem_obra: {
+        Args: { p_obra: string }
+        Returns: {
+          criado_em: string
+          email: string
+          nome: string
+          usuario_id: string
+        }[]
+      }
       marcar_adesivos_impressos: { Args: { p_obra: string; p_pessoas: string[] }; Returns: number }
       marcar_fotos_apagadas: { Args: { p_caminhos: string[] }; Returns: number }
       metricas_piloto: { Args: { p_ate: string; p_de: string; p_obra: string }; Returns: Json }

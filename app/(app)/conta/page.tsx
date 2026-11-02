@@ -7,6 +7,7 @@ import { chavePublicaVapid } from '@/lib/envios/push'
 import { obterSessao } from '@/lib/sessao'
 import { escolherObra } from './acoes'
 import { AtivarNotificacoes } from './AtivarNotificacoes'
+import { BotaoAtualizar } from './BotaoAtualizar'
 import { BotaoSair } from './BotaoSair'
 
 export const metadata: Metadata = { title: 'Conta · Almox' }
@@ -72,6 +73,8 @@ export default async function PaginaConta() {
         >
           Trocar senha
         </Link>
+
+        <BotaoAtualizar />
 
         <BotaoSair />
       </main>

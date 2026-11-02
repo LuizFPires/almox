@@ -10,10 +10,18 @@ import { darAcesso } from './acoes'
 import { CamposPerfil } from './CamposPerfil'
 import { SenhaInicial } from '@/components/SenhaInicial'
 
-export function FormNovoAcesso({ empreiteiras }: { empreiteiras: { id: string; nome: string }[] }) {
+type Props = {
+  empreiteiras: { id: string; nome: string }[]
+  /** Conta que a pessoa criou sozinha (Contas aguardando obra): e-mail fixo, sem senha inicial. */
+  contaExistente?: { email: string; nome: string } | null
+}
+
+export function FormNovoAcesso({ empreiteiras, contaExistente = null }: Props) {
   const [estado, acao, salvando] = useActionState(darAcesso, {})
   const erros = estado.campos ?? {}
   const v = estado.valores ?? {}
+  const nomeInicial = v.nome ?? contaExistente?.nome
+  const emailInicial = v.email ?? contaExistente?.email
 
   if (estado.criado) {
     return (
@@ -63,17 +71,40 @@ export function FormNovoAcesso({ empreiteiras }: { empreiteiras: { id: string; n
   return (
     <form action={acao} className="flex flex-1 flex-col">
       <div className="flex flex-1 flex-col gap-5 px-5 pt-2 pb-6">
-        <Campo rotulo="Nome" name="nome" defaultValue={v.nome} required erro={erros.nome} />
+        {contaExistente && (
+          <p
+            role="status"
+            className="rounded-botao bg-aviso-claro px-3 py-2.5 text-[15px] text-aviso"
+          >
+            Esta pessoa criou a conta sozinha e já tem senha. Falta só escolher o perfil dela nesta
+            obra.
+          </p>
+        )}
+        <Campo
+          rotulo="Nome"
+          name="nome"
+          defaultValue={nomeInicial}
+          required
+          erro={erros.nome}
+          ajuda={
+            contaExistente ? 'Nome que ela mesma informou; vale o do cadastro dela.' : undefined
+          }
+        />
         <Campo
           rotulo="E-mail"
           name="email"
           type="email"
           inputMode="email"
           autoComplete="off"
-          defaultValue={v.email}
+          defaultValue={emailInicial}
+          readOnly={Boolean(contaExistente)}
           required
           erro={erros.email}
-          ajuda="É o login. Para dono e encarregado de empreiteira, use o e-mail que recebe os avisos."
+          ajuda={
+            contaExistente
+              ? undefined
+              : 'É o login. Para dono e encarregado de empreiteira, use o e-mail que recebe os avisos.'
+          }
         />
         <CamposPerfil
           perfil={v.perfil}
@@ -81,7 +112,7 @@ export function FormNovoAcesso({ empreiteiras }: { empreiteiras: { id: string; n
           empreiteiras={empreiteiras}
           erros={erros}
         />
-        <SenhaInicial erro={erros.senha_inicial} />
+        {!contaExistente && <SenhaInicial erro={erros.senha_inicial} />}
         <ErroFormulario mensagem={estado.erro} />
       </div>
       <RodapeAcao>

@@ -2,7 +2,6 @@ import type { Metadata } from 'next'
 import { Suspense } from 'react'
 import { Marca } from '@/components/Marca'
 import { destinoSeguro } from '@/lib/dominio/destino'
-import { codigoPorEmail } from '@/lib/configuracao'
 import { FormLogin } from './FormLogin'
 
 export const metadata: Metadata = { title: 'Entrar · Almox' }
@@ -29,7 +28,7 @@ async function Formulario({
           pedido. Peça outro.
         </p>
       )}
-      <FormLogin volta={destinoSeguro(volta)} codigoPorEmail={codigoPorEmail()} />
+      <FormLogin volta={destinoSeguro(volta)} />
     </>
   )
 }
@@ -49,7 +48,7 @@ export default function PaginaLogin({ searchParams }: PageProps<'/login'>) {
         />
       </Suspense>
       <p className="text-sm text-texto-2">
-        O acesso é por convite do engenheiro da obra. Sem login? Fale com ele.
+        Quem libera a sua obra é o engenheiro. Criou a conta? Avise a ele.
       </p>
     </main>
   )

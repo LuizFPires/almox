@@ -1,18 +1,26 @@
 'use client'
 
 import Link from 'next/link'
-import { useActionState } from 'react'
+import { useActionState, useState } from 'react'
 import { Botao } from '@/components/Botao'
 import { CampoSenha } from '@/components/CampoSenha'
 import { Campo } from '@/components/Formulario'
 import { entrarComSenha } from './acoes'
 
-/** E-mail e senha (com o olho). Esqueceu ou ainda não tem senha: código no e-mail. */
-export function FormLogin({ volta, codigoPorEmail }: { volta: string; codigoPorEmail: boolean }) {
+const CLASSE_ATALHO =
+  'flex min-h-14 items-center justify-center rounded-cartao border border-borda bg-cartao px-4 text-center text-base font-bold'
+
+/** E-mail e senha (com o olho). Abaixo, os dois caminhos de quem não entra: senha e conta. */
+export function FormLogin({ volta }: { volta: string }) {
   const [estado, acao, entrando] = useActionState(entrarComSenha, {})
+  // O e-mail digitado segue para "Esqueci a senha", para não digitar de novo.
+  const [email, setEmail] = useState(estado.email ?? '')
+  const recuperar = email.trim()
+    ? `/recuperar-senha?email=${encodeURIComponent(email.trim())}`
+    : '/recuperar-senha'
 
   return (
-    <div className="flex flex-col gap-4">
+    <div className="flex flex-col gap-6">
       <form action={acao} className="flex flex-col gap-3">
         <input type="hidden" name="volta" value={volta} />
         <Campo
@@ -23,6 +31,7 @@ export function FormLogin({ volta, codigoPorEmail }: { volta: string; codigoPorE
           autoComplete="username"
           autoCapitalize="none"
           defaultValue={estado.email}
+          onChange={(e) => setEmail(e.target.value)}
           required
         />
         <CampoSenha rotulo="Senha" name="senha" autoComplete="current-password" required />
@@ -39,14 +48,14 @@ export function FormLogin({ volta, codigoPorEmail }: { volta: string; codigoPorE
         </p>
       </form>
 
-      <Link
-        href="/recuperar-senha"
-        className="flex min-h-toque items-center justify-center text-[15px] font-semibold text-texto-3 underline"
-      >
-        {codigoPorEmail
-          ? 'Esqueci ou ainda não tenho senha'
-          : 'Primeiro acesso ou esqueceu a senha?'}
-      </Link>
+      <nav aria-label="Outros caminhos" className="flex flex-col gap-3">
+        <Link href={recuperar} className={CLASSE_ATALHO}>
+          Esqueci a senha
+        </Link>
+        <Link href="/criar-conta" className={CLASSE_ATALHO}>
+          Criar conta
+        </Link>
+      </nav>
     </div>
   )
 }

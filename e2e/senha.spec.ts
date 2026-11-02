@@ -1,8 +1,7 @@
 import { expect, test, type APIRequestContext, type Page } from '@playwright/test'
-import { ambiente, entrarComo, semSeed } from './apoio'
+import { ambiente, codigoRecebido, entrarComo, semSeed } from './apoio'
 
 const OBRA = 'a0000000-0000-4000-8000-000000000001'
-const MAILPIT = 'http://127.0.0.1:54424'
 
 /** Login novo de almoxarife na obra do seed (e-mail único: o Auth manda 1 código por minuto). */
 async function criarLogin(request: APIRequestContext, nome: string) {
@@ -21,24 +20,6 @@ async function criarLogin(request: APIRequestContext, nome: string) {
   })
   expect(vinculo.ok(), await vinculo.text()).toBeTruthy()
   return email
-}
-
-/** Código de 8 dígitos do e-mail de recuperação na caixa de teste (Mailpit). */
-async function codigoRecebido(request: APIRequestContext, email: string) {
-  let codigo = ''
-  await expect(async () => {
-    const busca = await request.get(
-      `${MAILPIT}/api/v1/search?query=${encodeURIComponent(`to:"${email}"`)}`,
-    )
-    const { messages } = (await busca.json()) as { messages: { ID: string; Subject: string }[] }
-    const mensagem = messages.find((m) => m.Subject === 'Seu código do Almox')
-    expect(mensagem).toBeTruthy()
-    const resposta = await request.get(`${MAILPIT}/api/v1/message/${mensagem?.ID}`)
-    const { Text } = (await resposta.json()) as { Text: string }
-    codigo = Text.match(/\b\d{8}\b/)?.[0] ?? ''
-    expect(codigo).toHaveLength(8)
-  }).toPass({ timeout: 15_000 })
-  return codigo
 }
 
 async function preencherSenhaNova(page: Page, senha: string) {
@@ -73,9 +54,11 @@ test.describe('senha pelo código do e-mail', () => {
   test('esqueci a senha: código no e-mail, senha nova e entra', async ({ page, request }) => {
     const email = await criarLogin(request, 'esqueci')
     await page.goto('/login')
-    await page.getByRole('link', { name: 'Esqueci ou ainda não tenho senha' }).click()
-    await expect(page.getByRole('heading', { name: 'Recuperar acesso' })).toBeVisible()
+    // O e-mail digitado no login já vai preenchido para a recuperação.
     await page.getByLabel('E-mail').filter({ visible: true }).fill(email)
+    await page.getByRole('link', { name: 'Esqueci a senha' }).click()
+    await expect(page.getByRole('heading', { name: 'Esqueci a senha' })).toBeVisible()
+    await expect(page.getByLabel('E-mail').filter({ visible: true })).toHaveValue(email)
     await page.getByRole('button', { name: 'Enviar código' }).click()
     await expect(page.getByLabel('Código do e-mail')).toBeVisible()
 
@@ -107,7 +90,7 @@ test.describe('senha pelo código do e-mail', () => {
       .fill(`ninguem-${Date.now()}@teste.exemplo`)
     await page.getByRole('button', { name: 'Enviar código' }).click()
     await expect(page.getByLabel('Código do e-mail')).toBeVisible()
-    await expect(page.getByText(/Se houver acesso para/)).toBeVisible()
+    await expect(page.getByText(/Se houver conta para/)).toBeVisible()
   })
 
   test('pedir o código duas vezes não revela que o e-mail tem login', async ({ page, request }) => {
@@ -118,7 +101,7 @@ test.describe('senha pelo código do e-mail', () => {
       await page.getByRole('button', { name: 'Enviar código' }).click()
       // O 2º pedido cai no limite de 1 por minuto do Auth, mas a tela é a mesma.
       await expect(page.getByLabel('Código do e-mail')).toBeVisible()
-      await expect(page.getByText(/Se houver acesso para/)).toBeVisible()
+      await expect(page.getByText(/Se houver conta para/)).toBeVisible()
     }
   })
 

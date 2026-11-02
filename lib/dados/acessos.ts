@@ -18,3 +18,16 @@ export async function listarAcessos(obraId: string): Promise<Acesso[]> {
   if (error) throw new Error('Não foi possível carregar os acessos.')
   return data
 }
+
+export type ContaSemObra = { usuario_id: string; nome: string; email: string; criado_em: string }
+
+/**
+ * Contas criadas pela tela pública (e-mail confirmado) que ainda não são de obra nenhuma. Login de
+ * outra obra não entra aqui: para ele, o engenheiro digita o e-mail em "Dar acesso".
+ */
+export async function listarContasSemObra(obraId: string): Promise<ContaSemObra[]> {
+  const supabase = await criarClienteServidor()
+  const { data, error } = await supabase.rpc('listar_contas_sem_obra', { p_obra: obraId })
+  if (error) throw new Error('Não foi possível carregar as contas aguardando obra.')
+  return data
+}

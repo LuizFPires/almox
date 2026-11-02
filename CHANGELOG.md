@@ -2,6 +2,26 @@
 
 Registro do que foi entregue em cada milestone (ver `PLAN.md`).
 
+## Acesso · criar conta e esqueci a senha (02/11/2026)
+
+A tela de login mostra os dois caminhos de quem não entra, e os dois funcionam sozinhos quando o
+e-mail próprio está ligado (`CODIGO_POR_EMAIL=1`, passo a passo em `docs/IMPLANTACAO.md`).
+
+### Adicionado
+- **Criar conta** (tela pública): nome e e-mail → código de 8 dígitos → senha. A conta nasce **sem
+  obra**; a pessoa cai em "Falta o engenheiro liberar", com o que dizer a ele. Nenhum login entra
+  numa obra sem o engenheiro. E-mail que já tem conta recebe a mesma tela (só o código).
+- **Contas aguardando obra** em Cadastros › Acessos: contas com e-mail confirmado e sem obra
+  nenhuma, com "Dar acesso" já preenchido (sem senha inicial: a pessoa já tem a dela). Login de
+  outra obra não aparece aí; continua pelo e-mail exato, como antes.
+- Conta que não confirma o e-mail em 24 h é apagada pelo banco (limpeza diária).
+
+### Mudado
+- **Login:** botões grandes **Esqueci a senha** e **Criar conta** no lugar do link miúdo; o e-mail
+  digitado já vai preenchido para a recuperação.
+- **Esqueci a senha:** título direto, "Não chegou? Reenviar código".
+- Sem e-mail próprio, as duas telas explicam que o caminho é o engenheiro (como antes).
+
 ## Performance · bloco 2 (13/10/2026)
 
 O que pesa em obras grandes.

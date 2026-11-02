@@ -46,7 +46,7 @@ reset role;
 -- Limpeza: só a não confirmada com mais de 24 h.
 select is(privado.limpar_contas_nao_confirmadas(), 1, 'apaga só a conta velha sem e-mail confirmado');
 select results_eq(
-  $$select email from auth.users where id in ('c0000000-0000-4000-8000-000000000002', 'c0000000-0000-4000-8000-000000000003') order by email$$,
+  $$select email::text from auth.users where id in ('c0000000-0000-4000-8000-000000000002', 'c0000000-0000-4000-8000-000000000003') order by email$$,
   $$values ('recente@teste.local')$$,
   'a recente fica; a velha foi apagada (e o public.usuario junto, pela cascata)');
 select is_empty(

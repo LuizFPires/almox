@@ -1961,6 +1961,10 @@ export type Database = {
           isSetofReturn: true
         }
       }
+      registrar_contagem_material: {
+        Args: { p_chave?: string; p_itens: Json; p_modo: string; p_obra: string; p_quando?: string }
+        Returns: string
+      }
       registrar_devolucao: {
         Args: {
           p_chave?: string

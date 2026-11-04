@@ -1861,6 +1861,10 @@ export type Database = {
       definir_indenizacao: { Args: { p_avaria: string; p_valor?: number }; Returns: undefined }
       desconectar_tv: { Args: { p_dispositivo: string }; Returns: undefined }
       desfazer_saida_material: { Args: { p_movimento: string; p_obra: string }; Returns: undefined }
+      editar_movimento_material: {
+        Args: { p_motivo?: string; p_movimento: string; p_obra: string; p_quantidade: number }
+        Returns: undefined
+      }
       encerrar_dia: { Args: { p_obra: string }; Returns: string }
       enfileirar_adesivos: { Args: { p_itens: Json; p_obra: string }; Returns: number }
       enfileirar_impressao: {

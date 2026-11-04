@@ -1,0 +1,503 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Almox · Protótipo Materiais</title>
+<style>
+  :root{--canvas:#F6F7F9;--cartao:#fff;--sutil:#F0F2F5;--texto:#1F2937;--texto2:#586474;--borda:#E5E7EB;--amarelo:#F4B400;--escuro:#1F2937;--info:#1E40AF;--info-c:#DBEAFE;--ok:#166534;--ok-c:#DCFCE7;--av:#854D0E;--av-c:#FEF3C7;--er:#991B1B;--er-c:#FEE2E2;--foco:#1D4ED8}
+  *{box-sizing:border-box}
+  body{margin:0;background:#E9ECF1;font-family:Inter,system-ui,-apple-system,Segoe UI,sans-serif;color:var(--texto);display:flex;gap:28px;justify-content:center;align-items:flex-start;padding:24px 16px;min-height:100vh}
+  button{font:inherit;color:inherit;cursor:pointer;border:0;background:none}
+  button:focus-visible,input:focus-visible{outline:3px solid var(--foco);outline-offset:3px}
+  /* painel lateral */
+  .painel{width:270px;background:#fff;border-radius:16px;padding:16px;font-size:13px;position:sticky;top:24px}
+  .painel h1{font-size:16px;margin:0 0 4px}
+  .painel p{color:var(--texto2);margin:0 0 12px;line-height:1.4}
+  .painel h2{font-size:11px;text-transform:uppercase;letter-spacing:.5px;color:var(--texto2);margin:14px 0 6px}
+  .painel .lk{display:block;width:100%;text-align:left;padding:7px 9px;border-radius:8px;font-weight:600}
+  .painel .lk:hover{background:var(--sutil)}
+  .perfil{display:flex;background:var(--sutil);border-radius:10px;padding:3px}
+  .perfil button{flex:1;padding:7px 0;border-radius:8px;font-weight:700;font-size:12px;color:var(--texto2)}
+  .perfil button.at{background:#fff;color:var(--texto);box-shadow:0 1px 2px #0002}
+  /* telefone */
+  .fone{width:390px;height:800px;background:var(--canvas);border:10px solid #111827;border-radius:44px;overflow:hidden;display:flex;flex-direction:column;position:relative;box-shadow:0 20px 50px #0003}
+  .tela{flex:1;overflow-y:auto;display:flex;flex-direction:column}
+  .topo{padding:16px 20px 6px;display:flex;align-items:center;gap:8px}
+  .marca{font-weight:900;font-size:26px;letter-spacing:-.8px}
+  .marca i{font-style:normal;background:var(--amarelo);padding:0 5px;border-radius:5px}
+  .sub{font-size:13px;color:var(--texto2)}
+  .selo{font-size:11px;font-weight:700;padding:4px 8px;border-radius:8px;background:var(--sutil)}
+  .selo.eng{background:var(--info-c);color:var(--info)}
+  .seg{display:flex;background:var(--borda);border-radius:12px;padding:3px;margin:6px 20px 4px}
+  .seg button{flex:1;padding:10px 0;font-size:14px;font-weight:700;border-radius:9px;color:var(--texto2);min-height:44px}
+  .seg button.at{background:#fff;color:var(--texto);box-shadow:0 1px 2px #0002}
+  .corpo{flex:1;padding:10px 20px 20px;display:flex;flex-direction:column;gap:10px}
+  .cab{padding:14px 12px 6px;display:flex;align-items:center;gap:4px;font-weight:800;font-size:18px}
+  .voltar{width:44px;height:44px;display:flex;align-items:center;justify-content:center;font-size:26px;color:var(--texto2)}
+  .rotulo{font-size:11px;font-weight:800;text-transform:uppercase;letter-spacing:.5px;color:var(--texto2);margin-top:4px}
+  .acoes{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px}
+  .acao{border-radius:16px;padding:14px 4px 12px;display:flex;flex-direction:column;align-items:center;gap:8px;font-weight:800;font-size:14px;min-height:104px;justify-content:center}
+  .acao svg{width:40px;height:40px}
+  .acao{background:#fff;border:1.5px solid #D1D5DB;transition:border-color .15s,box-shadow .15s}
+  .acao:hover{box-shadow:0 2px 8px #1F293714}
+  .a-ent{color:#14532D}.a-ent:hover{border-color:#14532D}
+  .a-sai{color:#7F1D1D}.a-sai:hover{border-color:#7F1D1D}
+  .a-cnt{color:#111827}.a-cnt:hover{border-color:#111827}
+  .item{background:#fff;border-radius:14px;padding:11px 14px;display:flex;justify-content:space-between;align-items:center;gap:8px;text-align:left;width:100%;min-height:56px}
+  .item .n{font-size:14px;font-weight:600}
+  .item .s{font-size:12px;color:var(--texto2)}
+  .item b.big{font-size:18px}
+  .item.er{background:var(--er-c)}.item.av{background:var(--av-c)}
+  .item.apagado{opacity:.45}
+  .tag{font-size:11px;font-weight:700;padding:3px 7px;border-radius:7px;white-space:nowrap}
+  .t-er{background:var(--er-c);color:var(--er)}.t-av{background:var(--av-c);color:var(--av)}.t-ok{background:var(--ok-c);color:var(--ok)}.t-in{background:var(--info-c);color:var(--info)}
+  .item.er .t-er{background:#fff}
+  .busca{background:#fff;border:1.5px solid var(--borda);border-radius:12px;padding:12px 14px;font-size:15px;width:100%;min-height:48px}
+  .qtd{display:flex;align-items:center;gap:8px;background:#fff;border:1px solid var(--borda);border-radius:16px;padding:8px}
+  .qtd button{width:52px;height:52px;border-radius:12px;background:var(--sutil);font-size:26px;font-weight:800}
+  .qtd input{flex:1;min-width:0;border:0;border-bottom:2px dashed #C3C8D0;border-radius:0;text-align:center;font-size:36px;font-weight:900;font-family:inherit;color:var(--texto);background:none;padding:2px 0;cursor:text}
+  .qtd input:focus{border-bottom:2px solid var(--foco);outline:none;background:#F8FAFF}
+  .dica{font-size:12px;color:var(--texto2);text-align:center;margin-top:-4px}
+  .qtd .un{font-size:15px;color:var(--texto2);font-weight:700;margin-right:4px}
+  .rapidos{display:flex;gap:6px}
+  .rapidos button{flex:1;background:#fff;border:1px solid var(--borda);border-radius:10px;min-height:44px;font-weight:700}
+  .prev{background:var(--sutil);border-radius:12px;padding:11px 14px;font-size:14px;line-height:1.45}
+  .prev.er{background:var(--er-c);color:var(--er)}
+  .btn{border-radius:10px;padding:15px;text-align:center;font-weight:800;font-size:16px;width:100%;min-height:52px}
+  .b-esc{background:var(--escuro);color:#fff}.b-ok{background:var(--ok);color:#fff}.b-ama{background:var(--amarelo)}.b-info{background:var(--info);color:#fff}
+  .b-sec{background:#fff;border:1px solid var(--borda)}
+  .btn:disabled{opacity:.4;cursor:not-allowed}
+  .cartaoconf{background:#fff;border-radius:16px;padding:20px;text-align:center}
+  .cartaoconf .g{font-size:40px;font-weight:900;line-height:1.1}
+  .pronto{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:10px;text-align:center;padding:20px}
+  .circ{width:76px;height:76px;border-radius:50%;background:var(--ok-c);color:var(--ok);display:flex;align-items:center;justify-content:center}
+  .linha-c{display:grid;grid-template-columns:1fr 64px 76px;gap:6px;align-items:center;background:#fff;border-radius:12px;padding:8px 10px;font-size:13px}
+  .linha-c .si{text-align:center;color:var(--texto2);font-weight:600}
+  .linha-c input{width:100%;border:1.5px solid var(--foco);border-radius:9px;text-align:center;padding:9px 0;font-weight:800;font-size:16px;font-family:inherit}
+  .linha-c input:placeholder-shown{border-color:var(--borda)}
+  .cab-c{display:grid;grid-template-columns:1fr 64px 76px;gap:6px;font-size:10px;font-weight:800;color:var(--texto2);text-transform:uppercase;padding:0 10px}
+  .cab-c span{text-align:center}
+  .modo{border:1.5px solid var(--borda);background:#fff;border-radius:14px;padding:12px;display:flex;gap:10px;text-align:left;width:100%}
+  .modo.at{border:2.5px solid var(--foco)}
+  .bol{width:20px;height:20px;border-radius:50%;border:2px solid #9CA3AF;flex-shrink:0;margin-top:1px}
+  .modo.at .bol{border:6px solid var(--foco)}
+  .modo b{display:block;font-size:14px}
+  .modo span{font-size:12px;color:var(--texto2);line-height:1.35}
+  .saldo-g{background:#fff;border-radius:16px;padding:16px;text-align:center}
+  .saldo-g .g{font-size:44px;font-weight:900;line-height:1}
+  .barra-s{height:10px;background:var(--sutil);border-radius:5px;margin-top:12px;position:relative;overflow:visible}
+  .barra-s i{position:absolute;left:0;top:0;bottom:0;border-radius:5px}
+  .barra-s u{position:absolute;top:-4px;bottom:-4px;width:2px;background:var(--texto)}
+  .mov{display:flex;justify-content:space-between;align-items:center;background:#fff;border-radius:12px;padding:10px 14px;font-size:14px}
+  .mov small{display:block;color:var(--texto2);font-size:12px}
+  .mov.conf{background:var(--av-c)}
+  .campo{background:#fff;border:1px solid var(--borda);border-radius:12px;padding:10px 14px}
+  .campo small{display:block;font-size:10px;font-weight:800;color:var(--texto2);text-transform:uppercase}
+  .campo input,.campo select{border:0;font:inherit;font-size:15px;width:100%;padding:4px 0;background:none;color:var(--texto)}
+  .opc{display:flex;gap:6px}
+  .opc button{flex:1;border:1.5px solid var(--borda);background:#fff;border-radius:12px;padding:11px 6px;font-weight:700;font-size:13px;min-height:48px}
+  .opc button.at{border:2.5px solid var(--info);background:var(--info-c);color:var(--info)}
+  .nav{display:flex;background:#fff;border-top:1px solid var(--borda)}
+  .nav button{flex:1;display:flex;flex-direction:column;align-items:center;gap:3px;padding:8px 0 12px;font-size:11px;font-weight:600;color:var(--texto2);min-height:56px;border-top:3px solid transparent}
+  .nav button.at{color:var(--texto);border-top-color:var(--amarelo)}
+  .nav svg{width:22px;height:22px}
+  .qr{display:flex;align-items:center;gap:16px;background:var(--escuro);color:#fff;border-radius:20px;padding:20px;text-align:left;width:100%}
+  .qr .qi{width:64px;height:64px;border-radius:16px;background:var(--amarelo);color:var(--texto);display:flex;align-items:center;justify-content:center;font-weight:900}
+  .grade{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+  .bloco{background:#fff;border-radius:16px;padding:12px 14px;text-align:left}
+  .bloco b{font-size:28px;display:block}
+  .bloco span{font-size:13px;color:var(--texto2);font-weight:600}
+  .bloco.er{background:var(--er-c);color:var(--er)}.bloco.er span{color:var(--er)}
+  .aviso-box{background:var(--av-c);color:var(--av);border-radius:12px;padding:10px 14px;font-size:13px;line-height:1.4}
+  .info-box{background:var(--info-c);color:var(--info);border-radius:12px;padding:10px 14px;font-size:13px;line-height:1.4}
+  /* push */
+  .push{position:absolute;left:10px;right:10px;top:-120px;background:#ffffffF2;backdrop-filter:blur(8px);border-radius:18px;padding:12px 14px;box-shadow:0 10px 30px #0004;transition:top .35s;z-index:5;text-align:left;font-size:14px}
+  .push.vis{top:10px}
+  .push small{font-size:11px;font-weight:700;color:var(--texto2)}
+  .push b{display:block;margin:2px 0}
+  .toast{position:absolute;left:20px;right:20px;bottom:80px;background:var(--escuro);color:#fff;border-radius:12px;padding:12px 14px;font-size:14px;opacity:0;transition:opacity .25s;pointer-events:none;z-index:4}
+  .toast.vis{opacity:1}
+  .fundo-g{position:absolute;inset:0;background:#11182766;z-index:6}
+  .gaveta{position:absolute;left:0;right:0;bottom:0;background:#fff;border-radius:24px 24px 0 0;padding:8px 20px 22px;z-index:7;display:flex;flex-direction:column;gap:12px;box-shadow:0 -10px 30px #0002}
+  .fundo-g.anim{animation:fundoIn .22s ease-out}.gaveta.anim{animation:sobe .26s cubic-bezier(.2,.8,.2,1)}
+  .fundo-g.saindo{animation:fundoIn .2s reverse forwards}.gaveta.saindo{animation:sobe .2s reverse forwards}
+  @keyframes sobe{from{transform:translateY(100%)}to{transform:translateY(0)}}
+  @keyframes fundoIn{from{opacity:0}to{opacity:1}}
+  .alca{width:40px;height:5px;border-radius:3px;background:#D1D5DB;align-self:center}
+  .g-cab{display:flex;justify-content:space-between;align-items:center;gap:8px}
+  .fechar{width:44px;height:44px;border-radius:50%;background:var(--sutil);font-size:16px;color:var(--texto2);flex-shrink:0}
+  .gaveta .qtd{background:var(--canvas)}
+  .vazio{color:var(--texto2);font-size:14px;text-align:center;padding:20px}
+  @media (max-width:760px){body{flex-direction:column;align-items:center}.painel{position:static;width:100%;max-width:390px}.fone{width:100%;max-width:390px}}
+</style>
+</head>
+<body>
+
+<aside class="painel">
+  <h1>Protótipo · modo Materiais</h1>
+  <p>Clicável. Lance entradas, saídas e contagens e veja o saldo, o extrato e os avisos mudarem.</p>
+  <h2>Ver como</h2>
+  <div class="perfil" id="perfil">
+    <button data-p="almox" class="at">Almoxarife</button>
+    <button data-p="eng">Engenheiro</button>
+  </div>
+  <h2>Ir direto para</h2>
+  <button class="lk" data-ir="inicio">Início (Materiais)</button>
+  <button class="lk" data-ir="escolher:entrada">Entrada</button>
+  <button class="lk" data-ir="escolher:saida">Saída</button>
+  <button class="lk" data-ir="contagem">Contagem</button>
+  <button class="lk" data-ir="saldos">Saldos</button>
+  <button class="lk" data-ir="extrato">Extrato</button>
+  <button class="lk" data-ir="cadastros">Cadastros e avisos</button>
+  <button class="lk" data-ir="fer">Modo Ferramentas</button>
+  <h2>Dados</h2>
+  <button class="lk" id="reiniciar">Recomeçar com dados de exemplo</button>
+</aside>
+
+<div class="fone">
+  <div class="push" id="push"></div>
+  <div class="tela" id="tela"></div>
+  <nav class="nav" id="nav"></nav>
+  <div id="gaveta"></div>
+  <div class="toast" id="toast"></div>
+</div>
+
+<script>
+const IC = {
+  entrada:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v11M7 9.5l5 5 5-5M4 15v5h16v-5"/></svg>',
+  saida:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M12 15V4M7 8.5l5-5 5 5M4 15v5h16v-5"/></svg>',
+  contagem:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M7 8.5l3.5 3.5L17.5 5M4 15v5h16v-5"/></svg>',
+  inicio:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M4 4h7v7H4zM13 4h7v4h-7zM13 10h7v10h-7zM4 13h7v7H4z"/></svg>',
+  saldos:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="m3 7 9-4 9 4v10l-9 4-9-4ZM3 7l9 5 9-5M12 12v9"/></svg>',
+  extrato:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12a9 9 0 1 0 3-6.7L3 8M3 3v5h5M12 7v5l3 3"/></svg>',
+  fechamento:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M9 3.5h6v3H9z"/><path d="M9 5H5.5v16h13V5H15M8.5 13l2.5 2.5 4.5-4.5"/></svg>',
+  cadastros:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M4 6h16M4 12h16M4 18h10"/></svg>',
+  lista:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M8 6h12M8 12h12M8 18h12M4 6h.01M4 12h.01M4 18h.01"/></svg>',
+  check:'<svg viewBox="0 0 24 24" width="40" height="40" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="m5 12.5 4.5 4.5L19 7.5"/></svg>'
+};
+
+const lerNum = v => { v=String(v).trim().replace(/\s/g,''); if(v.includes(',')) v=v.replace(/\./g,'').replace(',','.'); else if(/^\d{1,3}(\.\d{3})+$/.test(v)) v=v.replace(/\./g,''); return parseFloat(v); };
+const fmt = n => Number(n).toLocaleString('pt-BR');
+const norm = s => s.normalize('NFD').replace(/[̀-ͯ]/g,'').toLowerCase();
+const agora = () => new Date().toLocaleTimeString('pt-BR',{hour:'2-digit',minute:'2-digit',timeZone:'America/Sao_Paulo'});
+
+function dadosExemplo(){
+  return {
+    materiais:[
+      {id:1,nome:'Cimento CP-II 50 kg',un:'sc',saldo:118,aviso:{tipo:'qtd',valor:20},ultimaEntrada:500,usos:9},
+      {id:2,nome:'Areia média',un:'m³',saldo:8,aviso:{tipo:'pct',valor:50},ultimaEntrada:12,usos:7},
+      {id:3,nome:'Brita 1',un:'m³',saldo:14,aviso:null,ultimaEntrada:20,usos:4},
+      {id:4,nome:'Bloco de concreto 14×19×39',un:'un',saldo:2340,aviso:{tipo:'qtd',valor:500},ultimaEntrada:3000,usos:5},
+      {id:5,nome:'Arame recozido 18',un:'kg',saldo:40,aviso:{tipo:'qtd',valor:10},ultimaEntrada:50,usos:3},
+      {id:6,nome:'Cimento CP-V ARI 40 kg',un:'sc',saldo:0,aviso:null,ultimaEntrada:0,usos:0},
+    ],
+    extrato:[
+      {mat:1,tipo:'saida',q:-60,quando:'ontem 11:30',quem:'Marcos'},
+      {mat:1,tipo:'entrada',q:500,quando:'ontem 14:02',quem:'Marcos'},
+      {mat:1,tipo:'saida',q:-322,quando:'ontem 16:50',quem:'Marcos'},
+      {mat:2,tipo:'entrada',q:12,quando:'ontem 09:10',quem:'Marcos'},
+      {mat:2,tipo:'ajuste',q:-4,quando:'ontem 17:40',quem:'Marcos'},
+    ].reverse(),
+    disparado:{}
+  };
+}
+let D = dadosExemplo();
+let S = {modo:'mat',perfil:'almox',tela:'inicio',pilha:[],tipo:null,mat:null,q:0,busca:'',contagem:{},modoCont:'ajustar',desfazer:null};
+
+const mat = id => D.materiais.find(m=>m.id===id);
+const nomePessoa = () => S.perfil==='eng' ? 'Eng. Paula' : 'Marcos';
+function limite(m){ if(!m.aviso) return null; return m.aviso.tipo==='qtd' ? m.aviso.valor : Math.round(m.ultimaEntrada*m.aviso.valor/100*100)/100; }
+function abaixo(m){ const l=limite(m); return l!==null && m.saldo<=l; }
+function tagSaldo(m){
+  const l=limite(m);
+  if(l===null) return '';
+  if(m.saldo<=l) return `<span class="tag t-er">limite ${fmt(l)}</span>`;
+  if(m.saldo<=l*1.5) return `<span class="tag t-av">perto do limite</span>`;
+  return `<span class="tag t-ok">ok</span>`;
+}
+
+function ir(t, extra={}){ S.pilha.push(S.tela); Object.assign(S,extra); S.tela=t; render(); document.getElementById('tela').scrollTop=0; }
+function voltar(){ S.tela=S.pilha.pop()||'inicio'; render(); }
+function raiz(t){ S.pilha=[]; S.tela=t; render(); }
+function toast(msg){ const el=document.getElementById('toast'); el.textContent=msg; el.classList.add('vis'); clearTimeout(toast.t); toast.t=setTimeout(()=>el.classList.remove('vis'),2600); }
+
+function verificaAviso(m, antes){
+  const l=limite(m); if(l===null) return false;
+  if(antes>l && m.saldo<=l && !D.disparado[m.id]){
+    D.disparado[m.id]=true;
+    const p=document.getElementById('push');
+    p.innerHTML=`<small>ALMOX · agora</small><b>${m.nome} abaixo do limite</b>Obra Betim: restam ${fmt(m.saldo)} ${m.un} (limite ${fmt(l)}). Hora de pedir mais.`;
+    p.onclick=()=>{p.classList.remove('vis');ir('ficha',{mat:m.id});};
+    setTimeout(()=>p.classList.add('vis'),700);
+    clearTimeout(verificaAviso.t); verificaAviso.t=setTimeout(()=>p.classList.remove('vis'),6500);
+    return true;
+  }
+  return false;
+}
+function lancar(m,tipo,q){
+  const antes=m.saldo; m.saldo=Math.round((m.saldo+q)*100)/100;
+  D.extrato.unshift({mat:m.id,tipo,q,quando:'hoje '+agora(),quem:nomePessoa()});
+  if(tipo==='entrada'){ m.ultimaEntrada=q; D.disparado[m.id]=false; }
+  if(tipo==='saida') m.usos++;
+  return verificaAviso(m,antes);
+}
+
+/* ===== telas ===== */
+const cab = (t, semVoltar) => `<div class="cab">${semVoltar?'':'<button class="voltar" onclick="voltar()" aria-label="Voltar">‹</button>'}${t}</div>`;
+const topo = () => `<div class="topo"><div style="flex:1"><div class="marca"><i>al</i>mox</div><div class="sub">Obra Betim · ${new Date().toLocaleDateString('pt-BR')} · ${agora()}</div></div><span class="selo ${S.perfil==='eng'?'eng':''}">${S.perfil==='eng'?'Engenheiro':'Almoxarife'}</span></div>
+  <div class="seg"><button class="${S.modo==='fer'?'at':''}" onclick="trocaModo('fer')">Ferramentas</button><button class="${S.modo==='mat'?'at':''}" onclick="trocaModo('mat')">Materiais</button></div>`;
+
+const T = {};
+T.inicio = () => {
+  const ord=[...D.materiais].sort((a,b)=>(abaixo(b)-abaixo(a))||a.nome.localeCompare(b.nome));
+  const n=D.materiais.filter(abaixo).length;
+  return topo()+`<div class="corpo">
+    <div class="acoes">
+      <button class="acao a-ent" onclick="ir('escolher',{tipo:'entrada',busca:''})">${IC.entrada}Entrada</button>
+      <button class="acao a-sai" onclick="ir('escolher',{tipo:'saida',busca:''})">${IC.saida}Saída</button>
+      <button class="acao a-cnt" onclick="ir('contagem')">${IC.contagem}Contagem</button>
+    </div>
+    ${n?`<div class="aviso-box"><b>${n} ${n===1?'material abaixo':'materiais abaixo'} do limite.</b> Todos da obra foram avisados.</div>`:''}
+    <div class="rotulo">Saldo agora</div>
+    ${ord.map(m=>`<button class="item ${abaixo(m)?'er':''}" onclick="ir('ficha',{mat:${m.id}})"><div><div class="n">${m.nome}</div><b class="big">${fmt(m.saldo)} ${m.un}</b></div>${tagSaldo(m)}</button>`).join('')}
+  </div>`;
+};
+
+T.escolher = () => {
+  const ent=S.tipo==='entrada';
+  const q=norm(S.busca||'');
+  let lista=[...D.materiais].filter(m=>norm(m.nome).includes(q));
+  lista.sort(ent?(a,b)=>a.nome.localeCompare(b.nome):(a,b)=>(b.saldo>0)-(a.saldo>0)||b.usos-a.usos);
+  return cab(ent?'Entrada · qual material?':'Saída · qual material?')+`<div class="corpo">
+    <input class="busca" placeholder="Buscar material" value="${S.busca||''}" oninput="S.busca=this.value;rerenderLista()" id="busca" autocomplete="off">
+    ${!ent&&!q?'<div class="rotulo">Mais usados primeiro</div>':''}
+    <div id="lista" style="display:flex;flex-direction:column;gap:8px">
+    ${lista.map(m=>{const sem=!ent&&m.saldo<=0;return `<button class="item ${sem?'apagado':''}" ${sem?'disabled':''} onclick="abrirGaveta(${m.id},0)"><div><div class="n">${m.nome}</div><div class="s">${sem?'sem saldo':'saldo '+fmt(m.saldo)+' '+m.un}</div></div><span style="font-size:22px;color:var(--texto2)">›</span></button>`}).join('')||'<div class="vazio">Nenhum material encontrado.</div>'}
+    </div>
+    ${ent?(S.perfil==='eng'
+      ?`<button class="btn b-sec" onclick="raiz('cadastros');ir('cadMat',{mat:null})">＋ Cadastrar material novo</button>`
+      :`<div class="prev" style="font-size:13px">Não achou? Só o engenheiro cadastra material novo. <button style="text-decoration:underline;font-weight:700" onclick="toast('Pedido enviado ao engenheiro da obra')">Pedir cadastro</button></div>`):''}
+  </div>`;
+};
+function rerenderLista(){ const v=S.busca; render(); const b=document.getElementById('busca'); b.focus(); b.setSelectionRange(v.length,v.length); }
+
+/* ===== gaveta de quantidade (sobe de baixo, por cima da lista) ===== */
+function abrirGaveta(id,q){ S.mat=id; S.q=q||0; S.gaveta='qtd'; S.animar=true; renderGaveta(); }
+function fecharGaveta(){ const g=document.querySelector('.gaveta'); const f=document.querySelector('.fundo-g');
+  if(g){ g.classList.add('saindo'); f.classList.add('saindo'); setTimeout(()=>{S.gaveta=null;renderGaveta();},200); } else { S.gaveta=null; renderGaveta(); } }
+function gavetaQtd(){
+  const m=mat(S.mat), ent=S.tipo==='entrada';
+  const depois=Math.round((m.saldo+(ent?S.q:-S.q))*100)/100;
+  const l=limite(m);
+  const cruza=!ent && l!==null && m.saldo>l && depois<=l && S.q>0;
+  const excede=!ent && S.q>m.saldo;
+  const rap=[10,50,100,500];
+  return `<div class="alca"></div>
+    <div class="g-cab"><div><div class="rotulo" style="margin:0">${ent?'Entrada':'Saída'}</div><b style="font-size:17px">${m.nome}</b></div><button class="fechar" onclick="fecharGaveta()" aria-label="Fechar">✕</button></div>
+    <div class="qtd"><button onclick="setQ(S.q-1)" aria-label="Menos um">−</button><input id="qin" inputmode="decimal" value="${S.q?fmt(S.q):''}" placeholder="0" onfocus="this.select()" oninput="setQ(lerNum(this.value),true)" onkeydown="if(event.key==='Enter')this.blur()" onblur="if(S.q)this.value=fmt(S.q)" aria-label="Quantidade"><span class="un">${m.un}</span><button onclick="setQ(S.q+1)" aria-label="Mais um">+</button></div>
+    <div class="dica">Toque no número para digitar</div>
+    <div class="rapidos">${rap.map(r=>`<button onclick="setQ(S.q+${r})">+${fmt(r)}</button>`).join('')}</div>
+    <div class="prev" id="prev">${prevTxt(m,ent,depois,cruza,excede)}</div>
+    <button class="btn ${ent?'b-ok':'b-esc'}" id="qok" ${S.q>0&&!excede?'':'disabled'} onclick="${ent?"S.gaveta='conf';renderGaveta()":'confirmaSaida()'}">${ent?'Continuar':'Registrar saída'}</button>`;
+}
+function gavetaConf(){
+  const m=mat(S.mat);
+  return `<div class="alca"></div>
+    <div class="g-cab"><div class="rotulo" style="margin:0">Conferir entrada</div><button class="fechar" onclick="fecharGaveta()" aria-label="Fechar">✕</button></div>
+    <div class="cartaoconf" style="background:var(--sutil)"><div class="g" style="color:var(--ok)">+${fmt(S.q)} ${m.un}</div><div style="font-size:16px;font-weight:600;margin-top:4px">${m.nome}</div><div class="sub" style="margin-top:6px">hoje ${agora()} · ${nomePessoa()}</div></div>
+    <div class="prev">O saldo vai ficar em <b>${fmt(m.saldo+S.q)} ${m.un}</b>.</div>
+    <button class="btn b-ok" onclick="confirmaEntrada()">Confirmar entrada</button>
+    <button class="btn b-sec" onclick="S.gaveta='qtd';renderGaveta()">Corrigir</button>`;
+}
+function renderGaveta(){
+  const el=document.getElementById('gaveta');
+  if(!S.gaveta){ el.innerHTML=''; return; }
+  el.innerHTML=`<div class="fundo-g ${S.animar?'anim':''}" onclick="fecharGaveta()"></div><div class="gaveta ${S.animar?'anim':''}" role="dialog" aria-modal="true">${S.gaveta==='qtd'?gavetaQtd():gavetaConf()}</div>`;
+  S.animar=false;
+}
+function prevTxt(m,ent,depois,cruza,excede){
+  if(excede) return `<span style="color:var(--er);font-weight:700">Só tem ${fmt(m.saldo)} ${m.un} no almox. Não dá para sair mais que o saldo.</span>`;
+  return `Saldo: ${fmt(m.saldo)} → <b style="color:${ent?'var(--ok)':'inherit'}">${fmt(depois)} ${m.un}</b>`+
+    (cruza?`<br><span style="color:var(--er);font-weight:700">⚠ Fica abaixo do limite de ${fmt(limite(m))}. Todos da obra serão avisados.</span>`:'');
+}
+function setQ(v,deInput){
+  let n=parseFloat(v); if(isNaN(n)||n<0) n=0; n=Math.round(n*100)/100; S.q=n;
+  if(deInput){ // só atualiza prévia e botão, sem redesenhar o input
+    const m=mat(S.mat),ent=S.tipo==='entrada',depois=Math.round((m.saldo+(ent?n:-n))*100)/100,l=limite(m);
+    const cruza=!ent&&l!==null&&m.saldo>l&&depois<=l&&n>0, excede=!ent&&n>m.saldo;
+    document.getElementById('prev').innerHTML=prevTxt(m,ent,depois,cruza,excede);
+    document.getElementById('qok').disabled=!(n>0&&!excede);
+  } else renderGaveta();
+}
+
+function confirmaEntrada(){ const m=mat(S.mat); lancar(m,'entrada',S.q); S.gaveta=null; S.pilha=['inicio']; S.tela='ok'; render(); }
+function confirmaSaida(){
+  const m=mat(S.mat); const avisou=lancar(m,'saida',-S.q);
+  S.desfazer={mat:m.id,q:S.q,ate:Date.now()+60000,avisou}; S.gaveta=null; S.pilha=['inicio']; S.tela='ok'; render();
+}
+function desfazer(){
+  const d=S.desfazer; if(!d||Date.now()>d.ate) return;
+  const m=mat(d.mat); m.saldo+=d.q; m.usos--;
+  D.extrato.unshift({mat:m.id,tipo:'estorno',q:d.q,quando:'hoje '+agora(),quem:nomePessoa()});
+  if(d.avisou) D.disparado[m.id]=false;
+  S.desfazer=null; toast('Saída desfeita. Fica no extrato como estorno.'); raiz('inicio');
+}
+
+T.ok = () => {
+  const m=mat(S.mat), ent=S.tipo==='entrada';
+  const d=S.desfazer;
+  return `<div class="pronto">
+    <div class="circ">${IC.check}</div>
+    <b style="font-size:20px">${ent?'Entrada registrada':'Saída registrada'}</b>
+    <div style="font-size:15px">${ent?'+':'−'}${fmt(S.q)} ${m.un} · ${m.nome}</div>
+    <div style="font-size:15px">Saldo: <b style="color:${abaixo(m)?'var(--er)':'inherit'}">${fmt(m.saldo)} ${m.un}</b></div>
+    ${!ent&&d&&d.avisou?'<span class="tag t-er" style="font-size:12px">Aviso enviado a todos da obra</span>':''}
+    ${ent&&m.aviso?'<div class="sub">O aviso de limite deste material volta a valer.</div>':''}
+  </div>
+  <div class="corpo" style="flex:0">
+    <button class="btn ${ent?'b-ok':'b-esc'}" onclick="raiz('inicio');ir('escolher',{tipo:'${S.tipo}',busca:''})">${ent?'Outra entrada':'Outra saída'}</button>
+    ${!ent?`<button class="btn b-sec" id="bdesf" onclick="desfazer()">Desfazer (60 s)</button>`:''}
+    <button class="btn b-sec" onclick="raiz('inicio')">Voltar ao início</button>
+  </div>`;
+};
+setInterval(()=>{ const b=document.getElementById('bdesf'); if(!b||!S.desfazer) return; const r=Math.ceil((S.desfazer.ate-Date.now())/1000); if(r<=0){b.disabled=true;b.textContent='Desfazer expirou';} else b.textContent=`Desfazer (${r} s)`; },1000);
+
+T.contagem = () => `${cab('Contagem · '+new Date().toLocaleDateString('pt-BR'))}<div class="corpo">
+    <div class="sub">Conte o que tem no almox e digite. Em branco = não contei hoje.</div>
+    <div class="cab-c"><span style="text-align:left">Material</span><span>Sistema</span><span>Contei</span></div>
+    ${D.materiais.map(m=>`<div class="linha-c"><div>${m.nome}<div class="sub" style="font-size:11px">${m.un}</div></div><div class="si">${fmt(m.saldo)}</div><input inputmode="decimal" placeholder="—" value="${S.contagem[m.id]??''}" oninput="S.contagem[${m.id}]=this.value" aria-label="Contei de ${m.nome}"></div>`).join('')}
+    <div style="flex:1"></div>
+    <button class="btn b-ama" onclick="ir('revisar')">Revisar contagem</button>
+  </div>`;
+
+function difsContagem(){
+  return D.materiais.map(m=>{const v=S.contagem[m.id]; if(v===undefined||v==='') return null; const c=parseFloat(String(v).replace(',','.')); if(isNaN(c)) return null; return {m,c,d:Math.round((c-m.saldo)*100)/100};}).filter(Boolean);
+}
+T.revisar = () => {
+  const ds=difsContagem();
+  const dif=ds.filter(x=>x.d<0), mais=ds.filter(x=>x.d>0), bate=ds.filter(x=>x.d===0);
+  if(!ds.length) return cab('Revisar contagem')+`<div class="corpo"><div class="vazio">Nenhum material contado ainda.</div><button class="btn b-sec" onclick="voltar()">Voltar e contar</button></div>`;
+  return cab('Revisar contagem')+`<div class="corpo">
+    ${dif.length?'<div class="rotulo">Diferenças encontradas</div>':''}
+    ${dif.map(x=>`<div class="item"><div><div class="n">${x.m.nome}</div><div class="s">sistema ${fmt(x.m.saldo)} · contei ${fmt(x.c)}</div></div><b class="big">${fmt(x.d)} ${x.m.un}</b></div>`).join('')}
+    ${mais.map(x=>`<div class="item av"><div><div class="n">${x.m.nome}</div><div class="s" style="color:var(--av)">Contou ${fmt(x.d)} ${x.m.un} a mais. Falta lançar uma entrada? Esse item não ajusta o saldo.</div></div><button class="tag t-av" style="font-size:12px;padding:8px" onclick="ir('escolher',{tipo:'entrada',busca:''});abrirGaveta(${x.m.id},${x.d})">Lançar entrada</button></div>`).join('')}
+    ${bate.length?`<div class="sub">✓ Bateu certo: ${bate.map(x=>x.m.nome).join(', ')}</div>`:''}
+    ${dif.length?`<div class="rotulo">O que fazer com a diferença?</div>
+    <button class="modo ${S.modoCont==='ajustar'?'at':''}" onclick="S.modoCont='ajustar';render()"><div class="bol"></div><div><b>Ajustar o saldo pela contagem</b><span>O que contei passa a valer. A diferença entra no extrato como consumo do dia.</span></div></button>
+    <button class="modo ${S.modoCont==='conferir'?'at':''}" onclick="S.modoCont='conferir';render()"><div class="bol"></div><div><b>Só conferir</b><span>O saldo continua o das entradas e saídas. A diferença fica registrada para o engenheiro ver.</span></div></button>`:''}
+    <div style="flex:1"></div>
+    <button class="btn b-ama" onclick="confirmaContagem()">Confirmar contagem</button>
+  </div>`;
+};
+function confirmaContagem(){
+  const ds=difsContagem(); let aj=0,avisou=false;
+  ds.forEach(x=>{
+    if(x.d<0){ if(S.modoCont==='ajustar'){ avisou=lancar(x.m,'ajuste',x.d)||avisou; aj++; } else { D.extrato.unshift({mat:x.m.id,tipo:'conferencia',q:x.d,quando:'hoje '+agora(),quem:nomePessoa()}); aj++; } }
+    else if(x.d===0) D.extrato.unshift({mat:x.m.id,tipo:'conf-ok',q:0,quando:'hoje '+agora(),quem:nomePessoa()});
+  });
+  S.resultadoCont={aj,modo:S.modoCont}; S.contagem={}; S.pilha=['inicio']; S.tela='okCont'; render();
+}
+T.okCont = () => `<div class="pronto"><div class="circ">${IC.check}</div><b style="font-size:20px">Contagem salva</b>
+  <div style="font-size:15px">${S.resultadoCont.aj} ${S.resultadoCont.aj===1?'material':'materiais'} com diferença</div>
+  <div class="sub">${S.resultadoCont.modo==='ajustar'?'Saldos ajustados. No extrato aparece como "Contagem · ajuste".':'Saldos mantidos. No extrato aparece como "Conferência · divergência".'}</div></div>
+  <div class="corpo" style="flex:0"><button class="btn b-sec" onclick="raiz('extrato')">Ver extrato</button><button class="btn b-esc" onclick="raiz('inicio')">Voltar ao início</button></div>`;
+
+T.saldos = () => {
+  const ab=D.materiais.filter(abaixo), no=D.materiais.filter(m=>!abaixo(m));
+  const it=m=>`<button class="item ${abaixo(m)?'er':''}" onclick="ir('ficha',{mat:${m.id}})"><div><div class="n">${m.nome}</div><b class="big">${fmt(m.saldo)} ${m.un}</b></div>${tagSaldo(m)||'<span style="font-size:22px;color:var(--texto2)">›</span>'}</button>`;
+  return cab('Saldos',true)+`<div class="seg" style="margin-top:0"><button onclick="trocaModo('fer')">Ferramentas</button><button class="at">Materiais</button></div><div class="corpo">
+    ${ab.length?'<div class="rotulo">Abaixo do limite</div>'+ab.map(it).join(''):''}
+    <div class="rotulo">${ab.length?'Normais':'Todos os materiais'}</div>${no.map(it).join('')}
+  </div>`;
+};
+
+const ROT={entrada:'Entrada',saida:'Saída',ajuste:'Contagem · ajuste',conferencia:'Conferência · divergência','conf-ok':'Conferência ok',estorno:'Estorno (saída desfeita)'};
+const movHtml=(e,comNome)=>{const m=mat(e.mat);const conf=e.tipo==='conferencia'||e.tipo==='conf-ok';
+  return `<div class="mov ${e.tipo==='conferencia'?'conf':''}"><div>${comNome?`<b style="font-size:14px">${m.nome}</b><br>`:''}${ROT[e.tipo]}<small>${e.quando} · ${e.quem}${conf?' · não altera o saldo':''}</small></div><b style="color:${e.q>0?'var(--ok)':e.tipo==='conferencia'?'var(--av)':'inherit'}">${e.tipo==='conf-ok'?'✓':(e.q>0?'+':'')+fmt(e.q)}</b></div>`;};
+T.extrato = () => cab('Extrato · todos os materiais',true)+`<div class="corpo">${D.extrato.map(e=>movHtml(e,true)).join('')||'<div class="vazio">Nada lançado ainda.</div>'}</div>`;
+
+T.ficha = () => {
+  const m=mat(S.mat), l=limite(m), ab=abaixo(m);
+  const ref=Math.max(m.ultimaEntrada,m.saldo,1);
+  const conf=D.extrato.find(e=>e.mat===m.id&&e.tipo==='conferencia');
+  return cab(m.nome)+`<div class="corpo">
+    <div class="saldo-g"><div class="sub">Saldo agora</div><div class="g" style="color:${ab?'var(--er)':'inherit'}">${fmt(m.saldo)} ${m.un}</div>
+      <div class="sub" style="margin-top:6px">${l!==null?`aviso em ${fmt(l)} ${m.un}${m.aviso.tipo==='pct'?` (${m.aviso.valor}% da última entrada)`:''}`:'sem aviso de limite'}</div>
+      <div class="barra-s"><i style="width:${Math.min(100,m.saldo/ref*100)}%;background:${ab?'var(--er)':'var(--ok)'}"></i>${l!==null?`<u style="left:${Math.min(100,l/ref*100)}%"></u>`:''}</div>
+      ${conf?`<div class="tag t-av" style="display:inline-block;margin-top:10px">última conferência: ${fmt(conf.q)} ${m.un} de diferença</div>`:''}
+    </div>
+    ${S.perfil==='eng'?`<button class="btn b-sec" onclick="ir('aviso',{mat:${m.id}})">Configurar aviso de limite</button>`:''}
+    <div class="rotulo">Extrato</div>
+    ${D.extrato.filter(e=>e.mat===m.id).map(e=>movHtml(e,false)).join('')||'<div class="vazio">Sem movimentos.</div>'}
+  </div>`;
+};
+
+T.cadastros = () => {
+  if(S.perfil!=='eng') return cab('Cadastros',true)+`<div class="corpo"><div class="info-box">Cadastros de materiais e avisos de limite são feitos pelo <b>engenheiro</b>. Troque o perfil no painel ao lado para ver.</div></div>`;
+  return cab('Cadastros',true)+`<div class="seg" style="margin-top:0"><button onclick="toast('Cadastros de ferramentas: tela que já existe')">Ferramentas</button><button class="at">Materiais</button></div><div class="corpo">
+    ${D.materiais.map(m=>`<button class="item" onclick="ir('cadMat',{mat:${m.id}})"><div><div class="n">${m.nome}</div><div class="s">${m.un} · ${m.aviso?(m.aviso.tipo==='qtd'?`aviso em ${fmt(m.aviso.valor)} ${m.un}`:`aviso em ${m.aviso.valor}%`):'sem aviso'}</div></div><span style="font-size:22px;color:var(--texto2)">›</span></button>`).join('')}
+    <button class="btn b-info" onclick="ir('cadMat',{mat:null})">＋ Novo material</button>
+  </div>`;
+};
+T.cadMat = () => {
+  const m=S.mat?mat(S.mat):{nome:'',un:'sc',aviso:null};
+  const uns=['sc','m³','kg','un','m','m²','l','barra','rolo','lata'];
+  return cab(S.mat?m.nome:'Novo material')+`<div class="corpo">
+    <div class="campo"><small>Nome</small><input id="cnome" value="${m.nome}" placeholder="Ex.: Cimento CP-II 50 kg"></div>
+    <div class="campo"><small>Unidade</small><select id="cun">${uns.map(u=>`<option ${u===m.un?'selected':''}>${u}</option>`).join('')}</select></div>
+    ${S.mat?`<div class="rotulo">Aviso de limite</div><button class="item" onclick="ir('aviso',{mat:${m.id}})"><div class="n">${m.aviso?(m.aviso.tipo==='qtd'?`Avisar ao chegar em ${fmt(m.aviso.valor)} ${m.un}`:`Avisar ao chegar em ${m.aviso.valor}% da última entrada`):'Sem aviso. Toque para configurar.'}</div><span style="font-size:22px;color:var(--texto2)">›</span></button>`:''}
+    <div style="flex:1"></div>
+    <button class="btn b-info" onclick="salvaMat()">Salvar</button>
+  </div>`;
+};
+function salvaMat(){
+  const nome=document.getElementById('cnome').value.trim(), un=document.getElementById('cun').value;
+  if(!nome){toast('Informe o nome do material');return;}
+  if(S.mat){ Object.assign(mat(S.mat),{nome,un}); }
+  else { const id=Math.max(...D.materiais.map(m=>m.id))+1; D.materiais.push({id,nome,un,saldo:0,aviso:null,ultimaEntrada:0,usos:0}); }
+  toast('Material salvo'); voltar();
+}
+T.aviso = () => {
+  const m=mat(S.mat);
+  if(!S.avisoTmp||S.avisoTmp.mat!==m.id) S.avisoTmp={mat:m.id,tipo:m.aviso?m.aviso.tipo:'qtd',valor:m.aviso?m.aviso.valor:0};
+  const a=S.avisoTmp, real=a.tipo==='qtd'?a.valor:Math.round(m.ultimaEntrada*a.valor)/100;
+  return cab('Aviso · '+m.nome)+`<div class="corpo">
+    <div class="rotulo">Avisar quando</div>
+    <div class="opc"><button class="${a.tipo==='qtd'?'at':''}" onclick="S.avisoTmp.tipo='qtd';render()">Chegar a uma quantidade</button><button class="${a.tipo==='pct'?'at':''}" onclick="S.avisoTmp.tipo='pct';render()">Chegar a uma %</button></div>
+    <div class="qtd"><button onclick="S.avisoTmp.valor=Math.max(0,S.avisoTmp.valor-${a.tipo==='pct'?5:1});render()" aria-label="Menos">−</button><input inputmode="decimal" value="${a.valor}" onchange="S.avisoTmp.valor=Math.max(0,parseFloat(this.value.replace(',','.'))||0);render()"><span class="un">${a.tipo==='pct'?'%':m.un}</span><button onclick="S.avisoTmp.valor+=${a.tipo==='pct'?5:1};render()" aria-label="Mais">+</button></div>
+    ${a.tipo==='pct'?`<div class="prev">${a.valor}% da última entrada (${fmt(m.ultimaEntrada)} ${m.un}) = <b>avisa ao chegar em ${fmt(real)} ${m.un}</b></div>`:''}
+    <div class="info-box"><b>Quem recebe:</b> todos da obra Betim (engenheiro, almoxarifes e consulta), com notificação no celular. Avisa uma vez ao cruzar o limite e volta a valer depois de uma nova entrada.</div>
+    <div style="flex:1"></div>
+    <button class="btn b-info" onclick="salvaAviso()">Salvar aviso</button>
+    ${m.aviso?'<button class="btn b-sec" onclick="mat(S.mat).aviso=null;S.avisoTmp=null;toast(\'Aviso removido\');voltar()">Remover aviso</button>':''}
+  </div>`;
+};
+function salvaAviso(){ const m=mat(S.mat),a=S.avisoTmp; m.aviso=a.valor>0?{tipo:a.tipo,valor:a.valor}:null; D.disparado[m.id]=abaixo(m); S.avisoTmp=null; toast('Aviso salvo'); voltar(); }
+
+T.fer = () => `${topo()}<div class="corpo">
+  <button class="qr" onclick="toast('Fluxo de ferramentas: igual ao que já existe')"><span class="qi">QR</span><span><b style="font-size:21px;display:block">Ler QR do capacete</b><span style="color:#D1D5DB;font-size:14px">Retirada ou devolução</span></span></button>
+  <div class="grade"><div class="bloco"><b>42</b><span>no canteiro</span></div><div class="bloco"><b>118</b><span>livres no almox</span></div><div class="bloco"><b>3</b><span>em manutenção</span></div><div class="bloco er"><b>2</b><span>pendências</span></div></div>
+  <div class="info-box">No modo Ferramentas nada muda: é o app que já está no ar.</div>
+</div>`;
+
+/* ===== navegação inferior ===== */
+function trocaModo(m){ S.modo=m; raiz(m==='fer'?'fer':'inicio'); }
+function renderNav(){
+  const nav=document.getElementById('nav');
+  const itens = S.modo==='fer'
+    ? [['fer','Início',IC.inicio],['x','Lista',IC.lista],['x','Estoque',IC.saldos],['x','Fechamento',IC.fechamento],['x','Cadastros',IC.cadastros]]
+    : [['inicio','Início',IC.inicio],['saldos','Saldos',IC.saldos],['extrato','Extrato',IC.extrato],['contagem','Fechamento',IC.fechamento],['cadastros','Cadastros',IC.cadastros]];
+  const atual = S.pilha.length? (S.pilha[0]==='inicio'&&!['saldos','extrato','cadastros'].includes(S.tela)?S.pilha[0]:S.pilha[0]) : S.tela;
+  nav.innerHTML=itens.map(([t,r,i])=>`<button class="${(atual===t||S.tela===t)?'at':''}" onclick="${t==='x'?"toast('Tela de ferramentas que já existe')":`raiz('${t}')`}">${i}${r}</button>`).join('');
+}
+function render(){ if(S.tela!=='escolher') S.gaveta=null; document.getElementById('tela').innerHTML=T[S.tela](); renderNav(); renderGaveta();
+  document.querySelectorAll('#perfil button').forEach(b=>b.classList.toggle('at',b.dataset.p===S.perfil)); }
+
+document.getElementById('perfil').onclick=e=>{const p=e.target.dataset.p; if(!p) return; S.perfil=p; render();};
+document.querySelectorAll('[data-ir]').forEach(b=>b.onclick=()=>{const [t,tipo]=b.dataset.ir.split(':'); if(t==='fer'){trocaModo('fer');return;} S.modo='mat'; S.pilha=[]; if(tipo){S.tipo=tipo;S.busca='';S.pilha=['inicio'];} S.tela=t; render();});
+document.getElementById('reiniciar').onclick=()=>{D=dadosExemplo(); S.contagem={}; S.desfazer=null; raiz('inicio'); toast('Dados de exemplo restaurados');};
+render();
+</script>
+</body>
+</html>

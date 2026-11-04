@@ -319,6 +319,49 @@ export type Database = {
           },
         ]
       }
+      contagem_material: {
+        Row: {
+          chave_cliente: string | null
+          criado_em: string
+          id: string
+          modo: string
+          obra_id: string
+          usuario_id: string
+        }
+        ComputedFields: never
+        Insert: {
+          chave_cliente?: string | null
+          criado_em?: string
+          id?: string
+          modo: string
+          obra_id: string
+          usuario_id: string
+        }
+        Update: {
+          chave_cliente?: string | null
+          criado_em?: string
+          id?: string
+          modo?: string
+          obra_id?: string
+          usuario_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: 'contagem_material_obra_id_fkey'
+            columns: ['obra_id']
+            isOneToOne: false
+            referencedRelation: 'obra'
+            referencedColumns: ['id']
+          },
+          {
+            foreignKeyName: 'contagem_material_usuario_id_fkey'
+            columns: ['usuario_id']
+            isOneToOne: false
+            referencedRelation: 'usuario'
+            referencedColumns: ['id']
+          },
+        ]
+      }
       desconto: {
         Row: {
           cancelado_em: string | null
@@ -780,6 +823,57 @@ export type Database = {
           },
         ]
       }
+      material: {
+        Row: {
+          ativo: boolean
+          aviso_disparado: boolean
+          aviso_tipo: string | null
+          aviso_valor: number | null
+          criado_em: string
+          estoque_cheio: number
+          id: string
+          nome: string
+          obra_id: string
+          saldo: number
+          unidade: string
+        }
+        ComputedFields: never
+        Insert: {
+          ativo?: boolean
+          aviso_disparado?: boolean
+          aviso_tipo?: string | null
+          aviso_valor?: number | null
+          criado_em?: string
+          estoque_cheio?: number
+          id?: string
+          nome: string
+          obra_id: string
+          saldo?: number
+          unidade: string
+        }
+        Update: {
+          ativo?: boolean
+          aviso_disparado?: boolean
+          aviso_tipo?: string | null
+          aviso_valor?: number | null
+          criado_em?: string
+          estoque_cheio?: number
+          id?: string
+          nome?: string
+          obra_id?: string
+          saldo?: number
+          unidade?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: 'material_obra_id_fkey'
+            columns: ['obra_id']
+            isOneToOne: false
+            referencedRelation: 'obra'
+            referencedColumns: ['id']
+          },
+        ]
+      }
       medicao: {
         Row: {
           empresa_id: string
@@ -954,6 +1048,128 @@ export type Database = {
           },
         ]
       }
+      movimento_material: {
+        Row: {
+          chave_cliente: string | null
+          contagem_id: string | null
+          criado_em: string
+          id: string
+          material_id: string
+          obra_id: string
+          quantidade: number
+          registrado_no_aparelho_em: string | null
+          tipo: string
+          usuario_id: string
+        }
+        ComputedFields: never
+        Insert: {
+          chave_cliente?: string | null
+          contagem_id?: string | null
+          criado_em?: string
+          id?: string
+          material_id: string
+          obra_id: string
+          quantidade: number
+          registrado_no_aparelho_em?: string | null
+          tipo: string
+          usuario_id: string
+        }
+        Update: {
+          chave_cliente?: string | null
+          contagem_id?: string | null
+          criado_em?: string
+          id?: string
+          material_id?: string
+          obra_id?: string
+          quantidade?: number
+          registrado_no_aparelho_em?: string | null
+          tipo?: string
+          usuario_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: 'movimento_material_contagem_id_obra_id_fkey'
+            columns: ['contagem_id', 'obra_id']
+            isOneToOne: false
+            referencedRelation: 'contagem_material'
+            referencedColumns: ['id', 'obra_id']
+          },
+          {
+            foreignKeyName: 'movimento_material_material_id_obra_id_fkey'
+            columns: ['material_id', 'obra_id']
+            isOneToOne: false
+            referencedRelation: 'material'
+            referencedColumns: ['id', 'obra_id']
+          },
+          {
+            foreignKeyName: 'movimento_material_obra_id_fkey'
+            columns: ['obra_id']
+            isOneToOne: false
+            referencedRelation: 'obra'
+            referencedColumns: ['id']
+          },
+          {
+            foreignKeyName: 'movimento_material_usuario_id_fkey'
+            columns: ['usuario_id']
+            isOneToOne: false
+            referencedRelation: 'usuario'
+            referencedColumns: ['id']
+          },
+        ]
+      }
+      movimento_material_versao: {
+        Row: {
+          criado_em: string
+          desfeito: boolean
+          id: string
+          motivo: string | null
+          movimento_id: string
+          quantidade: number
+          usuario_id: string
+        }
+        ComputedFields: never
+        Insert: {
+          criado_em?: string
+          desfeito?: boolean
+          id?: string
+          motivo?: string | null
+          movimento_id: string
+          quantidade: number
+          usuario_id: string
+        }
+        Update: {
+          criado_em?: string
+          desfeito?: boolean
+          id?: string
+          motivo?: string | null
+          movimento_id?: string
+          quantidade?: number
+          usuario_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: 'movimento_material_versao_movimento_id_fkey'
+            columns: ['movimento_id']
+            isOneToOne: false
+            referencedRelation: 'extrato_material'
+            referencedColumns: ['id']
+          },
+          {
+            foreignKeyName: 'movimento_material_versao_movimento_id_fkey'
+            columns: ['movimento_id']
+            isOneToOne: false
+            referencedRelation: 'movimento_material'
+            referencedColumns: ['id']
+          },
+          {
+            foreignKeyName: 'movimento_material_versao_usuario_id_fkey'
+            columns: ['usuario_id']
+            isOneToOne: false
+            referencedRelation: 'usuario'
+            referencedColumns: ['id']
+          },
+        ]
+      }
       obra: {
         Row: {
           ativa: boolean
@@ -1089,6 +1305,62 @@ export type Database = {
             columns: ['obra_id']
             isOneToOne: false
             referencedRelation: 'obra'
+            referencedColumns: ['id']
+          },
+        ]
+      }
+      pedido_cadastro_material: {
+        Row: {
+          criado_em: string
+          id: string
+          material_id: string | null
+          nome: string
+          obra_id: string
+          pedido_por: string
+          resolvido_em: string | null
+          status: string
+        }
+        ComputedFields: never
+        Insert: {
+          criado_em?: string
+          id?: string
+          material_id?: string | null
+          nome: string
+          obra_id: string
+          pedido_por: string
+          resolvido_em?: string | null
+          status?: string
+        }
+        Update: {
+          criado_em?: string
+          id?: string
+          material_id?: string | null
+          nome?: string
+          obra_id?: string
+          pedido_por?: string
+          resolvido_em?: string | null
+          status?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: 'pedido_cadastro_material_material_id_obra_id_fkey'
+            columns: ['material_id', 'obra_id']
+            isOneToOne: false
+            referencedRelation: 'material'
+            referencedColumns: ['id', 'obra_id']
+          },
+          {
+            foreignKeyName: 'pedido_cadastro_material_obra_id_fkey'
+            columns: ['obra_id']
+            isOneToOne: false
+            referencedRelation: 'obra'
+            referencedColumns: ['id']
+          },
+          {
+            foreignKeyName: 'pedido_cadastro_material_pedido_por_fkey'
+            columns: ['pedido_por']
+            isOneToOne: false
+            referencedRelation: 'usuario'
             referencedColumns: ['id']
           },
         ]
@@ -1457,7 +1729,40 @@ export type Database = {
       }
     }
     Views: {
-      [_ in never]: never
+      extrato_material: {
+        Row: {
+          apagado: boolean | null
+          criado_em: string | null
+          desfeito: boolean | null
+          editado_em: string | null
+          editado_por_nome: string | null
+          id: string | null
+          material_id: string | null
+          obra_id: string | null
+          quantidade: number | null
+          quantidade_original: number | null
+          registrado_no_aparelho_em: string | null
+          tipo: string | null
+          usuario_nome: string | null
+        }
+        ComputedFields: never
+        Relationships: [
+          {
+            foreignKeyName: 'movimento_material_material_id_obra_id_fkey'
+            columns: ['material_id', 'obra_id']
+            isOneToOne: false
+            referencedRelation: 'material'
+            referencedColumns: ['id', 'obra_id']
+          },
+          {
+            foreignKeyName: 'movimento_material_obra_id_fkey'
+            columns: ['obra_id']
+            isOneToOne: false
+            referencedRelation: 'obra'
+            referencedColumns: ['id']
+          },
+        ]
+      }
     }
     Functions: {
       adicionar_unidades: { Args: { p_quantidade: number; p_tipo: string }; Returns: string[] }

@@ -26,8 +26,8 @@ type Props = {
   quem: string
 }
 
-const SEM_REDE =
-  'Não deu para confirmar com o Almox. Toque de novo: se já tiver sido registrada, não repete.'
+/** Envio sem resposta (rede caiu): mesma chave e mesma quantidade até o servidor responder. */
+type Pendente = { chave: string; quantidade: number }
 
 function ehErroDoNext(e: unknown): boolean {
   const digest = (e as { digest?: unknown } | null)?.digest
@@ -41,29 +41,48 @@ export function FluxoLancamento({ tipo, materiais, ordemMaisUsados, podeCadastra
   const [escolhido, setEscolhido] = useState<SaldoMaterial | null>(null)
   const [aberta, setAberta] = useState(false)
   const [chave, setChave] = useState('')
+  // Por material: fechar e reabrir a gaveta não troca a chave nem a quantidade pendentes.
+  const [pendentes, setPendentes] = useState<ReadonlyMap<string, Pendente>>(new Map())
   const [erro, setErro] = useState<string | null>(null)
   const [enviando, iniciar] = useTransition()
   const saida = tipo === 'saida'
 
   const lista = filtrarMateriais(ordenarParaLancamento(tipo, materiais, ordemMaisUsados), busca)
 
+  function marcarPendente(materialId: string, p: Pendente | null) {
+    setPendentes((atual) => {
+      const novo = new Map(atual)
+      if (p) novo.set(materialId, p)
+      else novo.delete(materialId)
+      return novo
+    })
+  }
+
   function abrir(m: SaldoMaterial) {
     setEscolhido(m)
     setErro(null)
-    setChave(crypto.randomUUID())
+    setChave(pendentes.get(m.id)?.chave ?? crypto.randomUUID())
     setAberta(true)
   }
 
-  function confirmar(quantidade: number) {
+  function confirmar(digitada: number) {
     if (!escolhido) return
     const material = escolhido
+    const pendente = pendentes.get(material.id)
+    // Com envio pendente, repete exatamente o que foi: a chave devolve o mesmo lançamento.
+    const quantidade = pendente?.quantidade ?? digitada
+    const chaveEnvio = pendente?.chave ?? chave
     setErro(null)
     iniciar(async () => {
       try {
-        const p = { materialId: material.id, quantidade, chave }
+        const p = { materialId: material.id, quantidade, chave: chaveEnvio }
         const r = saida ? await registrarSaida(p) : await registrarEntrada(p)
+        // Resposta de verdade do servidor: libera a quantidade.
+        marcarPendente(material.id, null)
         if (!r.ok) {
           setErro(r.erro)
+          // Nada foi gravado: a próxima tentativa é outro lançamento.
+          setChave(crypto.randomUUID())
           // Saldo pode ter mudado (outra saída antes desta): atualiza a lista e a gaveta.
           router.refresh()
           return
@@ -72,15 +91,14 @@ export function FluxoLancamento({ tipo, materiais, ordemMaisUsados, podeCadastra
         const params = new URLSearchParams({
           tipo,
           id: r.id,
-          material: material.id,
           q: String(quantidade),
           aviso: String(aviso),
         })
         router.push(`/materiais/pronto?${params.toString()}`)
       } catch (e) {
         if (ehErroDoNext(e)) throw e
-        // Pode ter gravado antes de a rede cair: repetir com a mesma chave não duplica.
-        setErro(SEM_REDE)
+        // Pode ter gravado antes de a rede cair: trava a quantidade e guarda a chave.
+        marcarPendente(material.id, { chave: chaveEnvio, quantidade })
       }
     })
   }
@@ -159,6 +177,8 @@ export function FluxoLancamento({ tipo, materiais, ordemMaisUsados, podeCadastra
           onConfirmar={confirmar}
           quem={quem}
           erro={erro}
+          quantidadeTravada={pendentes.get(naGaveta.id)?.quantidade ?? null}
+          onAlterar={() => setErro(null)}
         />
       )}
     </main>

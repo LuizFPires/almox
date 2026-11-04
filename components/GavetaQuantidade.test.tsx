@@ -15,7 +15,11 @@ const cimento: SaldoMaterial = {
   aviso: { tipo: 'quantidade', valor: 20 },
 }
 
-function abrir(tipo: 'entrada' | 'saida', material: SaldoMaterial = cimento) {
+function abrir(
+  tipo: 'entrada' | 'saida',
+  material: SaldoMaterial = cimento,
+  extra: { quantidadeTravada?: number; onAlterar?: () => void; erro?: string } = {},
+) {
   const onFechar = vi.fn()
   const onConfirmar = vi.fn()
   render(
@@ -26,6 +30,7 @@ function abrir(tipo: 'entrada' | 'saida', material: SaldoMaterial = cimento) {
       ocupado={false}
       onFechar={onFechar}
       onConfirmar={onConfirmar}
+      {...extra}
     />,
   )
   const campo = screen.getByRole('textbox', { name: 'Quantidade' }) as HTMLInputElement
@@ -128,5 +133,54 @@ describe('GavetaQuantidade', () => {
     for (const b of fechar) fireEvent.click(b)
     expect(onFechar).toHaveBeenCalledTimes(fechar.length)
     expect(fechar.length).toBe(2)
+  })
+
+  describe('quantidade travada depois de falha de rede', () => {
+    it('trava campo, − / + e rápidos, avisa e reenvia a mesma quantidade', () => {
+      // Saldo já caiu (a saída pode ter entrado): mesmo assim deixa reenviar, o servidor decide.
+      const { campo, onConfirmar } = abrir(
+        'saida',
+        { ...cimento, saldo: 18 },
+        { quantidadeTravada: 100 },
+      )
+      expect(campo.value).toBe('100')
+      expect(campo.disabled).toBe(true)
+      for (const nome of ['Menos um', 'Mais um', '+10', '+50', '+100', '+500']) {
+        const b = screen.getByRole('button', { name: nome }) as HTMLButtonElement
+        expect(b.disabled).toBe(true)
+      }
+      expect(screen.getByRole('alert').textContent).toBe(
+        'Sem sinal. Toque de novo para enviar a mesma quantidade.',
+      )
+      expect(screen.queryByText(/Só tem/)).toBeNull()
+      fireEvent.click(screen.getByRole('button', { name: 'Registrar saída' }))
+      expect(onConfirmar).toHaveBeenCalledWith(100)
+    })
+
+    it('entrada travada: conferência com "Corrigir" desligado', () => {
+      const { onConfirmar } = abrir('entrada', cimento, { quantidadeTravada: 500 })
+      fireEvent.click(screen.getByRole('button', { name: 'Continuar' }))
+      const corrigir = screen.getByRole('button', { name: 'Corrigir' }) as HTMLButtonElement
+      expect(corrigir.disabled).toBe(true)
+      fireEvent.click(screen.getByRole('button', { name: 'Confirmar entrada' }))
+      expect(onConfirmar).toHaveBeenCalledWith(500)
+    })
+  })
+
+  it('mexer na quantidade avisa onAlterar (limpa o erro)', () => {
+    const onAlterar = vi.fn()
+    const { campo } = abrir('saida', cimento, { onAlterar, erro: 'Saldo mudou.' })
+    fireEvent.change(campo, { target: { value: '5' } })
+    fireEvent.click(screen.getByRole('button', { name: '+10' }))
+    expect(onAlterar).toHaveBeenCalledTimes(2)
+  })
+
+  it('na conferência o foco vai para "Confirmar entrada"', () => {
+    const { campo } = abrir('entrada')
+    fireEvent.change(campo, { target: { value: '5' } })
+    fireEvent.click(screen.getByRole('button', { name: 'Continuar' }))
+    expect(document.activeElement).toBe(
+      screen.getByRole('button', { name: 'Confirmar entrada' }),
+    )
   })
 })

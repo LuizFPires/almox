@@ -18,7 +18,16 @@ export type PropsGavetaQuantidade = {
   quem?: string
   /** Erro do servidor para mostrar dentro da gaveta. */
   erro?: string | null
+  /**
+   * Quantidade já enviada sem resposta (rede caiu): fica travada até o servidor responder,
+   * para que repetir com a mesma chave não lance outro número.
+   */
+  quantidadeTravada?: number | null
+  /** O usuário mexeu na quantidade (ex.: para limpar o erro anterior). */
+  onAlterar?(): void
 }
+
+export const TEXTO_SEM_SINAL = 'Sem sinal. Toque de novo para enviar a mesma quantidade.'
 
 const RAPIDOS = [10, 50, 100, 500] as const
 const ROTULO: Record<TipoLancamento, string> = { entrada: 'Entrada', saida: 'Saída' }
@@ -36,7 +45,8 @@ const textoDe = (n: number): string => (n > 0 ? formatarQuantidade(n) : '')
  * Foco preso; Esc, ✕ e toque no fundo fecham e devolvem o foco a quem abriu.
  */
 export function GavetaQuantidade(props: PropsGavetaQuantidade) {
-  const { tipo, material, aberta, ocupado, onFechar, onConfirmar, quem, erro } = props
+  const { tipo, material, aberta, ocupado, onFechar, onConfirmar, quem, erro, onAlterar } = props
+  const travada = props.quantidadeTravada ?? null
   const [montada, setMontada] = useState(aberta)
   const [anterior, setAnterior] = useState(aberta)
   const [texto, setTexto] = useState('')
@@ -99,17 +109,33 @@ export function GavetaQuantidade(props: PropsGavetaQuantidade) {
     }
   }, [aberta])
 
+  // Na conferência da entrada, o foco vai direto para "Confirmar entrada".
+  useEffect(() => {
+    if (!aberta || etapa !== 'conferencia') return
+    painel.current?.querySelector<HTMLElement>('[data-confirmar]')?.focus()
+  }, [aberta, etapa])
+
   if (!montada) return null
 
-  const q = lerQuantidade(texto)
+  // Travada: mostra e envia a quantidade que já foi; o servidor decide (saldo pode ter mudado).
+  const textoCampo = travada !== null ? textoDe(travada) : texto
+  const q = travada ?? lerQuantidade(texto)
   const qtd = q ?? 0
   const previa = previaLancamento(tipo, material, qtd)
   const valida = q !== null && quantidadeValida(q, material.unidade)
-  const pode = valida && !previa.excede && !ocupado
+  const pode = !ocupado && (travada !== null || (valida && !previa.excede))
+  const bloqueado = ocupado || travada !== null
+  // Travada, o saldo pode já ter caído pela própria saída que talvez tenha entrado.
+  const excedeMostrado = previa.excede && travada === null
   const un = material.unidade
 
+  function mudarTexto(novo: string) {
+    setTexto(novo)
+    onAlterar?.()
+  }
+
   function ajustar(delta: number) {
-    setTexto(textoDe(Math.max(0, arredondar((lerQuantidade(texto) ?? 0) + delta))))
+    mudarTexto(textoDe(Math.max(0, arredondar((lerQuantidade(texto) ?? 0) + delta))))
   }
 
   function principal() {
@@ -123,8 +149,8 @@ export function GavetaQuantidade(props: PropsGavetaQuantidade) {
   }
 
   let problema: string | null = null
-  if (texto.trim() !== '' && q === null) problema = 'Confira o número.'
-  else if (q !== null && q > 0 && !valida)
+  if (travada === null && texto.trim() !== '' && q === null) problema = 'Confira o número.'
+  else if (travada === null && q !== null && q > 0 && !valida)
     problema = q > 999_999 ? 'Máximo 999.999.' : `Em ${un}, só número inteiro.`
 
   const cabecalho = (rotulo: string, nome?: string) => (
@@ -147,12 +173,13 @@ export function GavetaQuantidade(props: PropsGavetaQuantidade) {
     </div>
   )
 
-  const avisoErro = erro && (
+  const textoErro = travada !== null ? TEXTO_SEM_SINAL : erro
+  const avisoErro = textoErro && (
     <p
       role="alert"
       className="rounded-xl bg-erro-claro px-3.5 py-2.5 text-sm font-semibold text-erro"
     >
-      {erro}
+      {textoErro}
     </p>
   )
 
@@ -195,15 +222,18 @@ export function GavetaQuantidade(props: PropsGavetaQuantidade) {
                 {quem ? ` · ${quem}` : ''}
               </div>
             </div>
-            <p className="rounded-xl bg-sutil px-3.5 py-2.5 text-sm leading-snug">
-              O saldo vai ficar em <b>{`${formatarQuantidade(previa.depois)} ${un}`}</b>.
-            </p>
+            {travada === null && (
+              <p className="rounded-xl bg-sutil px-3.5 py-2.5 text-sm leading-snug">
+                O saldo vai ficar em <b>{`${formatarQuantidade(previa.depois)} ${un}`}</b>.
+              </p>
+            )}
             {avisoErro}
             <Botao
               variante="sucesso"
               tamanho="g"
               larguraTotal
               disabled={ocupado}
+              data-confirmar=""
               onClick={() => onConfirmar(q)}
             >
               {ocupado ? 'Registrando…' : 'Confirmar entrada'}
@@ -212,7 +242,7 @@ export function GavetaQuantidade(props: PropsGavetaQuantidade) {
               variante="secundaria"
               tamanho="g"
               larguraTotal
-              disabled={ocupado}
+              disabled={bloqueado}
               onClick={() => setEtapa('quantidade')}
             >
               Corrigir
@@ -226,7 +256,7 @@ export function GavetaQuantidade(props: PropsGavetaQuantidade) {
                 type="button"
                 aria-label="Menos um"
                 onClick={() => ajustar(-1)}
-                disabled={ocupado}
+                disabled={bloqueado}
                 className="size-13 shrink-0 rounded-xl bg-sutil text-[26px] font-extrabold"
               >
                 −
@@ -238,10 +268,10 @@ export function GavetaQuantidade(props: PropsGavetaQuantidade) {
                 aria-label="Quantidade"
                 aria-describedby={idDica}
                 placeholder="0"
-                value={texto}
-                disabled={ocupado}
+                value={textoCampo}
+                disabled={bloqueado}
                 onFocus={(e) => e.currentTarget.select()}
-                onChange={(e) => setTexto(e.currentTarget.value)}
+                onChange={(e) => mudarTexto(e.currentTarget.value)}
                 onBlur={() => {
                   const n = lerQuantidade(texto)
                   if (n !== null) setTexto(textoDe(n))
@@ -256,7 +286,7 @@ export function GavetaQuantidade(props: PropsGavetaQuantidade) {
                 type="button"
                 aria-label="Mais um"
                 onClick={() => ajustar(1)}
-                disabled={ocupado}
+                disabled={bloqueado}
                 className="size-13 shrink-0 rounded-xl bg-sutil text-[26px] font-extrabold"
               >
                 +
@@ -271,7 +301,7 @@ export function GavetaQuantidade(props: PropsGavetaQuantidade) {
                   key={r}
                   type="button"
                   onClick={() => ajustar(r)}
-                  disabled={ocupado}
+                  disabled={bloqueado}
                   className="min-h-toque flex-1 rounded-botao border border-borda bg-cartao font-bold"
                 >
                   +{formatarQuantidade(r)}
@@ -281,10 +311,12 @@ export function GavetaQuantidade(props: PropsGavetaQuantidade) {
             <div
               aria-live="polite"
               className={`rounded-xl px-3.5 py-2.5 text-sm leading-[1.45] ${
-                previa.excede ? 'bg-erro-claro text-erro' : 'bg-sutil'
+                excedeMostrado ? 'bg-erro-claro text-erro' : 'bg-sutil'
               }`}
             >
-              {previa.excede ? (
+              {travada !== null ? (
+                <p>{`Quantidade enviada: ${formatarQuantidade(travada)} ${un}`}</p>
+              ) : excedeMostrado ? (
                 <p className="font-bold">
                   {`Só tem ${formatarQuantidade(material.saldo)} ${un} no almox. Não dá para sair mais que o saldo.`}
                 </p>

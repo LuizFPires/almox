@@ -14,12 +14,12 @@ const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i
 
 /**
  * Pronto da entrada ou saída (protótipo › ok). Quantidade, saldo e prazo de desfazer vêm do
- * banco; da URL só se usa o id do movimento e se o aviso de limite disparou.
+ * banco; da URL vêm o id do movimento, se o aviso de limite disparou e a quantidade pedida.
  */
 export default async function PaginaLancamentoPronto({
   searchParams,
 }: PageProps<'/materiais/pronto'>) {
-  const { id, aviso } = (await searchParams) as { id?: string; aviso?: string }
+  const { id, aviso, q } = (await searchParams) as { id?: string; aviso?: string; q?: string }
   const { obraAtual } = await obterSessao()
   const feito = id && UUID.test(id) ? await lancamentoFeito(obraAtual.id, id) : null
   if (!feito) notFound()
@@ -27,6 +27,9 @@ export default async function PaginaLancamentoPronto({
   const { material: m, tipo } = feito
   const entrada = tipo === 'entrada'
   const abaixo = estadoSaldo(m) === 'abaixo'
+  // Repetição depois de falha de rede devolve o lançamento original: avisa se o número era outro.
+  const pedida = q === undefined ? Number.NaN : Number(q)
+  const outraQuantidade = Number.isFinite(pedida) && Math.abs(pedida - feito.quantidade) > 0.001
 
   return (
     <main className="flex flex-1 flex-col px-5 pb-6">
@@ -45,6 +48,14 @@ export default async function PaginaLancamentoPronto({
           Saldo:{' '}
           <b className={abaixo ? 'text-erro' : ''}>{`${formatarQuantidade(m.saldo)} ${m.unidade}`}</b>
         </p>
+        {outraQuantidade && (
+          <p
+            role="alert"
+            className="rounded-xl bg-aviso-claro px-3.5 py-2.5 text-sm font-semibold text-aviso"
+          >
+            {`Já estava registrada com ${formatarQuantidade(feito.quantidade)}. A quantidade nova não foi lançada.`}
+          </p>
+        )}
         {!entrada && aviso === '1' && (
           <span className="rounded-lg bg-erro-claro px-2.5 py-1 text-xs font-bold text-erro">
             Aviso enviado a todos da obra

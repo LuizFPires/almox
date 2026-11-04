@@ -4,6 +4,9 @@ import {
   emailCancelamento,
   escapar,
   notificacaoAviso,
+  notificacaoLimiteMaterial,
+  notificacaoMaterialCadastrado,
+  notificacaoPedidoCadastro,
   notificacaoOcorrencia,
   porPessoa,
   saudacao,
@@ -138,5 +141,31 @@ describe('notificações e apoio', () => {
       { pessoa: 'José Silva', itens: 'Pá ×1, Enxada ×1', valor: 14900 },
       { pessoa: 'José Silva', itens: 'Pá ×1', valor: 8900 },
     ])
+  })
+})
+
+describe('notificações de material', () => {
+  it('limite', () => {
+    expect(
+      notificacaoLimiteMaterial({ material: 'Cimento CP-II', saldo: '18', limite: '20', unidade: 'sc', obra: 'Obra Betim', materialId: 'm1' }),
+    ).toEqual({
+      titulo: 'Cimento CP-II abaixo do limite',
+      corpo: 'Obra Betim: restam 18 sc (limite 20). Hora de pedir mais.',
+      url: '/materiais/m1',
+    })
+  })
+  it('pedido de cadastro', () => {
+    expect(notificacaoPedidoCadastro({ quem: 'Marcos', nome: 'Cal hidratada 20 kg' })).toEqual({
+      titulo: 'Pedido de cadastro de material',
+      corpo: 'Marcos pediu o cadastro de: Cal hidratada 20 kg',
+      url: '/cadastros/materiais',
+    })
+  })
+  it('material cadastrado', () => {
+    expect(notificacaoMaterialCadastrado({ nome: 'Cal hidratada 20 kg', materialId: 'm9' })).toEqual({
+      titulo: 'Material cadastrado',
+      corpo: 'Cal hidratada 20 kg já pode ser lançado.',
+      url: '/materiais/m9',
+    })
   })
 })

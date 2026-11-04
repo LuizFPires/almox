@@ -252,3 +252,35 @@ export function notificacaoOcorrencia(pessoa: string, quando: string): Notificac
     url: '/inicio',
   }
 }
+
+/** Material chegou ou ficou abaixo do limite de aviso (números já formatados). */
+export function notificacaoLimiteMaterial(d: {
+  material: string
+  saldo: string
+  limite: string
+  unidade: string
+  obra: string
+  materialId: string
+}): Notificacao {
+  return {
+    titulo: `${d.material} abaixo do limite`,
+    corpo: `${d.obra}: restam ${d.saldo} ${d.unidade} (limite ${d.limite}). Hora de pedir mais.`,
+    url: `/materiais/${d.materialId}`,
+  }
+}
+
+export function notificacaoPedidoCadastro(d: { quem: string; nome: string }): Notificacao {
+  return {
+    titulo: 'Pedido de cadastro de material',
+    corpo: `${d.quem} pediu o cadastro de: ${d.nome}`,
+    url: '/cadastros/materiais',
+  }
+}
+
+export function notificacaoMaterialCadastrado(d: { nome: string; materialId: string }): Notificacao {
+  return {
+    titulo: 'Material cadastrado',
+    corpo: `${d.nome} já pode ser lançado.`,
+    url: `/materiais/${d.materialId}`,
+  }
+}

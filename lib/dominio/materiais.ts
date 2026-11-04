@@ -1,4 +1,4 @@
-import type { UnidadeMaterial } from '@/lib/formatos/quantidade'
+import { lerQuantidade, quantidadeValida, type UnidadeMaterial } from '@/lib/formatos/quantidade'
 import { contemTexto, normalizarTexto } from '@/lib/formatos/texto'
 
 export type Aviso = { tipo: 'quantidade' | 'percentual'; valor: number } | null
@@ -116,6 +116,28 @@ export function diferencasContagem(itens: ItemContagem[]): {
     else r.bateu.push(d)
   }
   return r
+}
+
+/** Rascunho da contagem: o que foi digitado e o saldo que a pessoa via ao digitar. */
+export type RascunhoContagem = Record<string, { valor: string; saldoVisto: number }>
+
+/** Chave do `localStorage` do rascunho: uma por obra e por dia da obra (`yyyy-MM-dd`). */
+export function chaveRascunhoContagem(obraId: string, dia: string): string {
+  return `almox:contagem:${obraId}:${dia}`
+}
+
+/** Itens da contagem a partir do rascunho. Ignora vazio, inválido e material que sumiu. Zero vale (acabou). */
+export function itensDoRascunho(rascunho: RascunhoContagem, saldos: SaldoMaterial[]): ItemContagem[] {
+  const itens: ItemContagem[] = []
+  for (const m of saldos) {
+    const campo = rascunho[m.id]
+    if (!campo || campo.valor.trim() === '') continue
+    const contado = lerQuantidade(campo.valor)
+    if (contado === null) continue
+    if (contado !== 0 && !quantidadeValida(contado, m.unidade)) continue
+    itens.push({ materialId: m.id, saldoVisto: campo.saldoVisto, contado })
+  }
+  return itens
 }
 
 const ERRO_PADRAO_MATERIAL = 'Não deu certo. Tente de novo.'

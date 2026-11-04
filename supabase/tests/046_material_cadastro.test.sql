@@ -1,7 +1,7 @@
 -- M13 · Materiais: cadastro de material, aviso de limite e pedido de cadastro. Usa o seed
 -- (Obra Demonstração: engenheira b…01, almoxarife b…02, consulta b…03, consulta b…04).
 begin;
-select plan(36);
+select plan(46);
 
 -- Engenheira -----------------------------------------------------------------------------------
 set local role authenticated;
@@ -206,6 +206,66 @@ select results_eq(
   $$values ('b0000000-0000-4000-8000-000000000002'::text, 'Cal hidratada'::text, true)$$,
   'material_cadastrado para o almoxarife'
 );
+
+-- Aviso antes da primeira entrada não dispara ------------------------------------------------
+set local role authenticated;
+select set_config('request.jwt.claims', '{"sub":"b0000000-0000-4000-8000-000000000001","role":"authenticated"}', true);
+select lives_ok(
+  $$select public.salvar_material('a0000000-0000-4000-8000-000000000001', null, 'Areia média', 'm³')$$,
+  'engenheira cria a Areia'
+);
+select lives_ok(
+  $$select public.salvar_aviso_material('a0000000-0000-4000-8000-000000000001',
+      (select id from public.material where nome = 'Areia média'), 'quantidade', 20)$$,
+  'aviso de 20 na Areia sem entrada'
+);
+select is(
+  (select aviso_disparado from public.material where nome = 'Areia média'),
+  false, 'sem entrada: aviso fica armado'
+);
+reset role;
+select is(
+  (select count(*) from public.envio where tipo = 'limite_material'
+      and dados ->> 'material' = (select id::text from public.material where nome = 'Areia média')),
+  0::bigint, 'sem entrada: nenhum envio'
+);
+set local role authenticated;
+select set_config('request.jwt.claims', '{"sub":"b0000000-0000-4000-8000-000000000002","role":"authenticated"}', true);
+select lives_ok(
+  $$select public.registrar_entrada_material('a0000000-0000-4000-8000-000000000001',
+      (select id from public.material where nome = 'Areia média'), 30)$$,
+  'entrada de 30 na Areia'
+);
+select is(
+  (public.registrar_saida_material('a0000000-0000-4000-8000-000000000001',
+    (select id from public.material where nome = 'Areia média'), 15)) ->> 'aviso',
+  'true', 'saída de 15 (saldo 15 <= 20) dispara'
+);
+reset role;
+select is(
+  (select count(*) from public.envio where tipo = 'limite_material'
+      and dados ->> 'material' = (select id::text from public.material where nome = 'Areia média')),
+  (select count(*) from public.usuario_obra where obra_id = 'a0000000-0000-4000-8000-000000000001'),
+  'Areia: 1 envio por usuário da obra'
+);
+set local role authenticated;
+select set_config('request.jwt.claims', '{"sub":"b0000000-0000-4000-8000-000000000001","role":"authenticated"}', true);
+select lives_ok(
+  $$select public.salvar_aviso_material('a0000000-0000-4000-8000-000000000001',
+      (select id from public.material where nome = 'Areia média'), null, null)$$,
+  'remove o aviso da Areia'
+);
+select results_eq(
+  $$select aviso_tipo, aviso_valor, aviso_disparado from public.material where nome = 'Areia média'$$,
+  $$values (null::text, null::numeric(12,2), false)$$,
+  'remover o aviso desarma'
+);
+select throws_ok(
+  $$select public.salvar_material('a0000000-0000-4000-8000-000000000001',
+      'ad000000-0000-4000-8000-0000000000ff', 'Areia média', 'm³')$$,
+  'P0002', null, 'p_id inexistente com nome repetido → P0002'
+);
+reset role;
 
 -- Log de alterações: nome e aviso.
 select ok(

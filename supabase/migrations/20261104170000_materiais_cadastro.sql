@@ -52,6 +52,15 @@ begin
     end if;
   end if;
 
+  if p_id is not null then
+    select * into v_material from public.material
+     where id = p_id and obra_id = p_obra
+     for update;
+    if v_material.id is null then
+      raise exception 'Material não encontrado nesta obra.' using errcode = 'P0002';
+    end if;
+  end if;
+
   if exists (select 1 from public.material
               where obra_id = p_obra
                 and privado.normalizar(nome) = privado.normalizar(v_nome)
@@ -65,12 +74,6 @@ begin
       values (p_obra, v_nome, p_unidade)
       returning id into v_id;
     else
-      select * into v_material from public.material
-       where id = p_id and obra_id = p_obra
-       for update;
-      if v_material.id is null then
-        raise exception 'Material não encontrado nesta obra.' using errcode = 'P0002';
-      end if;
       if v_material.unidade <> p_unidade
          and exists (select 1 from public.movimento_material where material_id = p_id) then
         raise exception 'Não dá para trocar a unidade de um material que já tem lançamentos.'
@@ -136,7 +139,13 @@ begin
          aviso_valor = case when p_tipo is null then null else p_valor end
    where id = p_material;
 
-  perform privado.avaliar_aviso_material(p_material, null, gen_random_uuid());
+  -- Sem nenhuma entrada ainda (estoque cheio 0) o aviso fica armado e não dispara: a primeira
+  -- entrada sobe o saldo e as saídas seguintes disparam ao cruzar o limite.
+  if v_material.estoque_cheio > 0 then
+    perform privado.avaliar_aviso_material(p_material, null, gen_random_uuid());
+  else
+    update public.material set aviso_disparado = false where id = p_material and aviso_disparado;
+  end if;
 end;
 $$;
 

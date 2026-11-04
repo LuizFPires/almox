@@ -1860,6 +1860,7 @@ export type Database = {
       dados_offline: { Args: { p_obra: string }; Returns: Json }
       definir_indenizacao: { Args: { p_avaria: string; p_valor?: number }; Returns: undefined }
       desconectar_tv: { Args: { p_dispositivo: string }; Returns: undefined }
+      desfazer_saida_material: { Args: { p_movimento: string; p_obra: string }; Returns: undefined }
       encerrar_dia: { Args: { p_obra: string }; Returns: string }
       enfileirar_adesivos: { Args: { p_itens: Json; p_obra: string }; Returns: number }
       enfileirar_impressao: {
@@ -1972,6 +1973,16 @@ export type Database = {
         }
         Returns: string
       }
+      registrar_entrada_material: {
+        Args: {
+          p_chave?: string
+          p_material: string
+          p_obra: string
+          p_quando?: string
+          p_quantidade: number
+        }
+        Returns: string
+      }
       registrar_ocorrencia: {
         Args: { p_chave?: string; p_obra: string; p_quando?: string; p_token: string }
         Returns: string
@@ -1988,6 +1999,16 @@ export type Database = {
           p_token?: string
         }
         Returns: string
+      }
+      registrar_saida_material: {
+        Args: {
+          p_chave?: string
+          p_material: string
+          p_obra: string
+          p_quando?: string
+          p_quantidade: number
+        }
+        Returns: Json
       }
       remover_inscricao_push: { Args: { p_endpoint: string }; Returns: undefined }
       resumo_fechamento: { Args: { p_fechamento: string }; Returns: Json }
@@ -2034,7 +2055,14 @@ export type Database = {
       status_unidade: 'livre' | 'em_uso' | 'manutencao' | 'baixada'
       tipo_empresa: 'propria' | 'empreiteira'
       tipo_envio:
-        'aviso' | 'desconto_cancelado' | 'resumo_proprios' | 'ocorrencia' | 'desconto_reaberto'
+        | 'aviso'
+        | 'desconto_cancelado'
+        | 'resumo_proprios'
+        | 'ocorrencia'
+        | 'desconto_reaberto'
+        | 'limite_material'
+        | 'pedido_cadastro_material'
+        | 'material_cadastrado'
       tipo_movimento: 'retirada' | 'devolucao' | 'estorno'
       tipo_ocorrencia: 'capacete_trocado'
       via_movimento: 'qr' | 'manual'
@@ -2168,6 +2196,9 @@ export const Constants = {
         'resumo_proprios',
         'ocorrencia',
         'desconto_reaberto',
+        'limite_material',
+        'pedido_cadastro_material',
+        'material_cadastrado',
       ],
       tipo_movimento: ['retirada', 'devolucao', 'estorno'],
       tipo_ocorrencia: ['capacete_trocado'],

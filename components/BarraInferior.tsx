@@ -1,5 +1,5 @@
 import Link from 'next/link'
-import { IconeInterface } from './IconeInterface'
+import { IconeInterface, type NomeIconeInterface } from './IconeInterface'
 import { ItemBarraInferior } from './ItemBarraInferior'
 
 // Ordem do PRD F-01: Início · Lista · Estoque · Fechamento · Cadastros.
@@ -35,38 +35,85 @@ const ITENS = [
   },
 ] as const
 
-export type AbaInferior = (typeof ITENS)[number]['chave']
+const ITENS_MATERIAIS = [
+  {
+    chave: 'inicio-materiais',
+    rotulo: 'Início',
+    href: '/materiais',
+    icone: 'dashboard',
+    lanca: false,
+  },
+  { chave: 'saldos', rotulo: 'Saldos', href: '/materiais/saldos', icone: 'box', lanca: false },
+  {
+    chave: 'extrato',
+    rotulo: 'Extrato',
+    href: '/materiais/extrato',
+    icone: 'history',
+    lanca: false,
+  },
+  {
+    chave: 'contagem',
+    rotulo: 'Fechamento',
+    href: '/materiais/contagem',
+    icone: 'contagem',
+    lanca: true,
+  },
+  {
+    chave: 'cadastros-materiais',
+    rotulo: 'Cadastros',
+    href: '/cadastros/materiais',
+    icone: 'menu',
+    lanca: true,
+  },
+] as const
+
+export type AbaInferior =
+  (typeof ITENS)[number]['chave'] | (typeof ITENS_MATERIAIS)[number]['chave']
+export type ModoApp = 'ferramentas' | 'materiais'
+
+type ItemAba = {
+  chave: AbaInferior
+  rotulo: string
+  href: string
+  icone: NomeIconeInterface
+  lanca: boolean
+}
 
 type Props = {
   ativa: AbaInferior
+  /** Qual conjunto de abas mostrar (padrão: ferramentas). */
+  modo?: ModoApp
   /** Perfil consulta não vê Fechamento nem Cadastros. */
   podeLancar: boolean
 }
 
 /** Presa ao pé da tela (sticky): não some ao rolar listas compridas. */
-export function BarraInferior({ ativa, podeLancar }: Props) {
+export function BarraInferior({ ativa, podeLancar, modo = 'ferramentas' }: Props) {
+  const itens: readonly ItemAba[] = modo === 'materiais' ? ITENS_MATERIAIS : ITENS
   return (
     <nav
       aria-label="Navegação principal"
       className="sticky bottom-0 z-20 mt-auto flex h-[calc(76px+env(safe-area-inset-bottom))] shrink-0 border-t border-borda bg-cartao pb-[max(0.5rem,env(safe-area-inset-bottom))]"
     >
-      {ITENS.filter((item) => podeLancar || !item.lanca).map((item) => {
-        const atual = item.chave === ativa
-        return (
-          <Link
-            key={item.chave}
-            href={item.href}
-            aria-current={atual ? 'page' : undefined}
-            className="flex flex-1 flex-col items-center justify-center text-xs"
-          >
-            <ItemBarraInferior
-              atual={atual}
-              icone={<IconeInterface nome={item.icone} />}
-              rotulo={item.rotulo}
-            />
-          </Link>
-        )
-      })}
+      {itens
+        .filter((item) => podeLancar || !item.lanca)
+        .map((item) => {
+          const atual = item.chave === ativa
+          return (
+            <Link
+              key={item.chave}
+              href={item.href}
+              aria-current={atual ? 'page' : undefined}
+              className="flex flex-1 flex-col items-center justify-center text-xs"
+            >
+              <ItemBarraInferior
+                atual={atual}
+                icone={<IconeInterface nome={item.icone} />}
+                rotulo={item.rotulo}
+              />
+            </Link>
+          )
+        })}
     </nav>
   )
 }

@@ -2,9 +2,13 @@
 import { readFileSync } from 'node:fs'
 import { cleanup, fireEvent, render, screen } from '@testing-library/react'
 import { afterEach, describe, expect, it, vi } from 'vitest'
+import { AcoesMateriais } from './AcoesMateriais'
+import { BarraInferior } from './BarraInferior'
 import { Botao } from './Botao'
+import { ChaveModo } from './ChaveModo'
 import { Contador } from './Contador'
 import { IconeFerramenta } from './IconeFerramenta'
+import { ListaSaldos } from './ListaSaldos'
 import {
   CHAVES_ICONE,
   GRUPOS_ICONE,
@@ -12,6 +16,8 @@ import {
   ehChaveIcone,
   ehIcone,
 } from './icones-ferramenta'
+
+vi.mock('next/navigation', () => ({ useRouter: () => ({ push: vi.fn() }) }))
 
 afterEach(cleanup)
 
@@ -90,5 +96,65 @@ describe('Botao', () => {
     const botao = screen.getByRole('button', { name: 'Retirada' })
     expect(botao.tagName).toBe('BUTTON')
     expect(botao.getAttribute('type')).toBe('button')
+  })
+})
+
+describe('modo Materiais', () => {
+  it('ChaveModo marca o botão ativo com aria-pressed', () => {
+    render(<ChaveModo modo="materiais" />)
+    expect(screen.getByRole('button', { name: 'Materiais' }).getAttribute('aria-pressed')).toBe(
+      'true',
+    )
+    expect(screen.getByRole('button', { name: 'Ferramentas' }).getAttribute('aria-pressed')).toBe(
+      'false',
+    )
+  })
+
+  it('BarraInferior de materiais esconde Fechamento e Cadastros da consulta', () => {
+    render(<BarraInferior modo="materiais" ativa="inicio-materiais" podeLancar={false} />)
+    expect(screen.getByText('Saldos')).toBeTruthy()
+    expect(screen.getByText('Extrato')).toBeTruthy()
+    expect(screen.queryByText('Fechamento')).toBeNull()
+    expect(screen.queryByText('Cadastros')).toBeNull()
+  })
+
+  it('BarraInferior de materiais mostra tudo para quem lança', () => {
+    render(<BarraInferior modo="materiais" ativa="saldos" podeLancar />)
+    expect(screen.getByText('Fechamento')).toBeTruthy()
+    expect(screen.getByText('Cadastros')).toBeTruthy()
+  })
+
+  it('AcoesMateriais não renderiza nada para a consulta', () => {
+    const { container } = render(<AcoesMateriais podeLancar={false} />)
+    expect(container.innerHTML).toBe('')
+  })
+
+  it('ListaSaldos põe o material abaixo do limite primeiro', () => {
+    render(
+      <ListaSaldos
+        materiais={[
+          {
+            id: 'a',
+            nome: 'Areia',
+            unidade: 'm³',
+            saldo: 50,
+            estoqueCheio: 50,
+            aviso: { tipo: 'quantidade', valor: 10 },
+          },
+          {
+            id: 'b',
+            nome: 'Cimento',
+            unidade: 'sc',
+            saldo: 5,
+            estoqueCheio: 100,
+            aviso: { tipo: 'quantidade', valor: 10 },
+          },
+        ]}
+      />,
+    )
+    const links = screen.getAllByRole('link')
+    expect(links[0]!.textContent).toContain('Cimento')
+    expect(links[0]!.textContent).toContain('limite 10')
+    expect(links[0]!.getAttribute('href')).toBe('/materiais/b')
   })
 })

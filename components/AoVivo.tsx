@@ -16,6 +16,8 @@ const EVENTOS = {
   movimento: 'INSERT',
   ocorrencia: 'INSERT',
   unidade: '*',
+  material: '*',
+  movimento_material: 'INSERT',
 } as const
 
 /**

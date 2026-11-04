@@ -7,8 +7,11 @@ const { icons } = JSON.parse(readFileSync(new URL('catalogo.json', pasta), 'utf8
 
 const camel = (atributo) => atributo.replace(/-([a-z])/g, (_, l) => l.toUpperCase())
 
+const tracos = {}
 const linhas = icons.map((nome) => {
   const svg = readFileSync(new URL(`${nome}.svg`, pasta), 'utf8')
+  const traco = /stroke-width="([\d.]+)"/.exec(svg)?.[1]
+  if (traco && Number(traco) !== 1.75) tracos[nome] = Number(traco)
   const miolo = /<svg[^>]*>([\s\S]*)<\/svg>/.exec(svg)?.[1]
   if (!miolo) throw new Error(`SVG sem conteúdo: ${nome}`)
   const jsx = miolo.trim().replace(/\s([a-z]+-[a-z-]+)=/g, (_, a) => ` ${camel(a)}=`)
@@ -21,6 +24,9 @@ import type { ReactElement } from 'react'
 const ICONES = {
 ${linhas.join('\n')}
 } satisfies Record<string, ReactElement>
+
+// Ícones com traço diferente do padrão do DS (os de ação de materiais usam 2,4).
+const TRACOS: Partial<Record<keyof typeof ICONES, number>> = ${JSON.stringify(tracos)}
 
 export type NomeIconeInterface = keyof typeof ICONES
 
@@ -39,7 +45,7 @@ export function IconeInterface({ nome, tamanho = 24, className }: Props) {
       viewBox="0 0 24 24"
       fill="none"
       stroke="currentColor"
-      strokeWidth={1.75}
+      strokeWidth={TRACOS[nome] ?? 1.75}
       strokeLinecap="round"
       strokeLinejoin="round"
       aria-hidden="true"

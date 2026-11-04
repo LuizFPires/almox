@@ -15,7 +15,16 @@ const nextConfig: NextConfig = {
     },
   },
   async redirects() {
-    return [{ source: '/', destination: '/inicio', permanent: false }]
+    // A raiz abre o modo em que a pessoa estava (cookie almox_modo, gravado pela ChaveModo).
+    return [
+      {
+        source: '/',
+        has: [{ type: 'cookie', key: 'almox_modo', value: 'materiais' }],
+        destination: '/materiais',
+        permanent: false,
+      },
+      { source: '/', destination: '/inicio', permanent: false },
+    ]
   },
   async headers() {
     return [

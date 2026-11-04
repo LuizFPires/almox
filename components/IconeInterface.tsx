@@ -179,7 +179,29 @@ const ICONES = {
       <path d="m3 3 18 18M3 9a16 16 0 0 1 4-2M11 6a16 16 0 0 1 10 3M6 13a10 10 0 0 1 5-2M15 12l3 1M9 17l3-1 3 1M12 20v.1" />
     </>
   ),
+  entrada: (
+    <>
+      <path d="M12 3v11M7 9.5l5 5 5-5M4 15v5h16v-5" />
+    </>
+  ),
+  saida: (
+    <>
+      <path d="M12 15V4M7 8.5l5-5 5 5M4 15v5h16v-5" />
+    </>
+  ),
+  contagem: (
+    <>
+      <path d="M7 8.5l3.5 3.5L17.5 5M4 15v5h16v-5" />
+    </>
+  ),
 } satisfies Record<string, ReactElement>
+
+// Ícones com traço diferente do padrão do DS (os de ação de materiais usam 2,4).
+const TRACOS: Partial<Record<keyof typeof ICONES, number>> = {
+  entrada: 2.4,
+  saida: 2.4,
+  contagem: 2.4,
+}
 
 export type NomeIconeInterface = keyof typeof ICONES
 
@@ -198,7 +220,7 @@ export function IconeInterface({ nome, tamanho = 24, className }: Props) {
       viewBox="0 0 24 24"
       fill="none"
       stroke="currentColor"
-      strokeWidth={1.75}
+      strokeWidth={TRACOS[nome] ?? 1.75}
       strokeLinecap="round"
       strokeLinejoin="round"
       aria-hidden="true"

@@ -1,4 +1,9 @@
-import { lerQuantidade, quantidadeValida, type UnidadeMaterial } from '@/lib/formatos/quantidade'
+import {
+  formatarQuantidade,
+  lerQuantidade,
+  quantidadeValida,
+  type UnidadeMaterial,
+} from '@/lib/formatos/quantidade'
 import { contemTexto, normalizarTexto } from '@/lib/formatos/texto'
 
 export type Aviso = { tipo: 'quantidade' | 'percentual'; valor: number } | null
@@ -21,6 +26,13 @@ export function limiteDoAviso(m: Pick<SaldoMaterial, 'aviso' | 'estoqueCheio'>):
   if (!m.aviso) return null
   if (m.aviso.tipo === 'quantidade') return m.aviso.valor
   return arredondar((m.estoqueCheio * m.aviso.valor) / 100)
+}
+
+/** Resumo do aviso nas listas de cadastro: "aviso em 20 un", "aviso em 15%" ou "sem aviso". */
+export function textoAviso(m: Pick<SaldoMaterial, 'aviso' | 'unidade'>): string {
+  if (!m.aviso) return 'sem aviso'
+  const valor = formatarQuantidade(m.aviso.valor)
+  return m.aviso.tipo === 'percentual' ? `aviso em ${valor}%` : `aviso em ${valor} ${m.unidade}`
 }
 
 /** abaixo: saldo <= limite; perto: <= limite*1.5; ok: acima disso. */

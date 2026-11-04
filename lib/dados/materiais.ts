@@ -234,3 +234,27 @@ export async function lancamentoFeito(obraId: string, id: string): Promise<Lanca
     material: paraSaldo(res.data),
   }
 }
+
+/** Material para a tela de cadastro: inclui desativado e diz se já tem lançamento (trava a unidade). */
+export async function materialParaCadastro(
+  obraId: string,
+  id: string,
+): Promise<{ material: SaldoMaterial; ativo: boolean; temMovimentos: boolean } | null> {
+  const supabase = await criarClienteServidor()
+  const { data, error } = await supabase
+    .from('material')
+    .select(`${COLUNAS_MATERIAL}, ativo`)
+    .eq('obra_id', obraId)
+    .eq('id', id)
+    .maybeSingle()
+    .overrideTypes<LinhaMaterial & { ativo: boolean }, { merge: false }>()
+  if (error) throw new Error('Não foi possível carregar o material.')
+  if (!data) return null
+  const { count, error: erroMov } = await supabase
+    .from('movimento_material')
+    .select('id', { count: 'exact', head: true })
+    .eq('obra_id', obraId)
+    .eq('material_id', id)
+  if (erroMov) throw new Error('Não foi possível carregar o material.')
+  return { material: paraSaldo(data), ativo: data.ativo, temMovimentos: (count ?? 0) > 0 }
+}

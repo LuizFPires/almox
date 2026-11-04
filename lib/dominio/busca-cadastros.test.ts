@@ -32,6 +32,13 @@ const INDICE: ItemBusca[] = [
     termos: [],
   },
   { tipo: 'ferramenta', id: 'f1', nome: 'Serra circular', detalhe: '2 un.', termos: ['SER'] },
+  {
+    tipo: 'material',
+    id: 'm1',
+    nome: 'Cimento CP-II 50 kg',
+    detalhe: 'sc · aviso em 20 un',
+    termos: [],
+  },
   { tipo: 'empresa', id: 'e1', nome: 'Construtora', detalhe: 'própria', termos: [] },
   { tipo: 'empresa', id: 'e2', nome: 'Elétrica Lumen', detalhe: 'empreiteira', termos: [] },
 ]
@@ -63,8 +70,16 @@ describe('buscarCadastros', () => {
 
   it('agrupa em pessoas, ferramentas e empresas; ativos antes, depois por nome', () => {
     const resultado = buscarCadastros(INDICE, 'c')
-    expect(resultado.map((g) => g.titulo)).toEqual(['Pessoas', 'Ferramentas', 'Empresas'])
+    expect(resultado.map((g) => g.titulo)).toEqual(['Pessoas', 'Ferramentas', 'Materiais', 'Empresas'])
     expect(resultado[0]?.itens.map((i) => i.id)).toEqual(['p4', 'p2', 'p1', 'p3'])
+  })
+
+  it('acha material por nome e aponta para /cadastros/materiais/<id>', () => {
+    const resultado = buscarCadastros(INDICE, 'cimento')
+    expect(resultado.map((g) => g.titulo)).toEqual(['Materiais'])
+    const item = resultado[0]?.itens[0]
+    expect(item?.id).toBe('m1')
+    expect(item && hrefCadastro(item)).toBe('/cadastros/materiais/m1')
   })
 
   it('aponta para o cadastro do item', () => {

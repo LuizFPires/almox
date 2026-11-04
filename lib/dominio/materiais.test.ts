@@ -7,6 +7,7 @@ import {
   estadoSaldo,
   limiteDoAviso,
   ordenarSaldos,
+  textoAviso,
   type SaldoMaterial,
 } from './materiais'
 
@@ -89,5 +90,17 @@ describe('lançamento de material', () => {
   it('busca normalizada', () => {
     expect(filtrarMateriais(lista, ' ACIDO ').map((m) => m.id)).toEqual(['d'])
     expect(filtrarMateriais(lista, '')).toHaveLength(4)
+  })
+})
+
+describe('textoAviso', () => {
+  it('descreve o aviso para as listas de cadastro', () => {
+    expect(textoAviso({ unidade: 'sc', aviso: null })).toBe('sem aviso')
+    expect(textoAviso({ unidade: 'sc', aviso: { tipo: 'quantidade', valor: 20 } })).toBe(
+      'aviso em 20 sc',
+    )
+    expect(textoAviso({ unidade: 'kg', aviso: { tipo: 'percentual', valor: 15 } })).toBe(
+      'aviso em 15%',
+    )
   })
 })

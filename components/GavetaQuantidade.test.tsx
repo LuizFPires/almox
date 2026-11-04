@@ -184,3 +184,47 @@ describe('GavetaQuantidade', () => {
     )
   })
 })
+
+describe('GavetaQuantidade em modo edição', () => {
+  const material: SaldoMaterial = {
+    id: 'm1',
+    nome: 'Cimento',
+    unidade: 'sc',
+    saldo: 18,
+    estoqueCheio: 118,
+    aviso: null,
+  }
+  const base = {
+    tipo: 'edicao' as const,
+    material,
+    aberta: true,
+    ocupado: false,
+    onFechar: () => {},
+    quantidadeInicial: 100,
+  }
+
+  it('abre com a quantidade vigente e salva com motivo e sinal', () => {
+    const onConfirmar = vi.fn()
+    render(<GavetaQuantidade {...base} onConfirmar={onConfirmar} escolheSinal negativoInicial />)
+    const campo = screen.getByLabelText('Quantidade') as HTMLInputElement
+    expect(campo.value).toBe('100')
+    fireEvent.change(campo, { target: { value: '80' } })
+    fireEvent.change(screen.getByLabelText(/Motivo/), { target: { value: 'contei errado' } })
+    fireEvent.click(screen.getByRole('button', { name: 'Salvar' }))
+    expect(onConfirmar).toHaveBeenCalledWith(80, { motivo: 'contei errado', negativo: true })
+  })
+
+  it('Apagar lançamento pede confirmação dentro da gaveta', () => {
+    const onApagar = vi.fn()
+    render(<GavetaQuantidade {...base} onConfirmar={() => {}} onApagar={onApagar} />)
+    fireEvent.click(screen.getByRole('button', { name: 'Apagar lançamento' }))
+    expect(onApagar).not.toHaveBeenCalled()
+    fireEvent.click(screen.getByRole('button', { name: 'Sim, apagar' }))
+    expect(onApagar).toHaveBeenCalledWith(undefined)
+  })
+
+  it('mostra o erro do servidor', () => {
+    render(<GavetaQuantidade {...base} onConfirmar={() => {}} erro="Saldo ficaria negativo." />)
+    expect(screen.getByRole('alert').textContent).toContain('Saldo ficaria negativo.')
+  })
+})

@@ -8,6 +8,8 @@ import { Botao } from './Botao'
 import { ChaveModo } from './ChaveModo'
 import { Contador } from './Contador'
 import { IconeFerramenta } from './IconeFerramenta'
+import { LinhaExtrato } from './LinhaExtrato'
+import type { LinhaExtrato as LinhaExtratoDados } from '@/lib/dados/materiais'
 import { ListaSaldos } from './ListaSaldos'
 import {
   CHAVES_ICONE,
@@ -168,5 +170,79 @@ describe('modo Materiais', () => {
     expect(links[0]!.textContent).toContain('Cimento')
     expect(links[0]!.textContent).toContain('limite 10')
     expect(links[0]!.getAttribute('href')).toBe('/materiais/b')
+  })
+})
+
+describe('LinhaExtrato', () => {
+  const base: LinhaExtratoDados = {
+    id: 'm1',
+    obraId: 'o1',
+    materialId: 'mat1',
+    tipo: 'saida',
+    quantidadeOriginal: -100,
+    quantidade: -100,
+    apagado: false,
+    desfeito: false,
+    editadoPorNome: null,
+    editadoEm: null,
+    usuarioNome: 'Sebastião',
+    criadoEm: new Date().toISOString(),
+    registradoNoAparelhoEm: null,
+    materialNome: 'Cimento',
+    unidade: 'sc',
+  }
+
+  it('divergência de conferência mostra "não altera o saldo"', () => {
+    render(<LinhaExtrato linha={{ ...base, tipo: 'conferencia', quantidade: -22, quantidadeOriginal: -22 }} comNome={false} editavel={false} />)
+    expect(screen.getByText('Conferência · divergência')).toBeTruthy()
+    expect(screen.getByText(/não altera o saldo/)).toBeTruthy()
+  })
+
+  it('conferência sem diferença mostra "Conferência ok"', () => {
+    render(<LinhaExtrato linha={{ ...base, tipo: 'conferencia', quantidade: 0, quantidadeOriginal: 0 }} comNome={false} editavel={false} />)
+    expect(screen.getByText('Conferência ok')).toBeTruthy()
+  })
+
+  it('editada mostra "(era −100)" e quem editou', () => {
+    render(
+      <LinhaExtrato
+        linha={{ ...base, quantidade: -80, editadoPorNome: 'Marcos', editadoEm: new Date().toISOString() }}
+        comNome={false}
+        editavel={false}
+      />,
+    )
+    expect(screen.getByText(/editado por Marcos às \d\d:\d\d \(era −100\)/)).toBeTruthy()
+  })
+
+  it('apagada tem line-through e "apagado por"', () => {
+    const { container } = render(
+      <LinhaExtrato
+        linha={{ ...base, apagado: true, editadoPorNome: null, editadoEm: new Date().toISOString() }}
+        comNome={false}
+        editavel={false}
+      />,
+    )
+    expect(container.querySelector('.line-through')).toBeTruthy()
+    expect(screen.getByText(/apagado por — às/)).toBeTruthy()
+  })
+
+  it('lançamento do aparelho mostra "sincronizado às"', () => {
+    render(
+      <LinhaExtrato
+        linha={{ ...base, registradoNoAparelhoEm: new Date().toISOString() }}
+        comNome={false}
+        editavel={false}
+      />,
+    )
+    expect(screen.getByText(/lançado às \d\d:\d\d, sincronizado às \d\d:\d\d/)).toBeTruthy()
+  })
+
+  it('nome vazio vira "—" e o botão Editar chama onEditar', () => {
+    const onEditar = vi.fn()
+    render(<LinhaExtrato linha={{ ...base, usuarioNome: null }} comNome editavel onEditar={onEditar} />)
+    expect(screen.getByText(/· —/)).toBeTruthy()
+    expect(screen.getByText('Cimento')).toBeTruthy()
+    fireEvent.click(screen.getByRole('button', { name: /Editar/ }))
+    expect(onEditar).toHaveBeenCalledOnce()
   })
 })

@@ -6,14 +6,27 @@ import { formatarHora } from '@/lib/formatos/datas'
 import { formatarQuantidade, lerQuantidade, quantidadeValida } from '@/lib/formatos/quantidade'
 import { Botao } from './Botao'
 
+/** Dados extras que a edição devolve junto com a quantidade (sempre em valor absoluto). */
+export type ExtraEdicao = { motivo?: string; negativo: boolean }
+
 export type PropsGavetaQuantidade = {
-  tipo: TipoLancamento
+  /** `edicao`: o engenheiro corrige um lançamento (valor absoluto; o sinal volta pelo chamador). */
+  tipo: TipoLancamento | 'edicao'
   material: SaldoMaterial
   aberta: boolean
   /** Lançamento a caminho do servidor: trava os botões e não deixa fechar. */
   ocupado: boolean
   onFechar(): void
-  onConfirmar(quantidade: number): void
+  /** Na edição recebe também o motivo e o sinal escolhido (`extra`). */
+  onConfirmar(quantidade: number, extra?: ExtraEdicao): void
+  /** Só edição: valor absoluto vigente do lançamento. */
+  quantidadeInicial?: number
+  /** Só edição: deixa escolher + ou − (ajuste). */
+  escolheSinal?: boolean
+  /** Só edição: o ajuste vigente é negativo. */
+  negativoInicial?: boolean
+  /** Só edição: apagar o lançamento (depois da confirmação dentro da gaveta). */
+  onApagar?(motivo?: string): void
   /** Quem lança (aparece na conferência da entrada). */
   quem?: string
   /** Erro do servidor para mostrar dentro da gaveta. */
@@ -30,7 +43,11 @@ export type PropsGavetaQuantidade = {
 export const TEXTO_SEM_SINAL = 'Sem sinal. Toque de novo para enviar a mesma quantidade.'
 
 const RAPIDOS = [10, 50, 100, 500] as const
-const ROTULO: Record<TipoLancamento, string> = { entrada: 'Entrada', saida: 'Saída' }
+const ROTULO: Record<TipoLancamento | 'edicao', string> = {
+  entrada: 'Entrada',
+  saida: 'Saída',
+  edicao: 'Editar lançamento',
+}
 const SELETOR_FOCAVEL =
   'button:not([disabled]), input:not([disabled]), a[href], [tabindex]:not([tabindex="-1"])'
 /** Igual à animação `gaveta-desce` em globals.css. */
@@ -46,12 +63,18 @@ const textoDe = (n: number): string => (n > 0 ? formatarQuantidade(n) : '')
  */
 export function GavetaQuantidade(props: PropsGavetaQuantidade) {
   const { tipo, material, aberta, ocupado, onFechar, onConfirmar, quem, erro, onAlterar } = props
+  const edicao = tipo === 'edicao'
   const travada = props.quantidadeTravada ?? null
   const [montada, setMontada] = useState(aberta)
   const [anterior, setAnterior] = useState(aberta)
-  const [texto, setTexto] = useState('')
+  const [texto, setTexto] = useState(
+    props.quantidadeInicial !== undefined ? textoDe(props.quantidadeInicial) : '',
+  )
   const [etapa, setEtapa] = useState<'quantidade' | 'conferencia'>('quantidade')
   const [hora, setHora] = useState('')
+  const [motivo, setMotivo] = useState('')
+  const [negativo, setNegativo] = useState(props.negativoInicial ?? false)
+  const [apagando, setApagando] = useState(false)
   const painel = useRef<HTMLDivElement>(null)
   const idTitulo = useId()
   const idDica = useId()
@@ -61,8 +84,11 @@ export function GavetaQuantidade(props: PropsGavetaQuantidade) {
     setAnterior(aberta)
     if (aberta) {
       setMontada(true)
-      setTexto('')
+      setTexto(props.quantidadeInicial !== undefined ? textoDe(props.quantidadeInicial) : '')
       setEtapa('quantidade')
+      setMotivo('')
+      setNegativo(props.negativoInicial ?? false)
+      setApagando(false)
     }
   }
 
@@ -121,12 +147,12 @@ export function GavetaQuantidade(props: PropsGavetaQuantidade) {
   const textoCampo = travada !== null ? textoDe(travada) : texto
   const q = travada ?? lerQuantidade(texto)
   const qtd = q ?? 0
-  const previa = previaLancamento(tipo, material, qtd)
+  const previa = previaLancamento(edicao ? 'entrada' : tipo, material, qtd)
   const valida = q !== null && quantidadeValida(q, material.unidade)
-  const pode = !ocupado && (travada !== null || (valida && !previa.excede))
+  const pode = !ocupado && (travada !== null || (valida && q !== null && q > 0 && (edicao || !previa.excede)))
   const bloqueado = ocupado || travada !== null
   // Travada, o saldo pode já ter caído pela própria saída que talvez tenha entrado.
-  const excedeMostrado = previa.excede && travada === null
+  const excedeMostrado = previa.excede && travada === null && !edicao
   const un = material.unidade
 
   function mudarTexto(novo: string) {
@@ -140,6 +166,10 @@ export function GavetaQuantidade(props: PropsGavetaQuantidade) {
 
   function principal() {
     if (!pode || q === null) return
+    if (edicao) {
+      onConfirmar(q, { motivo: motivo.trim() || undefined, negativo })
+      return
+    }
     if (tipo === 'entrada') {
       setHora(formatarHora(new Date()))
       setEtapa('conferencia')
@@ -209,7 +239,33 @@ export function GavetaQuantidade(props: PropsGavetaQuantidade) {
           {etapa === 'conferencia' ? 'Conferir entrada' : ROTULO[tipo]}: {material.nome}
         </h2>
 
-        {etapa === 'conferencia' && q !== null ? (
+        {edicao && apagando ? (
+          <>
+            {cabecalho('Apagar lançamento', material.nome)}
+            <p className="rounded-xl bg-erro-claro px-3.5 py-2.5 text-sm leading-snug font-semibold text-erro">
+              Apagar este lançamento? O saldo volta a ficar como se ele nunca tivesse existido.
+            </p>
+            {avisoErro}
+            <Botao
+              variante="perigo"
+              tamanho="g"
+              larguraTotal
+              disabled={ocupado}
+              onClick={() => props.onApagar?.(motivo.trim() || undefined)}
+            >
+              {ocupado ? 'Apagando…' : 'Sim, apagar'}
+            </Botao>
+            <Botao
+              variante="secundaria"
+              tamanho="g"
+              larguraTotal
+              disabled={ocupado}
+              onClick={() => setApagando(false)}
+            >
+              Não apagar
+            </Botao>
+          </>
+        ) : etapa === 'conferencia' && q !== null && !edicao ? (
           <>
             {cabecalho('Conferir entrada')}
             <div className="rounded-cartao bg-sutil p-5 text-center">
@@ -308,6 +364,42 @@ export function GavetaQuantidade(props: PropsGavetaQuantidade) {
                 </button>
               ))}
             </div>
+            {edicao && props.escolheSinal && (
+              <div role="group" aria-label="Sinal do ajuste" className="flex gap-1.5">
+                {([false, true] as const).map((neg) => (
+                  <button
+                    key={String(neg)}
+                    type="button"
+                    aria-pressed={negativo === neg}
+                    disabled={bloqueado}
+                    onClick={() => {
+                      setNegativo(neg)
+                      onAlterar?.()
+                    }}
+                    className={`min-h-toque flex-1 rounded-botao border text-lg font-extrabold ${
+                      negativo === neg
+                        ? 'border-escuro bg-escuro text-white'
+                        : 'border-borda bg-cartao'
+                    }`}
+                  >
+                    {neg ? '− Tirou' : '+ Pôs'}
+                  </button>
+                ))}
+              </div>
+            )}
+            {edicao && (
+              <label className="flex flex-col gap-1 text-[11px] font-extrabold tracking-[0.5px] text-texto-2 uppercase">
+                Motivo (opcional)
+                <input
+                  type="text"
+                  value={motivo}
+                  maxLength={200}
+                  disabled={ocupado}
+                  onChange={(e) => setMotivo(e.currentTarget.value)}
+                  className="min-h-toque rounded-botao border border-borda bg-fundo px-3 text-[15px] font-normal tracking-normal text-texto normal-case"
+                />
+              </label>
+            )}
             <div
               aria-live="polite"
               className={`rounded-xl px-3.5 py-2.5 text-sm leading-[1.45] ${
@@ -316,6 +408,8 @@ export function GavetaQuantidade(props: PropsGavetaQuantidade) {
             >
               {travada !== null ? (
                 <p>{`Quantidade enviada: ${formatarQuantidade(travada)} ${un}`}</p>
+              ) : edicao ? (
+                <p>O servidor confere se o saldo não fica negativo.</p>
               ) : excedeMostrado ? (
                 <p className="font-bold">
                   {`Só tem ${formatarQuantidade(material.saldo)} ${un} no almox. Não dá para sair mais que o saldo.`}
@@ -345,8 +439,28 @@ export function GavetaQuantidade(props: PropsGavetaQuantidade) {
               disabled={!pode}
               onClick={principal}
             >
-              {ocupado ? 'Registrando…' : tipo === 'entrada' ? 'Continuar' : 'Registrar saída'}
+              {ocupado
+                ? edicao
+                  ? 'Salvando…'
+                  : 'Registrando…'
+                : edicao
+                  ? 'Salvar'
+                  : tipo === 'entrada'
+                    ? 'Continuar'
+                    : 'Registrar saída'}
             </Botao>
+            {edicao && (
+              <Botao
+                variante="secundaria"
+                tamanho="m"
+                larguraTotal
+                disabled={ocupado}
+                className="text-erro"
+                onClick={() => setApagando(true)}
+              >
+                Apagar lançamento
+              </Botao>
+            )}
           </>
         )}
       </div>

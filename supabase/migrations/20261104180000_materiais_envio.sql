@@ -35,7 +35,9 @@ begin
          and exists (
            select 1 from public.usuario_obra uo
             where uo.usuario_id = i.usuario_id and uo.obra_id = v.obra_id
-              and (uo.empresa_id is null or uo.empresa_id = v_alvo))), '[]'::jsonb));
+              and (uo.empresa_id is null or uo.empresa_id = v_alvo
+                   -- avisos de material chegam a todos da obra, inclusive consulta de empreiteira
+                   or v.tipo in ('limite_material', 'pedido_cadastro_material', 'material_cadastrado')))), '[]'::jsonb));
   end if;
 
   if v.tipo = 'aviso' then

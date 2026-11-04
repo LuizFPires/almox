@@ -61,3 +61,28 @@ export function diferencasContagem(itens: ItemContagem[]): {
   }
   return r
 }
+
+const ERRO_PADRAO_MATERIAL = 'Não deu certo. Tente de novo.'
+
+/** Texto para o usuario a partir do codigo de erro das RPCs de materiais (AL101 a AL107, 22023). */
+export function mensagemErroMaterial(codigo: string | undefined, mensagem?: string): string {
+  switch (codigo) {
+    case 'AL101':
+    case '22023':
+      return mensagem?.trim() ? mensagem : ERRO_PADRAO_MATERIAL
+    case 'AL102':
+      return 'Não dá mais para desfazer. Peça ao engenheiro para corrigir.'
+    case 'AL103':
+      return 'Este material foi desativado.'
+    case 'AL104':
+      return 'Já existe um material com esse nome (pode estar desativado).'
+    case 'AL105':
+      return 'Só dá para desativar com saldo zero.'
+    case 'AL106':
+      return 'Conferência não se edita.'
+    case 'AL107':
+      return 'Hora do celular errada. Acerte o relógio e tente de novo.'
+    default:
+      return ERRO_PADRAO_MATERIAL
+  }
+}

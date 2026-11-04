@@ -1861,6 +1861,7 @@ export type Database = {
       definir_indenizacao: { Args: { p_avaria: string; p_valor?: number }; Returns: undefined }
       desconectar_tv: { Args: { p_dispositivo: string }; Returns: undefined }
       desfazer_saida_material: { Args: { p_movimento: string; p_obra: string }; Returns: undefined }
+      dispensar_pedido_material: { Args: { p_obra: string; p_pedido: string }; Returns: undefined }
       editar_movimento_material: {
         Args: { p_motivo?: string; p_movimento: string; p_obra: string; p_quantidade: number }
         Returns: undefined
@@ -1911,6 +1912,7 @@ export type Database = {
         }[]
       }
       importar_cadastro: { Args: { p_dados: Json; p_obra: string }; Returns: Json }
+      inativar_material: { Args: { p_material: string; p_obra: string }; Returns: undefined }
       ler_capacete: {
         Args: { p_obra: string; p_token: string }
         Returns: {
@@ -1939,6 +1941,7 @@ export type Database = {
       marcar_fotos_apagadas: { Args: { p_caminhos: string[] }; Returns: number }
       metricas_piloto: { Args: { p_ate: string; p_de: string; p_obra: string }; Returns: Json }
       painel_tv: { Args: { p_token: string; p_versao?: string }; Returns: Json }
+      pedir_cadastro_material: { Args: { p_nome: string; p_obra: string }; Returns: string }
       pedir_pareamento_tv: { Args: { p_ip?: string; p_segredo: string }; Returns: string }
       pegar_envios: {
         Args: { p_canais?: Database['public']['Enums']['canal_envio'][]; p_limite?: number }
@@ -2021,6 +2024,10 @@ export type Database = {
       remover_inscricao_push: { Args: { p_endpoint: string }; Returns: undefined }
       resumo_fechamento: { Args: { p_fechamento: string }; Returns: Json }
       revogar_dispositivo: { Args: { p_dispositivo: string }; Returns: undefined }
+      salvar_aviso_material: {
+        Args: { p_material: string; p_obra: string; p_tipo: string; p_valor: number }
+        Returns: undefined
+      }
       salvar_config_tv: {
         Args: {
           p_cartoes_por_pagina: number
@@ -2047,6 +2054,10 @@ export type Database = {
           p_quantidade: number
           p_valor: number
         }
+        Returns: string
+      }
+      salvar_material: {
+        Args: { p_id: string; p_nome: string; p_obra: string; p_pedido?: string; p_unidade: string }
         Returns: string
       }
       trocar_codigo_tv: { Args: { p_codigo: string }; Returns: string }

@@ -1,6 +1,9 @@
 import { describe, expect, it } from 'vitest'
 import {
   diferencasContagem,
+  filtrarMateriais,
+  ordenarParaLancamento,
+  previaLancamento,
   estadoSaldo,
   limiteDoAviso,
   ordenarSaldos,
@@ -41,5 +44,50 @@ describe('materiais', () => {
     expect(r.menos[0]?.diferenca).toBe(-22)
     expect(r.mais[0]?.diferenca).toBe(3)
     expect(r.bateu).toHaveLength(1)
+  })
+})
+
+describe('lançamento de material', () => {
+  const base = { unidade: 'sc', estoqueCheio: 200, aviso: null } as const
+  const saco: SaldoMaterial = { ...cimento, saldo: 118, aviso: { tipo: 'quantidade', valor: 20 } }
+
+  it('prévia da entrada soma ao saldo e não cruza limite', () => {
+    expect(previaLancamento('entrada', saco, 500)).toEqual({ depois: 618, excede: false, cruzaLimite: false, limite: 20 })
+  })
+  it('prévia da saída que cruza o limite', () => {
+    const p = previaLancamento('saida', saco, 100)
+    expect(p).toMatchObject({ depois: 18, excede: false, cruzaLimite: true })
+    expect(previaLancamento('saida', saco, 98).cruzaLimite).toBe(true)
+    expect(previaLancamento('saida', saco, 97).cruzaLimite).toBe(false)
+  })
+  it('saída já abaixo do limite não cruza de novo', () => {
+    expect(previaLancamento('saida', { ...saco, saldo: 18 }, 1).cruzaLimite).toBe(false)
+  })
+  it('saída maior que o saldo excede e não avisa limite', () => {
+    expect(previaLancamento('saida', saco, 119)).toMatchObject({ excede: true, cruzaLimite: false })
+  })
+  it('quantidade zero não cruza', () => {
+    expect(previaLancamento('saida', { ...saco, saldo: 20.5 }, 0).cruzaLimite).toBe(false)
+  })
+  it('decimal sem erro de arredondamento', () => {
+    expect(previaLancamento('saida', { ...areia, saldo: 0.3 }, 0.1).depois).toBe(0.2)
+  })
+
+  const lista: SaldoMaterial[] = [
+    { ...base, id: 'a', nome: 'Areia', saldo: 5 },
+    { ...base, id: 'b', nome: 'Brita', saldo: 0 },
+    { ...base, id: 'c', nome: 'Cal', saldo: 3 },
+    { ...base, id: 'd', nome: 'Ácido', saldo: 1 },
+  ]
+
+  it('entrada em ordem alfabética sem acento', () => {
+    expect(ordenarParaLancamento('entrada', lista, ['c']).map((m) => m.id)).toEqual(['d', 'a', 'b', 'c'])
+  })
+  it('saída: com saldo primeiro, mais usados, depois alfabética; ignora ids que não estão na lista', () => {
+    expect(ordenarParaLancamento('saida', lista, ['inativo', 'b', 'c']).map((m) => m.id)).toEqual(['c', 'd', 'a', 'b'])
+  })
+  it('busca normalizada', () => {
+    expect(filtrarMateriais(lista, ' ACIDO ').map((m) => m.id)).toEqual(['d'])
+    expect(filtrarMateriais(lista, '')).toHaveLength(4)
   })
 })

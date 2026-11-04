@@ -1,5 +1,5 @@
 import type { UnidadeMaterial } from '@/lib/formatos/quantidade'
-import { normalizarTexto } from '@/lib/formatos/texto'
+import { contemTexto, normalizarTexto } from '@/lib/formatos/texto'
 
 export type Aviso = { tipo: 'quantidade' | 'percentual'; valor: number } | null
 
@@ -41,6 +41,62 @@ export function ordenarSaldos(lista: SaldoMaterial[]): SaldoMaterial[] {
     if (p !== 0) return p
     return normalizarTexto(a.nome).localeCompare(normalizarTexto(b.nome), 'pt-BR')
   })
+}
+
+export type TipoLancamento = 'entrada' | 'saida'
+
+export type PreviaLancamento = {
+  /** Saldo depois do lançamento. */
+  depois: number
+  /** Saída maior que o saldo: não pode registrar. */
+  excede: boolean
+  /** Saída que leva o saldo de acima do limite para ele ou abaixo (dispara o aviso). */
+  cruzaLimite: boolean
+  limite: number | null
+}
+
+/** O que a entrada ou saída de `quantidade` faz com o saldo do material. */
+export function previaLancamento(
+  tipo: TipoLancamento,
+  m: SaldoMaterial,
+  quantidade: number,
+): PreviaLancamento {
+  const depois = arredondar(tipo === 'entrada' ? m.saldo + quantidade : m.saldo - quantidade)
+  const limite = limiteDoAviso(m)
+  const excede = tipo === 'saida' && quantidade > m.saldo
+  const cruzaLimite =
+    tipo === 'saida' && !excede && quantidade > 0 && limite !== null && m.saldo > limite && depois <= limite
+  return { depois, excede, cruzaLimite, limite }
+}
+
+const porNome = (a: SaldoMaterial, b: SaldoMaterial): number =>
+  normalizarTexto(a.nome).localeCompare(normalizarTexto(b.nome), 'pt-BR')
+
+/**
+ * Lista para escolher o material. Entrada: alfabética. Saída: com saldo primeiro, depois os
+ * mais usados (`ordemMaisUsados`, ids fora da lista são ignorados), depois alfabética.
+ */
+export function ordenarParaLancamento(
+  tipo: TipoLancamento,
+  lista: SaldoMaterial[],
+  ordemMaisUsados: string[],
+): SaldoMaterial[] {
+  if (tipo === 'entrada') return [...lista].sort(porNome)
+  const posicao = new Map(ordemMaisUsados.map((id, i) => [id, i]))
+  const rank = (m: SaldoMaterial) => posicao.get(m.id) ?? Number.POSITIVE_INFINITY
+  return [...lista].sort((a, b) => {
+    const comSaldo = Number(b.saldo > 0) - Number(a.saldo > 0)
+    if (comSaldo !== 0) return comSaldo
+    const ra = rank(a)
+    const rb = rank(b)
+    if (ra !== rb) return ra < rb ? -1 : 1
+    return porNome(a, b)
+  })
+}
+
+/** Busca por nome, sem acento e sem maiúsculas dos dois lados. */
+export function filtrarMateriais(lista: SaldoMaterial[], busca: string): SaldoMaterial[] {
+  return lista.filter((m) => contemTexto(m.nome, busca))
 }
 
 export type ItemContagem = { materialId: string; saldoVisto: number; contado: number }

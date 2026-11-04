@@ -45,6 +45,45 @@
   --radius-cartao: 16px; /* radius-lg */
 
   --spacing-toque: 44px; /* button-height */
+
+  /* Gaveta de baixo (materiais): sobe em 0,26 s e desce em 0,2 s, só com transform/opacidade. */
+  --animate-gaveta-sobe: gaveta-sobe 0.26s cubic-bezier(0.2, 0.8, 0.2, 1);
+  --animate-gaveta-desce: gaveta-desce 0.2s ease-in forwards;
+  --animate-fundo-entra: fundo-entra 0.22s ease-out;
+  --animate-fundo-sai: fundo-sai 0.2s ease-in forwards;
+
+  @keyframes gaveta-sobe {
+    from {
+      transform: translateY(100%);
+    }
+    to {
+      transform: translateY(0);
+    }
+  }
+  @keyframes gaveta-desce {
+    from {
+      transform: translateY(0);
+    }
+    to {
+      transform: translateY(100%);
+    }
+  }
+  @keyframes fundo-entra {
+    from {
+      opacity: 0;
+    }
+    to {
+      opacity: 1;
+    }
+  }
+  @keyframes fundo-sai {
+    from {
+      opacity: 1;
+    }
+    to {
+      opacity: 0;
+    }
+  }
 }
 
 body {

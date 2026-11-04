@@ -185,3 +185,52 @@ export async function pedidosAbertos(
   if (error) throw new Error('Não foi possível carregar os pedidos de cadastro.')
   return data.map((p) => ({ id: p.id, nome: p.nome, pedidoPor: p.autor?.nome ?? '—', criadoEm: p.criado_em }))
 }
+
+/** Janela para desfazer a própria saída (igual a `desfazer_saida_material`). */
+export const JANELA_DESFAZER_MS = 60_000
+
+export type LancamentoFeito = {
+  id: string
+  tipo: 'entrada' | 'saida'
+  /** Quantidade lançada, sempre positiva. */
+  quantidade: number
+  desfeito: boolean
+  /** Quanto falta para acabar o prazo de desfazer, pelo relógio do servidor (0 = acabou). */
+  restanteDesfazerMs: number
+  material: SaldoMaterial
+}
+
+/** Entrada ou saída recém-lançada (tela de pronto), com o saldo atual do material. */
+export async function lancamentoFeito(obraId: string, id: string): Promise<LancamentoFeito | null> {
+  const supabase = await criarClienteServidor()
+  const { data, error } = await supabase
+    .from('extrato_material')
+    .select('id, tipo, quantidade_original, desfeito, criado_em, material_id')
+    .eq('obra_id', obraId)
+    .eq('id', id)
+    .maybeSingle()
+    .overrideTypes<
+      Pick<LinhaExtratoBanco, 'id' | 'tipo' | 'quantidade_original' | 'desfeito' | 'criado_em' | 'material_id'>,
+      { merge: false }
+    >()
+  if (error) throw new Error('Não foi possível carregar o lançamento.')
+  if (!data || (data.tipo !== 'entrada' && data.tipo !== 'saida')) return null
+  const res = await supabase
+    .from('material')
+    .select(COLUNAS_MATERIAL)
+    .eq('obra_id', obraId)
+    .eq('id', data.material_id)
+    .maybeSingle()
+    .overrideTypes<LinhaMaterial, { merge: false }>()
+  if (res.error) throw new Error('Não foi possível carregar o lançamento.')
+  if (!res.data) return null
+  const passou = Date.now() - new Date(data.criado_em).getTime()
+  return {
+    id: data.id,
+    tipo: data.tipo,
+    quantidade: Math.abs(Number(data.quantidade_original)),
+    desfeito: data.desfeito,
+    restanteDesfazerMs: Math.max(0, Math.min(JANELA_DESFAZER_MS, JANELA_DESFAZER_MS - passou)),
+    material: paraSaldo(res.data),
+  }
+}

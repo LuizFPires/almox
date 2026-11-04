@@ -17,7 +17,8 @@ import {
   ehIcone,
 } from './icones-ferramenta'
 
-vi.mock('next/navigation', () => ({ useRouter: () => ({ push: vi.fn() }) }))
+const push = vi.fn()
+vi.mock('next/navigation', () => ({ useRouter: () => ({ push }) }))
 
 afterEach(cleanup)
 
@@ -100,6 +101,17 @@ describe('Botao', () => {
 })
 
 describe('modo Materiais', () => {
+  it('ChaveModo grava o cookie e navega ao trocar de modo', () => {
+    push.mockClear()
+    render(<ChaveModo modo="ferramentas" />)
+    fireEvent.click(screen.getByRole('button', { name: 'Materiais' }))
+    expect(document.cookie).toContain('almox_modo=materiais')
+    expect(push).toHaveBeenCalledWith('/materiais')
+    push.mockClear()
+    fireEvent.click(screen.getByRole('button', { name: 'Ferramentas' }))
+    expect(push).not.toHaveBeenCalled()
+  })
+
   it('ChaveModo marca o botão ativo com aria-pressed', () => {
     render(<ChaveModo modo="materiais" />)
     expect(screen.getByRole('button', { name: 'Materiais' }).getAttribute('aria-pressed')).toBe(

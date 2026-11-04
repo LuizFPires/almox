@@ -7,7 +7,7 @@ export default function manifest(): MetadataRoute.Manifest {
     short_name: 'Almox',
     description: 'Retiradas e devoluções de ferramentas pelo QR do capacete.',
     lang: 'pt-BR',
-    start_url: '/inicio',
+    start_url: '/',
     scope: '/',
     display: 'standalone',
     orientation: 'portrait',

@@ -14,14 +14,14 @@ function caminhoInterno(caminho: string): boolean {
  * o caminho normalizado, nunca o texto recebido.
  */
 export function destinoSeguro(volta: string | null | undefined): string {
-  if (!volta || !caminhoInterno(volta)) return '/inicio'
+  if (!volta || !caminhoInterno(volta)) return '/'
   let url: URL
   try {
     url = new URL(volta, BASE)
   } catch {
-    return '/inicio'
+    return '/'
   }
-  if (url.origin !== BASE) return '/inicio'
+  if (url.origin !== BASE) return '/'
   const caminho = url.pathname + url.search + url.hash
   if (
     !caminhoInterno(caminho) ||
@@ -29,7 +29,7 @@ export function destinoSeguro(volta: string | null | undefined): string {
     caminho.startsWith('/login') ||
     caminho.startsWith('/auth')
   ) {
-    return '/inicio'
+    return '/'
   }
   return caminho
 }

@@ -48,5 +48,5 @@ export async function trocarSenha(_: EstadoSenha, form: FormData): Promise<Estad
   }
   // Quem entrou com a senha provisória em outro aparelho (ex.: quem a viu na tela) sai.
   await supabase.auth.signOut({ scope: 'others' })
-  redirect('/inicio')
+  redirect('/')
 }

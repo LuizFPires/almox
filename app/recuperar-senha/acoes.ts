@@ -101,7 +101,7 @@ export async function salvarSenha(_: EstadoRecuperar, form: FormData): Promise<E
   }
   // Quem troca a senha por suspeita de invasão derruba as outras sessões.
   await supabase.auth.signOut({ scope: 'others' })
-  redirect('/inicio')
+  redirect('/')
 }
 
 export type EstadoTrocarComSenha = { erro?: string; erroSenha?: string }
@@ -137,5 +137,5 @@ export async function trocarComSenhaAtual(
   const { error } = await supabase.auth.updateUser({ password: senha })
   if (error) return { erroSenha: mensagemErroNovaSenha(error) }
   await supabase.auth.signOut({ scope: 'others' })
-  redirect('/inicio')
+  redirect('/')
 }

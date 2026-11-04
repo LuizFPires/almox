@@ -51,7 +51,7 @@ export async function atualizarSessao(request: NextRequest) {
 
   if (logado && caminho === '/login') {
     const destino = request.nextUrl.clone()
-    destino.pathname = '/inicio'
+    destino.pathname = '/'
     destino.search = ''
     return copiarCookies(resposta, NextResponse.redirect(destino))
   }

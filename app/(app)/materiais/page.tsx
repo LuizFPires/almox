@@ -2,6 +2,9 @@ import type { Metadata } from 'next'
 import { AcoesMateriais } from '@/components/AcoesMateriais'
 import { AoVivo } from '@/components/AoVivo'
 import { BarraInferior } from '@/components/BarraInferior'
+import { Gaveta } from '@/components/Gaveta'
+import { IconeInterface } from '@/components/IconeInterface'
+import { itensGestao } from '@/components/itens-gestao'
 import { ChaveModo } from '@/components/ChaveModo'
 import { ListaSaldos } from '@/components/ListaSaldos'
 import { Marca } from '@/components/Marca'
@@ -18,6 +21,8 @@ export default async function PaginaMateriais() {
   const { obraAtual } = await obterSessao()
   const lanca = podeLancar(obraAtual.perfil)
   const materiais = await listarSaldos(obraAtual.id)
+  const restrita = obraAtual.perfil === 'consulta' ? obraAtual.empresa : null
+  const gestao = itensGestao(obraAtual.perfil, restrita)
   const abaixo = materiais.filter((m) => estadoSaldo(m) === 'abaixo').length
 
   return (
@@ -32,6 +37,14 @@ export default async function PaginaMateriais() {
           </span>
         </div>
         <SeloPerfil perfil={obraAtual.perfil} empresa={obraAtual.empresa?.nome} />
+        {gestao.length > 0 && (
+          <Gaveta
+            rotulo="Gestão da obra: TV, avisos, a descontar e histórico"
+            icone={<IconeInterface nome="dashboard" tamanho={22} />}
+            titulo="Gestão da obra"
+            itens={gestao}
+          />
+        )}
       </header>
       <ChaveModo modo="materiais" />
 
@@ -50,8 +63,11 @@ export default async function PaginaMateriais() {
           </p>
         )}
         <section className="flex flex-col gap-2" aria-labelledby="titulo-saldo">
-          <h2 id="titulo-saldo" className="text-[13px] font-bold tracking-[1.2px] text-texto-2">
-            SALDO AGORA
+          <h2
+            id="titulo-saldo"
+            className="text-[13px] font-bold tracking-[1.2px] text-texto-2 uppercase"
+          >
+            Saldo agora
           </h2>
           <ListaSaldos materiais={materiais} />
         </section>

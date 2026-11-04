@@ -19,7 +19,7 @@ export async function escolherObra(form: FormData) {
     path: '/',
     maxAge: 60 * 60 * 24 * 365,
   })
-  redirect('/inicio')
+  redirect('/')
 }
 
 export type ResultadoNotificacao = { erro?: string }

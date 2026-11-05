@@ -96,7 +96,8 @@ test.describe('PWA', () => {
     const manifest = await (await request.get(href ?? '')).json()
     expect(manifest).toMatchObject({
       short_name: 'Almox',
-      start_url: '/inicio',
+      // A raiz abre o último modo usado (Ferramentas ou Materiais, M13).
+      start_url: '/',
       display: 'standalone',
       lang: 'pt-BR',
     })

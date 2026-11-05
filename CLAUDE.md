@@ -38,6 +38,7 @@ Sistema de controle de ferramentas do almoxarifado de obra. Cada trabalhador é 
 ```
 /app
   /(app)            telas do celular (inicio, leitura, ficha, retirada, devolucao, lista, estoque, fechamento, cadastros)
+    /materiais      modo Materiais (M13): entrada, saida, contagem, saldos, extrato, ficha do material
   /tv               painel da TV (rota em tela cheia, token de dispositivo)
   /api              rotas de servidor (impressão, e-mail, push)
 /components         componentes de UI (Botao, Cartao, IconeFerramenta, Contador…)
@@ -82,6 +83,12 @@ npm run gen:types      # gera tipos TS a partir do schema
 | Pendência | Unidade que não voltou até o fim do dia. |
 | Aviso | Notificação + e-mail à empreiteira com o valor a descontar na medição. |
 | Medição | Fechamento periódico de pagamento da empreiteira. |
+| Material | Material de consumo da obra (cimento, areia, arame…), com unidade (`sc`, `m³`, `kg`…). Não tem dono nem posse. |
+| Saldo | Quanto do material há no almoxarifado: soma do extrato (entradas, saídas e ajustes). Nunca negativo. |
+| Estoque cheio | Saldo logo depois da última entrada. Base do aviso por %. |
+| Contagem | Conferência física do almoxarife: "Ajustar o saldo" ou "Só conferir" (a divergência fica no extrato). |
+| Ajuste | Lançamento que a contagem gera ao ajustar (+ ou −). Não é entrada nem saída. |
+| Aviso de limite | Push a todos da obra quando o saldo cruza o limite (quantidade ou % do estoque cheio). Dispara uma vez e rearma acima do limite. |
 
 ## Regras de negócio que nunca podem ser quebradas
 
@@ -95,7 +102,7 @@ Estas regras são validadas **no servidor** (RPC/RLS), não só na tela. Detalhe
 6. **Avaria exige foto e motivo.** A unidade vai para `manutencao`.
 7. **Fechamento do dia não dá baixa.** Só relatório e avisos.
 8. **Aviso só para empreiteira.** Funcionário próprio → só engenheiro. O desconto é cancelado se a ferramenta voltar antes do fechamento da medição.
-9. **Movimentos são imutáveis.** Nada de `UPDATE`/`DELETE` em `movimento` e `movimento_item`. Correção = movimento de `estorno` com motivo, só pelo engenheiro.
+9. **Movimentos são imutáveis.** Nada de `UPDATE`/`DELETE` em `movimento` e `movimento_item`. Correção = movimento de `estorno` com motivo, só pelo engenheiro. (materiais: edição só pelo engenheiro, com versão)
 10. **Cadastros e valores só pelo engenheiro.**
 11. **O QR contém só o token.** Nunca coloque nome, CPF, matrícula ou URL com dados pessoais no QR.
 
@@ -146,8 +153,8 @@ Fonte da verdade visual: `design-system/` (marca, 32 ícones de interface, token
 ## Painel da TV
 
 - Rota `/tv`, autenticação por **token de dispositivo** (somente leitura).
-- Loop: páginas de 12 cartões por pessoa (ordem alfabética, 8 s, esmaecimento 0,6 s) → colunas por empresa rolando a 45 px/s (pausas 2,5 s / 3 s) → recomeça.
-- Sem totais nem estoque na TV: esses números ficam só no app.
+- Loop: páginas de 12 cartões por pessoa (ordem alfabética, 8 s, esmaecimento 0,6 s) → colunas por empresa rolando a 45 px/s (pausas 2,5 s / 3 s) → Materiais na obra (páginas de 8 s; some se a obra não tem material) → recomeça.
+- Sem totais nem estoque **de ferramentas** na TV; a terceira tela mostra o saldo de materiais.
 - Animar com `transform` + `requestAnimationFrame`; atualizações de dados não podem reiniciar a animação em curso.
 - Tem que rodar dias seguidos: limpar timers e listeners, sem vazamento de memória.
 

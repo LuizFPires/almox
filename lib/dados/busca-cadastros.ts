@@ -1,7 +1,9 @@
 import 'server-only'
 import type { ItemBusca } from '@/lib/dominio/busca-cadastros'
+import { textoAviso } from '@/lib/dominio/materiais'
 import { listarEmpresas } from './empresas'
 import { listarTipos } from './ferramentas'
+import { listarSaldos } from './materiais'
 import { listarPessoas } from './pessoas'
 
 function livres(unidades: { status: string }[]) {
@@ -15,10 +17,11 @@ function livres(unidades: { status: string }[]) {
  * Não leva token de QR nem e-mail: só o que já aparece nas listas.
  */
 export async function indiceCadastros(obraId: string): Promise<ItemBusca[]> {
-  const [pessoas, tipos, empresas] = await Promise.all([
+  const [pessoas, tipos, empresas, materiais] = await Promise.all([
     listarPessoas(obraId),
     listarTipos(obraId),
     listarEmpresas(obraId),
+    listarSaldos(obraId),
   ])
   return [
     ...pessoas.map((p): ItemBusca => ({
@@ -37,6 +40,13 @@ export async function indiceCadastros(obraId: string): Promise<ItemBusca[]> {
       detalhe: `${t.unidades.length} un. · ${livres(t.unidades)}`,
       termos: t.unidades.map((u) => u.codigo),
       icone: t.icone,
+    })),
+    ...materiais.map((m): ItemBusca => ({
+      tipo: 'material',
+      id: m.id,
+      nome: m.nome,
+      detalhe: `${m.unidade} · ${textoAviso(m)}`,
+      termos: [],
     })),
     ...empresas.map((e): ItemBusca => ({
       tipo: 'empresa',

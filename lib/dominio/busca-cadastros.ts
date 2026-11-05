@@ -1,6 +1,6 @@
 import { normalizarTexto } from '@/lib/formatos/texto'
 
-export type TipoCadastro = 'pessoa' | 'ferramenta' | 'empresa'
+export type TipoCadastro = 'pessoa' | 'ferramenta' | 'material' | 'empresa'
 
 /** Uma linha do índice da busca de Cadastros (montado no servidor, filtrado no celular). */
 export type ItemBusca = {
@@ -24,6 +24,7 @@ export type ResultadoBusca = { tipo: TipoCadastro; titulo: string; itens: ItemBu
 const GRUPOS: { tipo: TipoCadastro; titulo: string }[] = [
   { tipo: 'pessoa', titulo: 'Pessoas' },
   { tipo: 'ferramenta', titulo: 'Ferramentas' },
+  { tipo: 'material', titulo: 'Materiais' },
   { tipo: 'empresa', titulo: 'Empresas' },
 ]
 
@@ -73,5 +74,7 @@ export function buscarCadastros(
 
 /** Endereço do cadastro de cada item. */
 export function hrefCadastro(item: Pick<ItemBusca, 'tipo' | 'id'>): string {
-  return `/cadastros/${item.tipo}/${item.id}`
+  // Materiais usam o plural no endereço (a aba é /cadastros/materiais).
+  const pasta = item.tipo === 'material' ? 'materiais' : item.tipo
+  return `/cadastros/${pasta}/${item.id}`
 }

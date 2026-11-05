@@ -6,6 +6,7 @@ import { usePathname } from 'next/navigation'
 const ABAS = [
   { href: '/cadastros/pessoas', rotulo: 'Pessoas' },
   { href: '/cadastros/ferramentas', rotulo: 'Ferramentas' },
+  { href: '/cadastros/materiais', rotulo: 'Materiais' },
   { href: '/cadastros/empresas', rotulo: 'Empresas' },
   { href: '/cadastros/usuarios', rotulo: 'Acessos' },
 ] as const
@@ -16,7 +17,7 @@ export function AbasCadastros() {
   return (
     <nav
       aria-label="Tipo de cadastro"
-      className="grid grid-cols-4 gap-1 rounded-cartao bg-sutil p-1"
+      className="flex gap-1 overflow-x-auto rounded-cartao bg-sutil p-1"
     >
       {ABAS.map((aba) => {
         const atual = caminho === aba.href
@@ -25,7 +26,7 @@ export function AbasCadastros() {
             key={aba.href}
             href={aba.href}
             aria-current={atual ? 'page' : undefined}
-            className={`flex min-h-toque items-center justify-center rounded-botao text-sm ${
+            className={`flex min-h-toque flex-1 shrink-0 items-center justify-center rounded-botao px-3 text-sm ${
               atual ? 'bg-cartao font-bold text-texto shadow-sm' : 'font-medium text-texto-2'
             }`}
           >

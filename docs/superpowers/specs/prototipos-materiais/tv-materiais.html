@@ -1,0 +1,362 @@
+<!doctype html>
+<html lang="pt-BR">
+  <head>
+    <meta charset="utf-8" />
+    <title>Almox · TV · Materiais</title>
+    <style>
+      body {
+        margin: 0;
+        background: #e9ecf1;
+        font-family: Inter, system-ui, sans-serif;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        padding: 24px 16px;
+        gap: 14px;
+        color: #1f2937;
+      }
+      .exp {
+        max-width: 1100px;
+        font-size: 14px;
+        line-height: 1.5;
+      }
+      .exp h2 {
+        margin: 0 0 4px;
+        font-size: 20px;
+      }
+      .passos {
+        display: flex;
+        gap: 8px;
+        font-size: 13px;
+        font-weight: 700;
+      }
+      .passos span {
+        padding: 6px 12px;
+        border-radius: 20px;
+        background: #fff;
+        color: #586474;
+      }
+      .passos span.at {
+        background: #1f2937;
+        color: #f4b400;
+      }
+      .tv {
+        width: 1100px;
+        max-width: 100%;
+        aspect-ratio: 16/9;
+        background: #101720;
+        border-radius: 14px;
+        border: 12px solid #000;
+        color: #f9fafb;
+        display: flex;
+        flex-direction: column;
+        padding: 26px 34px;
+        box-sizing: border-box;
+        overflow: hidden;
+      }
+      .topo {
+        display: flex;
+        align-items: center;
+        gap: 18px;
+        margin-bottom: 20px;
+      }
+      .marca {
+        font-weight: 900;
+        font-size: 30px;
+        letter-spacing: -1px;
+      }
+      .marca i {
+        font-style: normal;
+        background: #f4b400;
+        color: #1f2937;
+        padding: 0 5px;
+        border-radius: 5px;
+      }
+      .titulo {
+        font-size: 28px;
+        font-weight: 800;
+        flex: 1;
+      }
+      .hora {
+        font-size: 24px;
+        font-weight: 300;
+        color: #d1d5db;
+      }
+      .grade {
+        display: grid;
+        grid-template-columns: repeat(4, 1fr);
+        grid-template-rows: repeat(2, 1fr);
+        gap: 14px;
+        flex: 1;
+        min-height: 0;
+      }
+      .c {
+        background: #1f2937;
+        border-radius: 16px;
+        padding: 16px 18px;
+        display: flex;
+        flex-direction: column;
+        justify-content: space-between;
+        min-height: 0;
+      }
+      .c .n {
+        font-size: 19px;
+        font-weight: 700;
+        line-height: 1.2;
+      }
+      .c .s {
+        font-size: 44px;
+        font-weight: 900;
+        line-height: 1;
+        letter-spacing: -1px;
+      }
+      .c .s small {
+        font-size: 22px;
+        font-weight: 700;
+        color: #9ca3af;
+        margin-left: 4px;
+      }
+      .barra {
+        height: 8px;
+        border-radius: 4px;
+        background: #374151;
+        position: relative;
+        margin-top: 8px;
+      }
+      .barra i {
+        position: absolute;
+        left: 0;
+        top: 0;
+        bottom: 0;
+        border-radius: 4px;
+        background: #22c55e;
+      }
+      .barra u {
+        position: absolute;
+        top: -4px;
+        bottom: -4px;
+        width: 3px;
+        background: #f9fafb;
+        border-radius: 2px;
+      }
+      .c .lim {
+        font-size: 14px;
+        color: #9ca3af;
+        margin-top: 6px;
+      }
+      .c.er {
+        background: #7f1d1d;
+        box-shadow: inset 0 0 0 3px #f87171;
+      }
+      .c.er .barra {
+        background: #991b1b;
+      }
+      .c.er .barra i {
+        background: #fca5a5;
+      }
+      .c.er .lim {
+        color: #fecaca;
+        font-weight: 700;
+      }
+      .c.er .s small {
+        color: #fecaca;
+      }
+      .c.av .barra i {
+        background: #f4b400;
+      }
+      .alerta {
+        display: flex;
+        align-items: center;
+        gap: 16px;
+        background: #dc2626;
+        color: #fff;
+        border-radius: 14px;
+        padding: 12px 20px;
+        margin: -6px 0 16px;
+        font-size: 22px;
+        font-weight: 800;
+        animation: pulsa 1.6s ease-in-out infinite;
+      }
+      .alerta .ic {
+        width: 40px;
+        height: 40px;
+        border-radius: 50%;
+        background: #fff;
+        color: #dc2626;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 26px;
+        font-weight: 900;
+        flex-shrink: 0;
+      }
+      .alerta span {
+        font-weight: 600;
+        font-size: 18px;
+        opacity: 0.95;
+      }
+      .c.er {
+        animation: borda 1.6s ease-in-out infinite;
+      }
+      @keyframes pulsa {
+        0%,
+        100% {
+          background: #dc2626;
+        }
+        50% {
+          background: #b91c1c;
+        }
+      }
+      @keyframes borda {
+        0%,
+        100% {
+          box-shadow: inset 0 0 0 3px #f87171;
+        }
+        50% {
+          box-shadow: inset 0 0 0 6px #fca5a5;
+        }
+      }
+      .faixa {
+        max-width: 1100px;
+        width: 100%;
+        background: #101720;
+        border-radius: 10px;
+        padding: 10px 16px;
+        display: flex;
+        gap: 12px;
+        align-items: center;
+        color: #f9fafb;
+        font-size: 15px;
+      }
+      .faixa b {
+        background: #dc2626;
+        padding: 4px 10px;
+        border-radius: 8px;
+      }
+      .rodape {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-top: 14px;
+        font-size: 15px;
+        color: #9ca3af;
+      }
+      .pts {
+        display: flex;
+        gap: 6px;
+      }
+      .pts i {
+        width: 10px;
+        height: 10px;
+        border-radius: 50%;
+        background: #374151;
+      }
+      .pts i.at {
+        background: #f4b400;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="exp">
+      <h2>TV: terceira tela do loop, com o saldo de materiais</h2>
+      Mesmo tema escuro da TV atual. Os materiais abaixo do limite vêm primeiro, em vermelho. Em
+      cada cartão: o saldo em letra grande e uma barra até a última entrada, com o traço branco
+      marcando o limite. Com alerta, aparece uma faixa vermelha pulsando no topo e os cartões em
+      alerta piscam a borda. São 8 cartões por página (para caber a faixa), virando a cada 8 s.
+    </div>
+    <div class="passos">
+      <span>1 · Cartões por pessoa</span><span>2 · Colunas por empresa</span
+      ><span class="at">3 · Materiais na obra</span><span>↺ recomeça</span>
+    </div>
+
+    <div class="tv">
+      <div class="topo">
+        <div class="marca"><i>al</i>mox</div>
+        <div class="titulo">Materiais na obra</div>
+        <div class="hora">quarta, 04/11 · 17:58</div>
+      </div>
+      <div class="alerta">
+        <div class="ic">!</div>
+        <div>
+          2 materiais abaixo do limite
+          <span>· Cimento CP-II (18 sc) · Areia média (6 m³). Pedir reposição.</span>
+        </div>
+      </div>
+      <div class="grade">
+        <div class="c er">
+          <div class="n">Cimento CP-II 50 kg</div>
+          <div>
+            <div class="s">18<small>sc</small></div>
+            <div class="barra"><i style="width: 4%"></i><u style="left: 4%"></u></div>
+            <div class="lim">⚠ abaixo do limite (20)</div>
+          </div>
+        </div>
+        <div class="c er">
+          <div class="n">Areia média</div>
+          <div>
+            <div class="s">6<small>m³</small></div>
+            <div class="barra"><i style="width: 50%"></i><u style="left: 50%"></u></div>
+            <div class="lim">⚠ chegou a 50% (6)</div>
+          </div>
+        </div>
+        <div class="c av">
+          <div class="n">Arame recozido 18</div>
+          <div>
+            <div class="s">12<small>kg</small></div>
+            <div class="barra"><i style="width: 24%"></i><u style="left: 20%"></u></div>
+            <div class="lim">perto do limite (10)</div>
+          </div>
+        </div>
+        <div class="c">
+          <div class="n">Bloco de concreto 14×19×39</div>
+          <div>
+            <div class="s">2.340<small>un</small></div>
+            <div class="barra"><i style="width: 78%"></i><u style="left: 17%"></u></div>
+            <div class="lim">limite 500</div>
+          </div>
+        </div>
+        <div class="c">
+          <div class="n">Brita 1</div>
+          <div>
+            <div class="s">14<small>m³</small></div>
+            <div class="barra"><i style="width: 70%"></i></div>
+            <div class="lim">sem aviso</div>
+          </div>
+        </div>
+        <div class="c">
+          <div class="n">Cal hidratada 20 kg</div>
+          <div>
+            <div class="s">85<small>sc</small></div>
+            <div class="barra"><i style="width: 85%"></i><u style="left: 20%"></u></div>
+            <div class="lim">limite 20</div>
+          </div>
+        </div>
+        <div class="c">
+          <div class="n">Argamassa AC-II</div>
+          <div>
+            <div class="s">64<small>sc</small></div>
+            <div class="barra"><i style="width: 64%"></i><u style="left: 15%"></u></div>
+            <div class="lim">limite 15</div>
+          </div>
+        </div>
+        <div class="c">
+          <div class="n">Vergalhão CA-50 10 mm</div>
+          <div>
+            <div class="s">120<small>barra</small></div>
+            <div class="barra"><i style="width: 60%"></i><u style="left: 20%"></u></div>
+            <div class="lim">limite 40</div>
+          </div>
+        </div>
+      </div>
+      <div class="rodape">
+        <span>Obra Betim · atualizado ao vivo</span>
+        <div class="pts"><i class="at"></i><i></i></div>
+      </div>
+    </div>
+    <div class="exp" style="margin-top: 6px">
+      <b>Nas outras duas telas do loop</b> (pessoas e empresas), enquanto houver alerta, aparece uma
+      faixa fina no rodapé:
+    </div>
+    <div class="faixa"><b>! 2 materiais abaixo do limite</b> Cimento CP-II · Areia média</div>
+  </body>
+</html>

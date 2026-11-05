@@ -2,6 +2,7 @@
 
 import { redirect } from 'next/navigation'
 import { mensagemErroNovaSenha, validarNovaSenha } from '@/lib/dominio/senha'
+import { inicioDoUltimoModo } from '@/lib/modo'
 import { criarClienteAdmin } from '@/lib/supabase/admin'
 import { criarClienteServidor } from '@/lib/supabase/servidor'
 
@@ -48,5 +49,5 @@ export async function trocarSenha(_: EstadoSenha, form: FormData): Promise<Estad
   }
   // Quem entrou com a senha provisória em outro aparelho (ex.: quem a viu na tela) sai.
   await supabase.auth.signOut({ scope: 'others' })
-  redirect('/inicio')
+  redirect(await inicioDoUltimoModo())
 }

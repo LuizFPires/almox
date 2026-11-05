@@ -1,6 +1,12 @@
 'use client'
 
-import { destinoDoEnvio, type DadosOffline, type RespostaEnvio } from '@/lib/dominio/offline'
+import {
+  destinoDoEnvio,
+  ehItemDeMaterial,
+  type DadosOffline,
+  type ItemFila,
+  type RespostaEnvio,
+} from '@/lib/dominio/offline'
 import { criarClienteNavegador } from '@/lib/supabase/navegador'
 import { guardarDados, guardarNaFila, listarFila, tirarDaFila } from './banco'
 
@@ -67,41 +73,16 @@ export async function enviarFila(cliente: Cliente = criarClienteNavegador()): Pr
       if (item.situacao !== 'aguardando' || item.usuario !== usuario) continue
       let resposta: RespostaEnvio
       try {
-        const { error, status } =
-          item.tipo === 'retirada'
-            ? await cliente.rpc('registrar_retirada', {
-                p_obra: item.obra,
-                p_pessoa: item.pessoa,
-                p_identificacao: null as unknown as string,
-                p_itens: item.itens,
-                p_confirmado: true,
-                p_chave: item.chave,
-                p_token: item.token ?? undefined,
-                p_quando: item.quando,
-              })
-            : item.tipo === 'devolucao'
-              ? await cliente.rpc('registrar_devolucao', {
-                  p_obra: item.obra,
-                  p_pessoa: item.pessoa,
-                  p_identificacao: null as unknown as string,
-                  p_itens: item.itens,
-                  p_chave: item.chave,
-                  p_token: item.token ?? undefined,
-                  p_quando: item.quando,
-                })
-              : await cliente.rpc('registrar_ocorrencia', {
-                  p_obra: item.obra,
-                  p_token: item.token ?? '',
-                  p_chave: item.chave,
-                  p_quando: item.quando,
-                })
+        const { error, status } = await chamarRpc(cliente, item)
         resposta = error
           ? { ok: false, status, codigo: error.code, mensagem: error.message }
           : { ok: true }
       } catch {
         resposta = { ok: false }
       }
-      const destino = destinoDoEnvio(resposta, item.tentativas ?? 0)
+      const destino = destinoDoEnvio(resposta, item.tentativas ?? 0, {
+        repetidoJaGravado: ehItemDeMaterial(item),
+      })
       if (destino.acao === 'tentarDepois') {
         if (destino.contar) await guardarNaFila({ ...item, tentativas: (item.tentativas ?? 0) + 1 })
         break
@@ -111,7 +92,11 @@ export async function enviarFila(cliente: Cliente = criarClienteNavegador()): Pr
         enviados++
       } else {
         // O token não fica guardado depois da resposta do servidor.
-        await guardarNaFila({ ...item, token: null, situacao: 'recusado', erro: destino.erro })
+        await guardarNaFila(
+          ehItemDeMaterial(item)
+            ? { ...item, situacao: 'recusado', erro: destino.erro }
+            : { ...item, token: null, situacao: 'recusado', erro: destino.erro },
+        )
       }
       obras.add(item.obra)
     }
@@ -127,4 +112,66 @@ export async function enviarFila(cliente: Cliente = criarClienteNavegador()): Pr
     )
   }
   return fazer()
+}
+
+/** A RPC de cada tipo de item, com a hora do celular (`p_quando`) e a chave da fila. */
+function chamarRpc(cliente: Cliente, item: ItemFila) {
+  switch (item.tipo) {
+    case 'retirada':
+      return cliente.rpc('registrar_retirada', {
+        p_obra: item.obra,
+        p_pessoa: item.pessoa,
+        p_identificacao: null as unknown as string,
+        p_itens: item.itens,
+        p_confirmado: true,
+        p_chave: item.chave,
+        p_token: item.token ?? undefined,
+        p_quando: item.quando,
+      })
+    case 'devolucao':
+      return cliente.rpc('registrar_devolucao', {
+        p_obra: item.obra,
+        p_pessoa: item.pessoa,
+        p_identificacao: null as unknown as string,
+        p_itens: item.itens,
+        p_chave: item.chave,
+        p_token: item.token ?? undefined,
+        p_quando: item.quando,
+      })
+    case 'ocorrencia':
+      return cliente.rpc('registrar_ocorrencia', {
+        p_obra: item.obra,
+        p_token: item.token ?? '',
+        p_chave: item.chave,
+        p_quando: item.quando,
+      })
+    case 'material_entrada':
+      return cliente.rpc('registrar_entrada_material', {
+        p_obra: item.obra,
+        p_material: item.material ?? '',
+        p_quantidade: item.quantidade ?? 0,
+        p_chave: item.chave,
+        p_quando: item.quando,
+      })
+    case 'material_saida':
+      return cliente.rpc('registrar_saida_material', {
+        p_obra: item.obra,
+        p_material: item.material ?? '',
+        p_quantidade: item.quantidade ?? 0,
+        p_chave: item.chave,
+        p_quando: item.quando,
+      })
+    case 'material_contagem':
+      return cliente.rpc('registrar_contagem_material', {
+        p_obra: item.obra,
+        p_modo: item.modo ?? 'conferir',
+        p_itens: (item.itens ?? []).map((i) => ({
+          material: i.materialId,
+          saldo_visto: i.saldoVisto,
+          contado: i.contado,
+        })),
+        p_chave: item.chave,
+        p_quando: item.quando,
+      })
+  }
 }

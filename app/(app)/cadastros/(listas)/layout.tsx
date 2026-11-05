@@ -1,4 +1,4 @@
-import { BarraInferior } from '@/components/BarraInferior'
+import { BarraCadastros } from '@/components/BarraCadastros'
 import { Cabecalho } from '@/components/Cabecalho'
 import { MenuAparelhos } from '@/components/MenuAparelhos'
 import { SeloPerfil } from '@/components/SeloPerfil'
@@ -37,7 +37,7 @@ export default async function LayoutListas({ children }: LayoutProps<'/cadastros
         }
       />
       <BuscaCadastros indice={indice}>{children}</BuscaCadastros>
-      <BarraInferior ativa="cadastros" podeLancar />
+      <BarraCadastros />
     </>
   )
 }

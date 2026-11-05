@@ -1,5 +1,5 @@
 -- Dados de desenvolvimento do protótipo (local e almox-dev; NUNCA no almox-prod).
--- 2 obras, 6 empresas, 30 pessoas, 13 tipos de ferramenta, retiradas do dia e
+-- 2 obras, 6 empresas, 30 pessoas, 13 tipos de ferramenta, retiradas do dia, 4 materiais e
 -- usuários de teste para cada perfil (senha abaixo, só para desenvolvimento).
 
 -- Trava: o seed só roda em banco vazio. Nunca rode em produção (db push sem --include-seed).
@@ -228,3 +228,25 @@ begin
   end loop;
 end;
 $$;
+
+-- Materiais (M13) ------------------------------------------------------------------------------
+-- O saldo entra por movimentos de entrada, para bater com o extrato. Estoque cheio = saldo depois
+-- da última entrada. Arame recozido já está abaixo do limite (aviso disparado: faixa da TV).
+
+insert into public.material (id, obra_id, nome, unidade, saldo, estoque_cheio, aviso_tipo, aviso_valor, aviso_disparado) values
+  ('f0000000-0000-4000-8000-000000000001', 'a0000000-0000-4000-8000-000000000001', 'Cimento CP-II 50 kg', 'sc', 118, 118, 'quantidade', 20, false),
+  ('f0000000-0000-4000-8000-000000000002', 'a0000000-0000-4000-8000-000000000001', 'Areia média', 'm³', 12, 12, 'percentual', 50, false),
+  ('f0000000-0000-4000-8000-000000000003', 'a0000000-0000-4000-8000-000000000001', 'Brita 1', 'm³', 14, 14, null, null, false),
+  ('f0000000-0000-4000-8000-000000000004', 'a0000000-0000-4000-8000-000000000001', 'Arame recozido 18', 'kg', 8, 8, 'quantidade', 10, true);
+
+insert into public.movimento_material (obra_id, material_id, tipo, quantidade, usuario_id, criado_em)
+select 'a0000000-0000-4000-8000-000000000001', e.material::uuid, 'entrada', e.quantidade,
+       'b0000000-0000-4000-8000-000000000002',
+       (((now() at time zone 'America/Sao_Paulo')::date - e.dias_atras) + e.hora::time) at time zone 'America/Sao_Paulo'
+  from (values
+    ('f0000000-0000-4000-8000-000000000001', 80, 3, '08:10'),
+    ('f0000000-0000-4000-8000-000000000004', 8, 3, '08:30'),
+    ('f0000000-0000-4000-8000-000000000002', 12, 2, '09:15'),
+    ('f0000000-0000-4000-8000-000000000003', 14, 2, '09:40'),
+    ('f0000000-0000-4000-8000-000000000001', 38, 1, '07:50')
+  ) as e (material, quantidade, dias_atras, hora);

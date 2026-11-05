@@ -23,6 +23,11 @@ const NOVO: Record<string, { href: string; rotulo: string; completo: string }> =
     rotulo: 'Nova',
     completo: 'Nova ferramenta',
   },
+  '/cadastros/materiais': {
+    href: '/cadastros/materiais/novo',
+    rotulo: 'Novo',
+    completo: 'Novo material',
+  },
   '/cadastros/empresas': {
     href: '/cadastros/empresa/nova',
     rotulo: 'Nova',
@@ -102,7 +107,7 @@ export function BuscaCadastros({ indice, children }: Props) {
         <div className="flex gap-2">
           <label className="flex h-12 min-w-0 flex-1 items-center gap-2 rounded-botao border border-borda bg-cartao px-3 has-[:focus-visible]:outline-3 has-[:focus-visible]:outline-offset-3 has-[:focus-visible]:outline-foco">
             <IconeInterface nome="search" tamanho={20} className="shrink-0 text-texto-2" />
-            <span className="sr-only">Buscar pessoa, ferramenta ou empresa</span>
+            <span className="sr-only">Buscar pessoa, ferramenta, material ou empresa</span>
             <input
               ref={entrada}
               type="search"

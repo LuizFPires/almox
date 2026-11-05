@@ -27,7 +27,7 @@ button,input,select{font:inherit;color:inherit}
 
 /* Celular */
 .cel{width:390px;max-width:100%;height:844px;background:var(--fundo);border-radius:44px;border:10px solid #111827;overflow:hidden;display:flex;flex-direction:column;position:relative;box-shadow:0 30px 60px #0003}
-.rola{flex:1;overflow-y:auto;overscroll-behavior:contain}
+.rola{flex:1;overflow-y:auto;overflow-x:hidden;overscroll-behavior:contain}
 .topo{padding:18px 20px 8px}
 .topo h1{font-size:22px;font-weight:700}
 .modo{margin:4px 20px 0;display:grid;grid-template-columns:1fr 1fr;background:var(--sutil);border-radius:12px;padding:4px}
@@ -41,8 +41,8 @@ button,input,select{font:inherit;color:inherit}
 .chip{flex-shrink:0;min-height:44px;padding:0 14px;border-radius:999px;border:1.5px solid var(--borda);background:var(--cartao);font-size:14px;font-weight:700;cursor:pointer}
 .chip[aria-pressed=true]{background:var(--escuro);border-color:var(--escuro);color:#fff}
 .datas{display:grid;grid-template-columns:1fr 1fr;gap:8px}
-.datas label{display:flex;flex-direction:column;gap:4px}
-.datas input,.sel{min-height:48px;border-radius:10px;border:1.5px solid var(--borda);background:var(--cartao);padding:0 12px;font-size:15px;font-weight:600;width:100%}
+.datas label,.linha2 label{display:flex;flex-direction:column;gap:4px;min-width:0}
+.datas input,.sel{min-width:0;min-height:48px;border-radius:10px;border:1.5px solid var(--borda);background:var(--cartao);padding:0 12px;font-size:15px;font-weight:600;width:100%}
 .sel{appearance:none;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='18' height='18' fill='none' stroke='%23586474' stroke-width='2.2' stroke-linecap='round' viewBox='0 0 24 24'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 12px center;padding-right:38px}
 .linha2{display:grid;grid-template-columns:1.3fr 1fr;gap:8px}
 

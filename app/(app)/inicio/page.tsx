@@ -3,7 +3,9 @@ import Link from 'next/link'
 import { AoVivo } from '@/components/AoVivo'
 import { BarraInferior } from '@/components/BarraInferior'
 import { Cartao } from '@/components/Cartao'
-import { Gaveta, type ItemGaveta } from '@/components/Gaveta'
+import { ChaveModo } from '@/components/ChaveModo'
+import { Gaveta } from '@/components/Gaveta'
+import { itensGestao } from '@/components/itens-gestao'
 import { IconeInterface } from '@/components/IconeInterface'
 import { Marca } from '@/components/Marca'
 import { Relogio } from '@/components/Relogio'
@@ -59,48 +61,7 @@ export default async function PaginaInicio() {
   const lanca = podeLancar(obraAtual.perfil)
   const restrita = obraAtual.perfil === 'consulta' ? obraAtual.empresa : null
   const agora = new Date()
-  const engenheiro = obraAtual.perfil === 'engenheiro'
-  // Quem recebe aviso (PRD §5): engenheiro e a consulta da empreiteira.
-  const gestao: ItemGaveta[] = [
-    ...(lanca
-      ? [
-          {
-            href: '/conectar-tv',
-            icone: <IconeInterface nome="dashboard" tamanho={20} />,
-            titulo: 'Conectar TV',
-            detalhe: 'Código que aparece na TV do almoxarifado',
-          },
-        ]
-      : []),
-    ...(engenheiro || restrita
-      ? [
-          {
-            href: '/avisos',
-            icone: <IconeInterface nome="warning" tamanho={20} />,
-            titulo: 'Avisos',
-            detalhe: 'Ferramentas não devolvidas, por empreiteira',
-            tom: 'erro' as const,
-          },
-        ]
-      : []),
-    ...(engenheiro
-      ? [
-          {
-            href: '/medicao',
-            icone: <span className="text-sm font-extrabold">R$</span>,
-            titulo: 'A descontar na medição',
-            detalhe: 'Valores por empreiteira',
-            tom: 'aviso' as const,
-          },
-          {
-            href: '/historico',
-            icone: <IconeInterface nome="history" tamanho={20} />,
-            titulo: 'Histórico e auditoria',
-            detalhe: 'Todos os lançamentos e estornos',
-          },
-        ]
-      : []),
-  ]
+  const gestao = itensGestao(obraAtual.perfil, restrita)
   const [{ resumo }, ultimos] = await Promise.all([
     resumoDoDia(obraAtual.id, agora),
     ultimosLancamentos(obraAtual.id),
@@ -127,6 +88,7 @@ export default async function PaginaInicio() {
           />
         )}
       </header>
+      <ChaveModo modo="ferramentas" />
 
       <AoVivo obraId={obraAtual.id} tabelas={['movimento', 'ocorrencia']} />
       <main className="flex flex-1 flex-col gap-3.5 px-5 pt-3.5 pb-5">

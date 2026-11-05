@@ -1,5 +1,13 @@
 import { formatarHora, inicioDoDiaDaObra } from '@/lib/formatos/datas'
+import { formatarQuantidade } from '@/lib/formatos/quantidade'
 import { ehPendencia, textoDesde } from './ficha'
+import {
+  emAlertaDeLimite,
+  estadoSaldo,
+  limiteDoAviso,
+  ordenarSaldos,
+  type SaldoMaterial,
+} from './materiais'
 
 /** O que a função `painel_tv` devolve (só leitura, pelo token do dispositivo). */
 export type PainelTv = {
@@ -10,6 +18,8 @@ export type PainelTv = {
   config: ConfigTv
   empresas: EmpresaTv[]
   pessoas: PessoaTv[]
+  /** Materiais ativos da obra (terceira tela do loop). */
+  materiais: SaldoMaterial[]
 }
 
 export type ConfigTv = {
@@ -224,17 +234,89 @@ export function posicaoRolagem(
   }
 }
 
-export type Fase = { tipo: 'pagina'; indice: number } | { tipo: 'empresas' }
+export type Fase =
+  { tipo: 'pagina'; indice: number } | { tipo: 'empresas' } | { tipo: 'materiais'; indice: number }
 
 /**
- * Páginas 1…N → colunas por empresa → volta à página 1 (loop infinito). Sem colunas a
- * mostrar, volta direto à página 1.
+ * Páginas 1…N → colunas por empresa → materiais 1…M → volta à página 1 (loop infinito).
+ * Sem colunas, da última página vai aos materiais; sem materiais, pula a terceira tela.
+ * Ninguém com ferramenta: alterna entre a página 1 (vazia) e os materiais.
  */
-export function proximaFase(fase: Fase, nPaginas: number, temColunas = true): Fase {
-  if (nPaginas === 0) return { tipo: 'pagina', indice: 0 }
-  if (fase.tipo === 'empresas') return { tipo: 'pagina', indice: 0 }
+export function proximaFase(
+  fase: Fase,
+  nPaginas: number,
+  temColunas = true,
+  nPaginasMateriais = 0,
+): Fase {
+  const primeira: Fase = { tipo: 'pagina', indice: 0 }
+  const materiais: Fase = nPaginasMateriais > 0 ? { tipo: 'materiais', indice: 0 } : primeira
+  if (fase.tipo === 'materiais') {
+    return fase.indice + 1 < nPaginasMateriais
+      ? { tipo: 'materiais', indice: fase.indice + 1 }
+      : primeira
+  }
+  if (nPaginas === 0) return materiais
+  if (fase.tipo === 'empresas') return materiais
   if (fase.indice + 1 < nPaginas) return { tipo: 'pagina', indice: fase.indice + 1 }
-  return temColunas ? { tipo: 'empresas' } : { tipo: 'pagina', indice: 0 }
+  return temColunas ? { tipo: 'empresas' } : materiais
+}
+
+/** Cartões de material por página: 12, ou 8 quando há alerta (a faixa vermelha ocupa o topo). */
+export const MATERIAIS_POR_PAGINA = 12
+export const MATERIAIS_POR_PAGINA_COM_ALERTA = 8
+
+/** Os que estão abaixo do limite com o aviso disparado (estoque cheio > 0), na ordem da tela. */
+export function alertasMateriais(lista: SaldoMaterial[]): SaldoMaterial[] {
+  return ordenarSaldos(lista).filter(emAlertaDeLimite)
+}
+
+/** Páginas da terceira tela: abaixo → perto → resto (alfabético dentro de cada grupo). */
+export function paginasMateriais(lista: SaldoMaterial[]): SaldoMaterial[][] {
+  const ordenados = ordenarSaldos(lista)
+  // Mesmo critério da faixa vermelha (alertasMateriais): página menor só quando ela aparece.
+  const comAlerta = ordenados.some(emAlertaDeLimite)
+  return paginar(ordenados, comAlerta ? MATERIAIS_POR_PAGINA_COM_ALERTA : MATERIAIS_POR_PAGINA)
+}
+
+/** "2 materiais abaixo do limite" + " · Cimento (18 sc) · Areia (6 m³). Pedir reposição." */
+export function textoAlertaMateriais(alertas: SaldoMaterial[]): {
+  titulo: string
+  detalhe: string
+} {
+  const n = alertas.length
+  const itens = alertas.map((m) => ` · ${m.nome} (${formatarQuantidade(m.saldo)} ${m.unidade})`)
+  return {
+    titulo: `${n} ${n === 1 ? 'material' : 'materiais'} abaixo do limite`,
+    detalhe: `${itens.join('')}. Pedir reposição.`,
+  }
+}
+
+/** Linha de estado do cartão de material. */
+export function linhaEstadoMaterial(m: SaldoMaterial): string {
+  const limite = limiteDoAviso(m)
+  if (limite === null || !m.aviso) return m.saldo === 0 ? 'sem saldo' : 'sem aviso'
+  const n = formatarQuantidade(limite)
+  switch (estadoSaldo(m)) {
+    case 'abaixo':
+      return m.aviso.tipo === 'percentual'
+        ? `⚠ chegou a ${formatarQuantidade(m.aviso.valor)}% (${n})`
+        : `⚠ abaixo do limite (${n})`
+    case 'perto':
+      return `perto do limite (${n})`
+    default:
+      return `limite ${n}`
+  }
+}
+
+/** Barra do cartão, em % do estoque cheio: o saldo e o traço do limite (null sem aviso). */
+export function barraMaterial(m: SaldoMaterial): { preenchido: number; traco: number | null } {
+  const pct = (x: number) =>
+    m.estoqueCheio > 0 ? Math.min(100, Math.max(0, (x * 100) / m.estoqueCheio)) : 0
+  const limite = limiteDoAviso(m)
+  return {
+    preenchido: m.estoqueCheio > 0 ? pct(m.saldo) : m.saldo > 0 ? 100 : 0,
+    traco: limite === null ? null : pct(limite),
+  }
 }
 
 /** Recarga diária da TV às 04:00 no fuso da obra (decisão do M8): quanto falta. */

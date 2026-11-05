@@ -4,6 +4,7 @@ import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 import { type ReactNode, useDeferredValue, useEffect, useMemo, useRef, useState } from 'react'
 import { AbasCadastros } from '@/components/AbasCadastros'
+import { BotaoNovoMaterial } from '@/components/GavetaNovoMaterial'
 import { CirculoFerramenta } from '@/components/IconeFerramenta'
 import { IconeInterface } from '@/components/IconeInterface'
 import { ehIcone } from '@/components/icones-ferramenta'
@@ -22,6 +23,11 @@ const NOVO: Record<string, { href: string; rotulo: string; completo: string }> =
     href: '/cadastros/ferramenta/nova',
     rotulo: 'Nova',
     completo: 'Nova ferramenta',
+  },
+  '/cadastros/materiais': {
+    href: '/cadastros/materiais/novo',
+    rotulo: 'Novo',
+    completo: 'Novo material',
   },
   '/cadastros/empresas': {
     href: '/cadastros/empresa/nova',
@@ -102,7 +108,7 @@ export function BuscaCadastros({ indice, children }: Props) {
         <div className="flex gap-2">
           <label className="flex h-12 min-w-0 flex-1 items-center gap-2 rounded-botao border border-borda bg-cartao px-3 has-[:focus-visible]:outline-3 has-[:focus-visible]:outline-offset-3 has-[:focus-visible]:outline-foco">
             <IconeInterface nome="search" tamanho={20} className="shrink-0 text-texto-2" />
-            <span className="sr-only">Buscar pessoa, ferramenta ou empresa</span>
+            <span className="sr-only">Buscar pessoa, ferramenta, material ou empresa</span>
             <input
               ref={entrada}
               type="search"
@@ -114,7 +120,15 @@ export function BuscaCadastros({ indice, children }: Props) {
               className="min-w-0 flex-1 bg-transparent text-base outline-none focus-visible:outline-none"
             />
           </label>
-          {novo && (
+          {novo && caminho === '/cadastros/materiais' ? (
+            <BotaoNovoMaterial
+              rotulo={novo.completo}
+              className="flex h-12 shrink-0 items-center gap-1 rounded-botao bg-amarelo px-3.5 text-[15px] font-bold text-escuro"
+            >
+              <IconeInterface nome="plus" tamanho={18} />
+              {novo.rotulo}
+            </BotaoNovoMaterial>
+          ) : novo ? (
             <Link
               href={novo.href}
               aria-label={novo.completo}
@@ -123,7 +137,7 @@ export function BuscaCadastros({ indice, children }: Props) {
               <IconeInterface nome="plus" tamanho={18} />
               {novo.rotulo}
             </Link>
-          )}
+          ) : null}
         </div>
       </div>
       <main className="flex flex-1 flex-col gap-2 px-5 pb-6">

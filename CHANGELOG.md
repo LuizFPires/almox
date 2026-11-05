@@ -2,6 +2,31 @@
 
 Registro do que foi entregue em cada milestone (ver `PLAN.md`).
 
+## M13 — Controle de materiais (concluído em 04/11/2026)
+
+Saldo de cada material de consumo da obra (cimento, areia, brita, arame…), como um extrato de débito e crédito, com aviso a todos da obra quando um material chega ao limite. Não importa quem levou. O fluxo de ferramentas não mudou.
+
+### Adicionado
+- **Chave Ferramentas | Materiais** no topo: troca o início, a barra e as telas. O app abre no último modo usado.
+- **Início de materiais:** Entrada, Saída e Contagem; faixa "abaixo do limite"; lista "Saldo agora" com os selos limite, perto do limite e ok.
+- **Gaveta de quantidade** (entrada e saída): número digitável (`1.500`, `2,5`), − e +, rápidos +10/+50/+100/+500 e a prévia do saldo.
+  - **Entrada** com conferência na gaveta; o estoque cheio passa a ser o saldo depois dela.
+  - **Saída** em até 5 toques, sem conferência: avisa se vai cruzar o limite e não deixa passar do saldo. **Desfazer (60 s)** para quem lançou.
+- **Contagem:** Material · Sistema · Contei, com rascunho no celular. Na revisão, "Ajustar o saldo pela contagem" (lança um **Ajuste**, + ou −) ou "Só conferir" (a divergência fica no extrato e na ficha, sem mexer no saldo).
+- **Saldos, ficha e extrato:** abaixo do limite em cima; ficha com saldo grande, barra até o estoque cheio e traço no limite; extrato com quem lançou.
+- **Edição pelo engenheiro:** muda a quantidade ou apaga qualquer lançamento de material, com motivo opcional. Cada edição fica como versão; o extrato mostra "editado por … (era −100)". Nunca deixa o saldo negativo.
+- **Cadastros › Materiais (engenheiro):** material com unidade (sc, m³, kg, un, m, m², l, barra, rolo, lata); aviso de limite por quantidade ou por % do estoque cheio; desativar com saldo 0.
+- **Pedir cadastro:** o almoxarife pede o material que falta; o engenheiro cadastra ou dispensa, e o almoxarife é avisado.
+- **Aviso de limite por push** a todos da obra (inclusive a consulta de empreiteira), uma vez por cruzamento; volta a valer quando o saldo sobe acima do limite.
+- **Sem internet:** entradas, saídas e contagens vão para a fila do celular; a tela "Lançar sem internet" também lança entrada e saída de material. O servidor confere o saldo de novo ao enviar.
+- **TV:** terceira tela "Materiais na obra" no loop, com faixa vermelha pulsando e cartões destacados quando há material abaixo do limite, e uma tira no rodapé das outras telas.
+- **Banco:** `material`, `movimento_material`, `movimento_material_versao`, `contagem_material` e `pedido_cadastro_material`, com RLS, escrita só por RPC que trava o material, saldo nunca negativo e igual à soma do extrato.
+- **Seed:** Cimento CP-II 50 kg (118 sc, aviso em 20), Areia média (12 m³, aviso em 50%), Brita 1 (14 m³) e Arame recozido 18 (8 kg, abaixo do limite de 10), com as entradas no extrato.
+- **e2e** de materiais (saída em 5 toques com aviso, entrada "1.500", contagem só conferir, edição do engenheiro, consulta sem lançar, chave de modo e a terceira tela da TV).
+
+### Corrigido
+- Depois de entrar, trocar de obra ou trocar a senha, o app ficava com o endereço `/`; agora vai direto para o início do último modo (`/inicio` ou `/materiais`).
+
 ## Performance · bloco 2 (13/10/2026)
 
 O que pesa em obras grandes.

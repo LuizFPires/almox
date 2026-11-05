@@ -9,15 +9,27 @@ import {
   notificacaoReaberto,
   emailReaberto,
   notificacaoOcorrencia,
+  notificacaoLimiteMaterial,
+  notificacaoMaterialCadastrado,
+  notificacaoPedidoCadastro,
   notificacaoResumoProprios,
   type Email,
   type ItemAviso,
   type Notificacao,
 } from './mensagens'
+import { formatarQuantidade } from '@/lib/formatos/quantidade'
 import { enviarPush, type Inscricao } from './push'
 
 type Dados = {
-  tipo: 'aviso' | 'desconto_cancelado' | 'desconto_reaberto' | 'resumo_proprios' | 'ocorrencia'
+  tipo:
+    | 'aviso'
+    | 'desconto_cancelado'
+    | 'desconto_reaberto'
+    | 'resumo_proprios'
+    | 'ocorrencia'
+    | 'limite_material'
+    | 'pedido_cadastro_material'
+    | 'material_cadastrado'
   canal: 'email' | 'push'
   destino: string
   obra: string
@@ -38,6 +50,14 @@ type Dados = {
   // resumo / ocorrência
   pessoas?: number
   pessoa?: string
+  // materiais
+  material?: string
+  materialId?: string
+  saldo?: number
+  limite?: number
+  unidade?: string
+  nome?: string
+  quem?: string
 }
 
 /** Monta o e-mail ou a notificação do envio. */
@@ -105,6 +125,26 @@ export function montar(d: Dados): { email?: Email; notificacao?: Notificacao } {
     case 'ocorrencia':
       return {
         notificacao: notificacaoOcorrencia(d.pessoa ?? '', d.quando ?? new Date().toISOString()),
+      }
+    case 'limite_material':
+      return {
+        notificacao: notificacaoLimiteMaterial({
+          material: d.material ?? '',
+          saldo: formatarQuantidade(d.saldo ?? 0),
+          limite: formatarQuantidade(d.limite ?? 0),
+          unidade: d.unidade ?? '',
+          obra: d.obra,
+          materialId: d.materialId ?? '',
+        }),
+      }
+    case 'pedido_cadastro_material':
+      return { notificacao: notificacaoPedidoCadastro({ quem: d.quem ?? '', nome: d.nome ?? '' }) }
+    case 'material_cadastrado':
+      return {
+        notificacao: notificacaoMaterialCadastrado({
+          nome: d.nome ?? '',
+          materialId: d.materialId ?? '',
+        }),
       }
   }
 }

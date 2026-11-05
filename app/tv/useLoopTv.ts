@@ -3,7 +3,14 @@
 import { useEffect, useLayoutEffect, useRef, useState } from 'react'
 import { posicaoRolagem, proximaFase, TROCA_MS, type ConfigTv, type Fase } from '@/lib/dominio/tv'
 
-type Entrada = { nPaginas: number; temColunas: boolean; maxOff: number; config: ConfigTv }
+type Entrada = {
+  nPaginas: number
+  temColunas: boolean
+  /** Páginas da terceira tela (materiais); 0 pula a tela. */
+  nPaginasMateriais: number
+  maxOff: number
+  config: ConfigTv
+}
 
 /**
  * Motor do loop (F-13): um único `requestAnimationFrame` mede o tempo da fase, move o trilho
@@ -28,28 +35,39 @@ export function useLoopTv(entrada: Entrada) {
     let trocandoDesde: number | null = null
 
     const passo = (agora: number) => {
-      const { nPaginas, temColunas, maxOff, config } = atual.current
+      const { nPaginas, temColunas, nPaginasMateriais, maxOff, config } = atual.current
       // Menos páginas do que antes (alguém devolveu tudo): fica na última que existe.
       if (faseAtual.tipo === 'pagina' && faseAtual.indice > Math.max(0, nPaginas - 1)) {
         faseAtual = { tipo: 'pagina', indice: Math.max(0, nPaginas - 1) }
+        setFase(faseAtual)
+      }
+      // Menos páginas de materiais (um material saiu da lista): fica na última que existe.
+      if (
+        faseAtual.tipo === 'materiais' &&
+        nPaginasMateriais > 0 &&
+        faseAtual.indice >= nPaginasMateriais
+      ) {
+        faseAtual = { tipo: 'materiais', indice: nPaginasMateriais - 1 }
         setFase(faseAtual)
       }
 
       if (trocandoDesde !== null) {
         // Esmaecendo: o conteúdo troca 650 ms depois e o cronômetro da nova fase começa.
         if (agora - trocandoDesde >= TROCA_MS) {
-          faseAtual = proximaFase(faseAtual, nPaginas, temColunas)
+          faseAtual = proximaFase(faseAtual, nPaginas, temColunas, nPaginasMateriais)
           setFase(faseAtual)
           setVisivel(true)
           inicio = agora
           trocandoDesde = null
           if (trilho.current) trilho.current.style.transform = 'translateX(0px)'
         }
-      } else if (nPaginas > 0) {
+      } else if (nPaginas > 0 || nPaginasMateriais > 0) {
+        // Sem ninguém com ferramenta mas com materiais, a página 1 (vazia) também tem tempo e
+        // o loop alterna com a terceira tela.
         const t = agora - inicio
         let fracao: number
         let terminou: boolean
-        if (faseAtual.tipo === 'pagina') {
+        if (faseAtual.tipo === 'pagina' || faseAtual.tipo === 'materiais') {
           const duracao = config.tempoPaginaS * 1000
           fracao = Math.min(1, t / duracao)
           terminou = t >= duracao
@@ -71,8 +89,8 @@ export function useLoopTv(entrada: Entrada) {
           setVisivel(false)
         }
       } else {
-        // Painel vazio: fica na página 1 com o cronômetro parado, para a primeira retirada
-        // do dia entrar e ficar o tempo inteiro da página (não sumir na hora).
+        // Painel vazio (nem ferramenta fora nem material): fica na página 1 com o cronômetro
+        // parado, para a primeira retirada do dia entrar e ficar o tempo inteiro da página.
         inicio = agora
         if (faseAtual.tipo !== 'pagina' || faseAtual.indice !== 0) {
           faseAtual = { tipo: 'pagina', indice: 0 }

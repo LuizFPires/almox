@@ -319,6 +319,49 @@ export type Database = {
           },
         ]
       }
+      contagem_material: {
+        Row: {
+          chave_cliente: string | null
+          criado_em: string
+          id: string
+          modo: string
+          obra_id: string
+          usuario_id: string
+        }
+        ComputedFields: never
+        Insert: {
+          chave_cliente?: string | null
+          criado_em?: string
+          id?: string
+          modo: string
+          obra_id: string
+          usuario_id: string
+        }
+        Update: {
+          chave_cliente?: string | null
+          criado_em?: string
+          id?: string
+          modo?: string
+          obra_id?: string
+          usuario_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: 'contagem_material_obra_id_fkey'
+            columns: ['obra_id']
+            isOneToOne: false
+            referencedRelation: 'obra'
+            referencedColumns: ['id']
+          },
+          {
+            foreignKeyName: 'contagem_material_usuario_id_fkey'
+            columns: ['usuario_id']
+            isOneToOne: false
+            referencedRelation: 'usuario'
+            referencedColumns: ['id']
+          },
+        ]
+      }
       desconto: {
         Row: {
           cancelado_em: string | null
@@ -780,6 +823,57 @@ export type Database = {
           },
         ]
       }
+      material: {
+        Row: {
+          ativo: boolean
+          aviso_disparado: boolean
+          aviso_tipo: string | null
+          aviso_valor: number | null
+          criado_em: string
+          estoque_cheio: number
+          id: string
+          nome: string
+          obra_id: string
+          saldo: number
+          unidade: string
+        }
+        ComputedFields: never
+        Insert: {
+          ativo?: boolean
+          aviso_disparado?: boolean
+          aviso_tipo?: string | null
+          aviso_valor?: number | null
+          criado_em?: string
+          estoque_cheio?: number
+          id?: string
+          nome: string
+          obra_id: string
+          saldo?: number
+          unidade: string
+        }
+        Update: {
+          ativo?: boolean
+          aviso_disparado?: boolean
+          aviso_tipo?: string | null
+          aviso_valor?: number | null
+          criado_em?: string
+          estoque_cheio?: number
+          id?: string
+          nome?: string
+          obra_id?: string
+          saldo?: number
+          unidade?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: 'material_obra_id_fkey'
+            columns: ['obra_id']
+            isOneToOne: false
+            referencedRelation: 'obra'
+            referencedColumns: ['id']
+          },
+        ]
+      }
       medicao: {
         Row: {
           empresa_id: string
@@ -954,6 +1048,128 @@ export type Database = {
           },
         ]
       }
+      movimento_material: {
+        Row: {
+          chave_cliente: string | null
+          contagem_id: string | null
+          criado_em: string
+          id: string
+          material_id: string
+          obra_id: string
+          quantidade: number
+          registrado_no_aparelho_em: string | null
+          tipo: string
+          usuario_id: string
+        }
+        ComputedFields: never
+        Insert: {
+          chave_cliente?: string | null
+          contagem_id?: string | null
+          criado_em?: string
+          id?: string
+          material_id: string
+          obra_id: string
+          quantidade: number
+          registrado_no_aparelho_em?: string | null
+          tipo: string
+          usuario_id: string
+        }
+        Update: {
+          chave_cliente?: string | null
+          contagem_id?: string | null
+          criado_em?: string
+          id?: string
+          material_id?: string
+          obra_id?: string
+          quantidade?: number
+          registrado_no_aparelho_em?: string | null
+          tipo?: string
+          usuario_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: 'movimento_material_contagem_id_obra_id_fkey'
+            columns: ['contagem_id', 'obra_id']
+            isOneToOne: false
+            referencedRelation: 'contagem_material'
+            referencedColumns: ['id', 'obra_id']
+          },
+          {
+            foreignKeyName: 'movimento_material_material_id_obra_id_fkey'
+            columns: ['material_id', 'obra_id']
+            isOneToOne: false
+            referencedRelation: 'material'
+            referencedColumns: ['id', 'obra_id']
+          },
+          {
+            foreignKeyName: 'movimento_material_obra_id_fkey'
+            columns: ['obra_id']
+            isOneToOne: false
+            referencedRelation: 'obra'
+            referencedColumns: ['id']
+          },
+          {
+            foreignKeyName: 'movimento_material_usuario_id_fkey'
+            columns: ['usuario_id']
+            isOneToOne: false
+            referencedRelation: 'usuario'
+            referencedColumns: ['id']
+          },
+        ]
+      }
+      movimento_material_versao: {
+        Row: {
+          criado_em: string
+          desfeito: boolean
+          id: string
+          motivo: string | null
+          movimento_id: string
+          quantidade: number
+          usuario_id: string
+        }
+        ComputedFields: never
+        Insert: {
+          criado_em?: string
+          desfeito?: boolean
+          id?: string
+          motivo?: string | null
+          movimento_id: string
+          quantidade: number
+          usuario_id: string
+        }
+        Update: {
+          criado_em?: string
+          desfeito?: boolean
+          id?: string
+          motivo?: string | null
+          movimento_id?: string
+          quantidade?: number
+          usuario_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: 'movimento_material_versao_movimento_id_fkey'
+            columns: ['movimento_id']
+            isOneToOne: false
+            referencedRelation: 'extrato_material'
+            referencedColumns: ['id']
+          },
+          {
+            foreignKeyName: 'movimento_material_versao_movimento_id_fkey'
+            columns: ['movimento_id']
+            isOneToOne: false
+            referencedRelation: 'movimento_material'
+            referencedColumns: ['id']
+          },
+          {
+            foreignKeyName: 'movimento_material_versao_usuario_id_fkey'
+            columns: ['usuario_id']
+            isOneToOne: false
+            referencedRelation: 'usuario'
+            referencedColumns: ['id']
+          },
+        ]
+      }
       obra: {
         Row: {
           ativa: boolean
@@ -1089,6 +1305,62 @@ export type Database = {
             columns: ['obra_id']
             isOneToOne: false
             referencedRelation: 'obra'
+            referencedColumns: ['id']
+          },
+        ]
+      }
+      pedido_cadastro_material: {
+        Row: {
+          criado_em: string
+          id: string
+          material_id: string | null
+          nome: string
+          obra_id: string
+          pedido_por: string
+          resolvido_em: string | null
+          status: string
+        }
+        ComputedFields: never
+        Insert: {
+          criado_em?: string
+          id?: string
+          material_id?: string | null
+          nome: string
+          obra_id: string
+          pedido_por: string
+          resolvido_em?: string | null
+          status?: string
+        }
+        Update: {
+          criado_em?: string
+          id?: string
+          material_id?: string | null
+          nome?: string
+          obra_id?: string
+          pedido_por?: string
+          resolvido_em?: string | null
+          status?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: 'pedido_cadastro_material_material_id_obra_id_fkey'
+            columns: ['material_id', 'obra_id']
+            isOneToOne: false
+            referencedRelation: 'material'
+            referencedColumns: ['id', 'obra_id']
+          },
+          {
+            foreignKeyName: 'pedido_cadastro_material_obra_id_fkey'
+            columns: ['obra_id']
+            isOneToOne: false
+            referencedRelation: 'obra'
+            referencedColumns: ['id']
+          },
+          {
+            foreignKeyName: 'pedido_cadastro_material_pedido_por_fkey'
+            columns: ['pedido_por']
+            isOneToOne: false
+            referencedRelation: 'usuario'
             referencedColumns: ['id']
           },
         ]
@@ -1457,7 +1729,40 @@ export type Database = {
       }
     }
     Views: {
-      [_ in never]: never
+      extrato_material: {
+        Row: {
+          apagado: boolean | null
+          criado_em: string | null
+          desfeito: boolean | null
+          editado_em: string | null
+          editado_por_nome: string | null
+          id: string | null
+          material_id: string | null
+          obra_id: string | null
+          quantidade: number | null
+          quantidade_original: number | null
+          registrado_no_aparelho_em: string | null
+          tipo: string | null
+          usuario_nome: string | null
+        }
+        ComputedFields: never
+        Relationships: [
+          {
+            foreignKeyName: 'movimento_material_material_id_obra_id_fkey'
+            columns: ['material_id', 'obra_id']
+            isOneToOne: false
+            referencedRelation: 'material'
+            referencedColumns: ['id', 'obra_id']
+          },
+          {
+            foreignKeyName: 'movimento_material_obra_id_fkey'
+            columns: ['obra_id']
+            isOneToOne: false
+            referencedRelation: 'obra'
+            referencedColumns: ['id']
+          },
+        ]
+      }
     }
     Functions: {
       convidar_obra: {
@@ -1570,6 +1875,12 @@ export type Database = {
       dados_offline: { Args: { p_obra: string }; Returns: Json }
       definir_indenizacao: { Args: { p_avaria: string; p_valor?: number }; Returns: undefined }
       desconectar_tv: { Args: { p_dispositivo: string }; Returns: undefined }
+      desfazer_saida_material: { Args: { p_movimento: string; p_obra: string }; Returns: undefined }
+      dispensar_pedido_material: { Args: { p_obra: string; p_pedido: string }; Returns: undefined }
+      editar_movimento_material: {
+        Args: { p_motivo?: string; p_movimento: string; p_obra: string; p_quantidade: number }
+        Returns: undefined
+      }
       encerrar_dia: { Args: { p_obra: string }; Returns: string }
       enfileirar_adesivos: { Args: { p_itens: Json; p_obra: string }; Returns: number }
       enfileirar_impressao: {
@@ -1587,6 +1898,25 @@ export type Database = {
       estornar_movimento: {
         Args: { p_motivo: string; p_movimento: string; p_obra: string }
         Returns: string
+      }
+      extrato_material_periodo: {
+        Args: { p_ate: string; p_de: string; p_material?: string; p_obra: string }
+        Returns: {
+          apagado: boolean
+          criado_em: string
+          desfeito: boolean
+          editado_em: string
+          editado_por_nome: string
+          id: string
+          material_id: string
+          obra_id: string
+          quantidade: number
+          quantidade_original: number
+          registrado_no_aparelho_em: string
+          saldo_depois: number
+          tipo: string
+          usuario_nome: string
+        }[]
       }
       fechar_medicao: {
         Args: { p_empresa: string; p_obra: string; p_proxima: string }
@@ -1616,6 +1946,7 @@ export type Database = {
         }[]
       }
       importar_cadastro: { Args: { p_dados: Json; p_obra: string }; Returns: Json }
+      inativar_material: { Args: { p_material: string; p_obra: string }; Returns: undefined }
       ler_capacete: {
         Args: { p_obra: string; p_token: string }
         Returns: {
@@ -1644,6 +1975,7 @@ export type Database = {
       marcar_fotos_apagadas: { Args: { p_caminhos: string[] }; Returns: number }
       metricas_piloto: { Args: { p_ate: string; p_de: string; p_obra: string }; Returns: Json }
       painel_tv: { Args: { p_token: string; p_versao?: string }; Returns: Json }
+      pedir_cadastro_material: { Args: { p_nome: string; p_obra: string }; Returns: string }
       pedir_pareamento_tv: { Args: { p_ip?: string; p_segredo: string }; Returns: string }
       pegar_envios: {
         Args: { p_canais?: Database['public']['Enums']['canal_envio'][]; p_limite?: number }
@@ -1670,6 +2002,10 @@ export type Database = {
           isSetofReturn: true
         }
       }
+      registrar_contagem_material: {
+        Args: { p_chave?: string; p_itens: Json; p_modo: string; p_obra: string; p_quando?: string }
+        Returns: string
+      }
       registrar_devolucao: {
         Args: {
           p_chave?: string
@@ -1679,6 +2015,16 @@ export type Database = {
           p_pessoa: string
           p_quando?: string
           p_token?: string
+        }
+        Returns: string
+      }
+      registrar_entrada_material: {
+        Args: {
+          p_chave?: string
+          p_material: string
+          p_obra: string
+          p_quando?: string
+          p_quantidade: number
         }
         Returns: string
       }
@@ -1699,9 +2045,35 @@ export type Database = {
         }
         Returns: string
       }
+      registrar_saida_material: {
+        Args: {
+          p_chave?: string
+          p_material: string
+          p_obra: string
+          p_quando?: string
+          p_quantidade: number
+        }
+        Returns: Json
+      }
       remover_inscricao_push: { Args: { p_endpoint: string }; Returns: undefined }
       resumo_fechamento: { Args: { p_fechamento: string }; Returns: Json }
+      resumo_material_periodo: {
+        Args: { p_ate: string; p_de: string; p_obra: string }
+        Returns: {
+          ajustes: number
+          entradas: number
+          lancamentos: number
+          material_id: string
+          saidas: number
+          saldo_fim: number
+          saldo_inicio: number
+        }[]
+      }
       revogar_dispositivo: { Args: { p_dispositivo: string }; Returns: undefined }
+      salvar_aviso_material: {
+        Args: { p_material: string; p_obra: string; p_tipo: string; p_valor: number }
+        Returns: undefined
+      }
       salvar_config_tv: {
         Args: {
           p_cartoes_por_pagina: number
@@ -1730,6 +2102,10 @@ export type Database = {
         }
         Returns: string
       }
+      salvar_material: {
+        Args: { p_id: string; p_nome: string; p_obra: string; p_pedido?: string; p_unidade: string }
+        Returns: string
+      }
       trocar_codigo_tv: { Args: { p_codigo: string }; Returns: string }
     }
     Enums: {
@@ -1744,7 +2120,14 @@ export type Database = {
       status_unidade: 'livre' | 'em_uso' | 'manutencao' | 'baixada'
       tipo_empresa: 'propria' | 'empreiteira'
       tipo_envio:
-        'aviso' | 'desconto_cancelado' | 'resumo_proprios' | 'ocorrencia' | 'desconto_reaberto'
+        | 'aviso'
+        | 'desconto_cancelado'
+        | 'resumo_proprios'
+        | 'ocorrencia'
+        | 'desconto_reaberto'
+        | 'limite_material'
+        | 'pedido_cadastro_material'
+        | 'material_cadastrado'
       tipo_movimento: 'retirada' | 'devolucao' | 'estorno'
       tipo_ocorrencia: 'capacete_trocado'
       via_movimento: 'qr' | 'manual'
@@ -1878,6 +2261,9 @@ export const Constants = {
         'resumo_proprios',
         'ocorrencia',
         'desconto_reaberto',
+        'limite_material',
+        'pedido_cadastro_material',
+        'material_cadastrado',
       ],
       tipo_movimento: ['retirada', 'devolucao', 'estorno'],
       tipo_ocorrencia: ['capacete_trocado'],

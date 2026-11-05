@@ -3,6 +3,7 @@
 import { redirect } from 'next/navigation'
 import { destinoSeguro } from '@/lib/dominio/destino'
 import { mensagemErroLogin } from '@/lib/dominio/senha'
+import { inicioDoUltimoModo } from '@/lib/modo'
 import { criarClienteServidor } from '@/lib/supabase/servidor'
 
 /** `email` volta para o formulário: o React limpa os campos depois da ação. */
@@ -21,7 +22,8 @@ export async function entrarComSenha(_: EstadoLogin, form: FormData): Promise<Es
   const { error } = await supabase.auth.signInWithPassword({ email, password: senha })
   if (error) return { erro: mensagemErroLogin(error), email }
 
-  redirect(destinoSeguro(String(form.get('volta') ?? '')))
+  const destino = destinoSeguro(String(form.get('volta') ?? ''))
+  redirect(destino === '/' ? await inicioDoUltimoModo() : destino)
 }
 
 export async function sair() {

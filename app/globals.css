@@ -37,6 +37,14 @@
   --color-tv-alerta: #fca5a5; /* dark danger-fg */
   --color-tv-alerta-fundo: #4b2027; /* dark danger-bg */
   --color-tv-alerta-borda: #e5484d; /* borda do cartão em pendência (protótipo da TV) */
+  /* Materiais abaixo do limite na TV (protótipo tv-materiais.html). */
+  --color-tv-perigo: #dc2626; /* faixa de alerta */
+  --color-tv-perigo-forte: #b91c1c; /* faixa no meio do pulso / parada (movimento reduzido) */
+  --color-tv-perigo-cartao: #7f1d1d; /* cartão do material abaixo do limite */
+  --color-tv-perigo-trilho: #991b1b; /* trilho da barra no cartão em alerta */
+  --color-tv-perigo-claro: #fca5a5; /* barra e borda forte no cartão em alerta */
+  --color-tv-perigo-texto: #fecaca; /* textos do cartão em alerta */
+  --color-tv-ok: #22c55e; /* barra do saldo */
 
   --font-sans: var(--font-inter), system-ui, -apple-system, 'Segoe UI', sans-serif;
   --font-mono: var(--font-jetbrains-mono), ui-monospace, monospace;
@@ -45,6 +53,67 @@
   --radius-cartao: 16px; /* radius-lg */
 
   --spacing-toque: 44px; /* button-height */
+
+  /* Gaveta de baixo (materiais): sobe em 0,26 s e desce em 0,2 s, só com transform/opacidade. */
+  --animate-gaveta-sobe: gaveta-sobe 0.26s cubic-bezier(0.2, 0.8, 0.2, 1);
+  --animate-gaveta-desce: gaveta-desce 0.2s ease-in forwards;
+  --animate-fundo-entra: fundo-entra 0.22s ease-out;
+  --animate-fundo-sai: fundo-sai 0.2s ease-in forwards;
+  /* TV: alerta de material pulsando só em CSS (cor de fundo / sombra), a cada 1,6 s. */
+  --animate-alerta-faixa: alerta-faixa 1.6s ease-in-out infinite;
+  --animate-alerta-borda: alerta-borda 1.6s ease-in-out infinite;
+
+  @keyframes alerta-faixa {
+    0%,
+    100% {
+      background-color: #dc2626;
+    }
+    50% {
+      background-color: #b91c1c;
+    }
+  }
+  @keyframes alerta-borda {
+    0%,
+    100% {
+      box-shadow: inset 0 0 0 3px #f87171;
+    }
+    50% {
+      box-shadow: inset 0 0 0 6px #fca5a5;
+    }
+  }
+
+  @keyframes gaveta-sobe {
+    from {
+      transform: translateY(100%);
+    }
+    to {
+      transform: translateY(0);
+    }
+  }
+  @keyframes gaveta-desce {
+    from {
+      transform: translateY(0);
+    }
+    to {
+      transform: translateY(100%);
+    }
+  }
+  @keyframes fundo-entra {
+    from {
+      opacity: 0;
+    }
+    to {
+      opacity: 1;
+    }
+  }
+  @keyframes fundo-sai {
+    from {
+      opacity: 1;
+    }
+    to {
+      opacity: 0;
+    }
+  }
 }
 
 body {

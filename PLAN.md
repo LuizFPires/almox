@@ -26,9 +26,10 @@ Fonte da verdade do produto: `PRD.md`. Regras para quem codifica: `CLAUDE.md`.
 | M9 | Fechamento do dia e avisos às empreiteiras | ✅ Concluído (e-mail real depende da conta no Resend; notificação conferida até a inscrição) | 12/10/2026 |
 | M10 | Offline, auditoria e endurecimento | ✅ Concluído (Sentry liga com o DSN; leitor jsQR e política de dados a validar no piloto e com o jurídico) | 12/10/2026 |
 | M11 | Piloto em obra | 🟨 Preparado: código e documentos prontos (13/10/2026); falta o piloto em campo (30 dias) | — |
-| M12 | Conector ioo | ⬜ A fazer | |
+| M12 | Conector ioo | ⏸ Pausado: o M13 entrou na frente (04/11/2026); o trabalho já feito está numa branch própria, sem merge | |
+| M13 | Controle de materiais | ✅ Concluído (feito antes do M12) | 04/11/2026 |
 
-Legenda: ⬜ A fazer · 🟨 Em andamento · ✅ Concluído · ⛔ Bloqueado
+Legenda: ⬜ A fazer · 🟨 Em andamento · ✅ Concluído · ⏸ Pausado · ⛔ Bloqueado
 
 ---
 
@@ -320,6 +321,47 @@ Legenda: ⬜ A fazer · 🟨 Em andamento · ✅ Concluído · ⛔ Bloqueado
 
 ---
 
+## M13 — Controle de materiais
+
+**Objetivo:** saldo atual de cada material de consumo da obra (entrada, saída, contagem e extrato), aviso de limite a todos da obra e terceira tela na TV, sem mudar o fluxo de ferramentas. Spec: `docs/superpowers/specs/2026-11-04-controle-materiais-design.md`; plano: `docs/superpowers/plans/2026-11-04-controle-materiais.md`.
+
+**Entregas**
+- [x] 1. Formatar e ler quantidades (`1.500`, `2,5`; inteiras em sc, un, barra, rolo e lata)
+- [x] 2. Regras puras de materiais: saldo, limite, "perto do limite", prévia do lançamento e diferenças da contagem
+- [x] 3. Tabelas, RLS e extrato (`material`, `movimento_material`, `movimento_material_versao`, `contagem_material`, `pedido_cadastro_material`)
+- [x] 4. Entrada, saída, desfazer em 60 s e disparo do aviso de limite (RPC com trava do material; saldo nunca negativo)
+- [x] 5. Contagem: ajustar (lançamento "Ajuste") ou só conferir
+- [x] 6. Edição e apagar lançamento pelo engenheiro, com versão
+- [x] 7. Cadastro de material, aviso de limite e pedido de cadastro
+- [x] 8. Mensagens de push dos materiais (limite, pedido de cadastro, material cadastrado)
+- [x] 9. Camada de dados e ações do servidor
+- [x] 10. Chave Ferramentas | Materiais, barra inferior, ícones e Início de materiais
+- [x] 11. Gaveta de quantidade, entrada e saída
+- [x] 12. Tela de contagem
+- [x] 13. Saldos, ficha, extrato e edição
+- [x] 14. Cadastros › Materiais
+- [x] 15. Fila offline para materiais
+- [x] 15b. Entrada e saída de material na tela "Lançar sem internet" (`/campo`)
+- [x] 16. TV: terceira tela "Materiais na obra" e alerta
+- [x] 17. E2E, documentos e fechamento do milestone
+
+**Critérios de aceite**
+- O engenheiro edita e apaga lançamentos de material. A edição que deixaria o saldo negativo é recusada, e toda edição aparece no extrato com quem, quando e o valor anterior.
+- Com a chave em Ferramentas, o app funciona exatamente como antes (e2e existentes passam).
+- Uma saída de material leva no máximo **5 toques** a partir do Início: Saída → material → +50 → +50 → Registrar.
+- Digitar "1.500" na gaveta registra 1500. Os botões rápidos são +10/+50/+100/+500.
+- Não existe forma (tela, RPC ou concorrência entre dois celulares) de deixar o saldo negativo.
+- Saldo = soma do extrato, sempre.
+- A saída que cruza o limite gera **uma** notificação para cada usuário da obra com inscrição de push. Novas saídas abaixo do limite não repetem a notificação. Depois de uma entrada acima do limite, volta a avisar.
+- A contagem com "Só conferir" não altera o saldo e deixa a divergência visível no extrato e na ficha. Com "Ajustar", o saldo passa a ser o contado.
+- O consulta vê os saldos e não consegue lançar (tela e RPC).
+- A TV mostra a terceira tela em loop. Com alerta, a faixa vermelha e os cartões destacados aparecem, e a faixa de rodapé aparece nas outras telas. Atualizar o saldo não reinicia a animação em curso.
+- Lint, typecheck, Vitest, pgTAP e Playwright verdes.
+
+**Depende de:** M10 (entra antes do M12)
+
+---
+
 ## Decisões
 
 | Data | Decisão |
@@ -463,3 +505,14 @@ Legenda: ⬜ A fazer · 🟨 Em andamento · ✅ Concluído · ⛔ Bloqueado
 | 17/10/2026 | **Toda obra fica com pelo menos um engenheiro**: o banco recusa rebaixar ou remover o último. **Obra desativada ou encerrada some do app** (escolha de obra); os dados ficam, e o administrador reativa. |
 | 17/10/2026 | **Desativar é para obra parada** (revisão): o banco não recusa lançamento em obra desativada (fila offline e aparelhos abertos ainda enviam). O administrador desativa ou encerra quando o almoxarifado já fechou; se precisar, reativa para conferir. Senha de administrador nunca passa pelo engenheiro, e administrador com senha pendente não alcança as funções do banco. |
 | 22/10/2026 | **Domínio de produção: `almox-controle.vercel.app`** (dono). `almox-chi.vercel.app` redireciona (307). O endereço só aparece em textos (passo a passo da TV, Ajuda) e na lista de retorno do Auth; nenhuma variável de ambiente depende dele. Login, PWA e TV ficam por domínio: quem usava o antigo entra de novo, reinstala o app e reconecta a TV. |
+| 04/11/2026 | **Materiais de consumo entram no produto** (dono): sai do PRD §4.2 e vira o **M13 · Controle de materiais** (PRD §7.3). Importa o saldo, não quem levou: sem capacete, pessoa, destino, ordem de compra ou valor em R$. O fluxo de ferramentas não muda. |
+| 04/11/2026 | **M13 antes do M12** (dono): o trabalho do conector ioo que não estava no git foi salvo numa branch própria, sem merge, e fica pausado até o fim do M13. Migrations do M13 depois de `20261104120000` e testes pgTAP a partir do `042`, para a ordem continuar válida quando o M12 voltar. |
+| 04/11/2026 | **A TV mostra o estoque de materiais** (dono): a regra "sem totais nem estoque na TV" (11/10/2026) passa a valer só para ferramentas. O loop ganha a terceira tela "Materiais na obra"; com material abaixo do limite, faixa vermelha pulsando, cartões destacados e tira no rodapé das outras telas. |
+| 04/11/2026 | **Edição de materiais pelo engenheiro** (dono), em vez de estorno: muda a quantidade ou apaga qualquer lançamento de material, com motivo opcional, sem deixar o saldo negativo. O cliente nunca faz `UPDATE`/`DELETE`: a RPC grava uma versão imutável (`movimento_material_versao`) e o extrato lê a vigente. Exceção à regra 9 e à RN-18 só para materiais. O "Desfazer (60 s)" da saída é uma edição que apaga, feita por quem lançou. |
+| 04/11/2026 | **Contagem com escolha a cada contagem** (dono): "Ajustar o saldo pela contagem" gera um lançamento **Ajuste** (+ ou −, nunca entrada ou saída) e "Só conferir" grava a "Conferência · divergência" sem mexer no saldo. O celular envia o saldo que viu e o contado, e o servidor lança a diferença (saídas no meio da contagem não são canceladas). |
+| 04/11/2026 | **Aviso de limite por quantidade ou por % do estoque cheio** (dono): estoque cheio = saldo logo depois da última entrada. Dispara uma vez ao cruzar o limite, com push a **todos da obra** (inclusive a consulta de empreiteira: material não é de nenhuma empresa), e rearma quando o saldo fica acima do limite. "Perto do limite" = até 1,5 × o limite. |
+| 04/11/2026 | **Aviso só vale depois da primeira entrada** (revisão do M13): aviso salvo em material que nunca teve entrada (estoque cheio 0) não dispara; fica armado e passa a valer a partir da primeira entrada. Evita avisar a obra inteira por material que ainda nem chegou. |
+| 04/11/2026 | **Pedido de cadastro de material** (dono): só o engenheiro cadastra; o almoxarife que não acha o material pede pelo nome, o engenheiro recebe push e cadastra (formulário já com o nome) ou dispensa, e o almoxarife é avisado quando o material é cadastrado. |
+| 04/11/2026 | **Reativar material desativado fica fora do M13**: o nome continua ocupado ("Já existe um material com esse nome (pode estar desativado)."); o engenheiro pede ajuste se precisar reaproveitar. |
+| 04/11/2026 | **Materiais sem internet** (M13): entradas, saídas e contagens vão para a fila do celular e o servidor confere o saldo de novo ao enviar (saída que não cabe é recusada com o motivo). Como só a tela "Lançar sem internet" (`/campo`) fica guardada no celular, ela ganhou entrada e saída de material; a **contagem sem internet só funciona com a tela de contagem já aberta**. |
+| 04/11/2026 | **O app abre no último modo usado** (M13): a raiz e o ícone instalado (`start_url: '/'`) vão para `/inicio` ou `/materiais` pelo cookie `almox_modo`. Depois de entrar, trocar de obra ou trocar a senha, a ação manda direto para o início do modo (a raiz não redireciona na navegação feita depois de uma Server Action). |

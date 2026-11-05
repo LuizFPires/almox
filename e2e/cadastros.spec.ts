@@ -116,7 +116,9 @@ test.describe('cadastros do engenheiro', () => {
   test('busca geral acha pessoa, ferramenta e empresa sem acento', async ({ page }) => {
     await entrarComo(page, 'engenheiro', '/inicio')
     await page.goto('/cadastros/ferramentas')
-    const busca = page.getByRole('searchbox', { name: 'Buscar pessoa, ferramenta ou empresa' })
+    const busca = page.getByRole('searchbox', {
+      name: 'Buscar pessoa, ferramenta, material ou empresa',
+    })
     await busca.fill('eletrica lumen')
     // Empresa e as pessoas dela aparecem, cada uma no seu grupo, mesmo estando na aba Ferramentas.
     await expect(
@@ -197,8 +199,8 @@ test.describe('cadastros do engenheiro', () => {
     await campo(page, 'Repita a nova senha').fill('senha-nova-de-teste')
     await page.getByRole('button', { name: 'Salvar nova senha' }).click()
     await page.waitForURL((u) => u.pathname === '/inicio')
-    await expect(page.getByRole('link', { name: /conta e obra/ })).toHaveText(
-      'Consulta · Fôrmas Ribeiro',
+    await expect(page.getByRole('link', { name: /conta e obra/ })).toHaveAccessibleName(
+      'Minha conta e obra: Consulta · Fôrmas Ribeiro',
     )
   })
 })

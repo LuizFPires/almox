@@ -5,11 +5,14 @@ import {
   normalizarToken,
   podeDevolver,
   possesComFila,
+  saldoComFila,
   textoFila,
   type ItemFila,
+  type ItemFilaFerramenta,
+  type ItemFilaMaterial,
 } from './offline'
 
-function item(parcial: Partial<ItemFila>): ItemFila {
+function item(parcial: Partial<ItemFilaFerramenta>): ItemFilaFerramenta {
   return {
     chave: crypto.randomUUID(),
     obra: 'o',
@@ -20,6 +23,21 @@ function item(parcial: Partial<ItemFila>): ItemFila {
     token: 'abc',
     itens: [],
     quando: '2026-10-12T10:00:00.000Z',
+    situacao: 'aguardando',
+    ...parcial,
+  }
+}
+
+function material(parcial: Partial<ItemFilaMaterial>): ItemFilaMaterial {
+  return {
+    chave: crypto.randomUUID(),
+    obra: 'o',
+    usuario: 'u',
+    tipo: 'material_saida',
+    material: 'm1',
+    materialNome: 'Cimento',
+    quantidade: 1,
+    quando: '2026-11-04T10:00:00.000Z',
     situacao: 'aguardando',
     ...parcial,
   }
@@ -45,6 +63,36 @@ describe('livresComFila', () => {
       item({ itens: [{ tipo: 'fur', quantidade: 1 }], situacao: 'recusado' }),
     ]
     expect(livresComFila(tipos, fila)).toEqual({ pa: 0, fur: 1 })
+  })
+
+  it('item de material na fila não muda os livres', () => {
+    const fila: ItemFila[] = [
+      item({ itens: [{ tipo: 'pa', quantidade: 2 }] }),
+      material({ tipo: 'material_entrada', quantidade: 50 }),
+      material({ tipo: 'material_contagem', material: undefined, modo: 'ajustar', itens: [] }),
+    ]
+    expect(livresComFila(tipos, fila)).toEqual({ pa: 1, fur: 1 })
+  })
+})
+
+describe('saldoComFila', () => {
+  it('aplica entradas e saídas aguardando do material; ignora recusados e outros', () => {
+    const fila: ItemFila[] = [
+      material({ tipo: 'material_saida', quantidade: 100 }),
+      material({ tipo: 'material_entrada', quantidade: 10, situacao: 'recusado' }),
+    ]
+    expect(saldoComFila(118, fila, 'm1')).toBe(18)
+  })
+
+  it('soma entradas, ignora outro material, contagem e ferramentas; nunca negativo', () => {
+    const fila: ItemFila[] = [
+      material({ tipo: 'material_entrada', quantidade: 2.5 }),
+      material({ tipo: 'material_saida', material: 'm2', quantidade: 7 }),
+      material({ tipo: 'material_contagem', material: undefined, modo: 'ajustar', itens: [] }),
+      item({ itens: [{ tipo: 'pa', quantidade: 1 }] }),
+    ]
+    expect(saldoComFila(1, fila, 'm1')).toBe(3.5)
+    expect(saldoComFila(1, [material({ quantidade: 5 })], 'm1')).toBe(0)
   })
 })
 
@@ -228,6 +276,31 @@ describe('destinoDoEnvio', () => {
     expect(destinoDoEnvio({ ok: false, codigo: 'AL013' })).toMatchObject({
       erro: 'O QR lido não é o capacete desta pessoa. Nada foi registrado.',
     })
+  })
+})
+
+describe('destinoDoEnvio · materiais', () => {
+  it('AL101: saldo insuficiente ao sincronizar é recusa com o texto da obra', () => {
+    expect(destinoDoEnvio({ ok: false, codigo: 'AL101' }, 0)).toEqual({
+      acao: 'recusado',
+      erro: 'Saldo insuficiente quando sincronizou. A saída não foi registrada.',
+    })
+  })
+
+  it('AL103 e AL107', () => {
+    expect(destinoDoEnvio({ ok: false, codigo: 'AL103' })).toEqual({
+      acao: 'recusado',
+      erro: 'Material desativado.',
+    })
+    expect(destinoDoEnvio({ ok: false, codigo: 'AL107' })).toEqual(
+      destinoDoEnvio({ ok: false, codigo: 'AL012' }),
+    )
+  })
+
+  it('23505 de material = já gravado (sai da fila); de ferramenta continua recusa', () => {
+    const r = { ok: false as const, status: 409, codigo: '23505', mensagem: 'duplicate key' }
+    expect(destinoDoEnvio(r, 0, { repetidoJaGravado: true })).toEqual({ acao: 'enviado' })
+    expect(destinoDoEnvio(r, 0)).toMatchObject({ acao: 'recusado' })
   })
 })
 

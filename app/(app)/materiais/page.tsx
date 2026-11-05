@@ -9,6 +9,7 @@ import { ChaveModo } from '@/components/ChaveModo'
 import { ListaSaldos } from '@/components/ListaSaldos'
 import { Marca } from '@/components/Marca'
 import { Relogio } from '@/components/Relogio'
+import { SeloFila } from '@/components/SeloFila'
 import { SeloPerfil } from '@/components/SeloPerfil'
 import { listarSaldos } from '@/lib/dados/materiais'
 import { estadoSaldo } from '@/lib/dominio/materiais'
@@ -51,6 +52,8 @@ export default async function PaginaMateriais() {
       <AoVivo obraId={obraAtual.id} tabelas={['material', 'movimento_material']} />
       <main className="flex flex-1 flex-col gap-3.5 px-5 pt-3.5 pb-5">
         <AcoesMateriais podeLancar={lanca} />
+        {/* Lançamentos guardados no celular sem sinal (materiais e ferramentas). */}
+        <SeloFila lanca={lanca} />
         {abaixo > 0 && (
           <p
             role="status"

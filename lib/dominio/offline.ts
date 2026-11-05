@@ -1,8 +1,11 @@
 /**
  * Lançamento sem internet (M10): o celular guarda as pessoas e ferramentas da obra e uma fila
  * de lançamentos. Regras puras: o que está livre ou com cada pessoa contando a fila, e o que
- * fazer com a resposta do servidor ao enviar.
+ * fazer com a resposta do servidor ao enviar. M13: entradas, saídas e contagens de material
+ * também entram na fila.
  */
+
+import type { ItemContagem } from './materiais'
 
 export type PessoaOffline = {
   id: string
@@ -34,6 +37,17 @@ export type PosseOffline = {
   desde?: string
 }
 
+/** Material ativo da obra, para a prévia do saldo sem internet. */
+export type MaterialOffline = {
+  id: string
+  nome: string
+  unidade: string
+  saldo: number
+  estoque_cheio: number
+  aviso_tipo: 'quantidade' | 'percentual' | null
+  aviso_valor: number | null
+}
+
 /** O que o servidor manda para o celular (`dados_offline`). */
 export type DadosOffline = {
   obra: string
@@ -41,11 +55,13 @@ export type DadosOffline = {
   pessoas: PessoaOffline[]
   tipos: TipoOffline[]
   posses: PosseOffline[]
+  /** Ausente em dados guardados antes do M13. */
+  materiais?: MaterialOffline[]
 }
 
 export type ItemPedido = { tipo: string; quantidade: number }
 
-export type ItemFila = {
+export type ItemFilaFerramenta = {
   /** Chave do celular: o reenvio com a mesma chave não duplica (p_chave). */
   chave: string
   obra: string
@@ -65,12 +81,51 @@ export type ItemFila = {
   tentativas?: number
 }
 
+/** Entrada, saída ou contagem de material lançada sem resposta do servidor. */
+export type ItemFilaMaterial = {
+  /** A mesma chave da primeira tentativa: se ela chegou ao servidor, não duplica. */
+  chave: string
+  obra: string
+  usuario: string
+  tipo: 'material_entrada' | 'material_saida' | 'material_contagem'
+  /** Entrada e saída. */
+  material?: string
+  materialNome?: string
+  quantidade?: number
+  /** Contagem. */
+  modo?: 'ajustar' | 'conferir'
+  itens?: ItemContagem[]
+  quando: string
+  situacao: 'aguardando' | 'recusado'
+  erro?: string
+  tentativas?: number
+}
+
+export type ItemFila = ItemFilaFerramenta | ItemFilaMaterial
+
+export function ehItemDeMaterial(item: ItemFila): item is ItemFilaMaterial {
+  return item.tipo.startsWith('material_')
+}
+
+/** Saldo do material agora, contando as entradas e saídas da fila ainda não enviadas. */
+export function saldoComFila(saldo: number, fila: ItemFila[], materialId: string): number {
+  let centesimos = Math.round(saldo * 100)
+  for (const item of fila) {
+    if (item.situacao !== 'aguardando' || !ehItemDeMaterial(item)) continue
+    if (item.material !== materialId || item.quantidade === undefined) continue
+    const q = Math.round(item.quantidade * 100)
+    if (item.tipo === 'material_entrada') centesimos += q
+    else if (item.tipo === 'material_saida') centesimos -= q
+  }
+  return Math.max(0, centesimos) / 100
+}
+
 /** Livres de cada tipo agora, descontando as retiradas da fila ainda não enviadas. */
 export function livresComFila(tipos: TipoOffline[], fila: ItemFila[]): Record<string, number> {
   const livres: Record<string, number> = {}
   for (const t of tipos) livres[t.id] = t.livres
   for (const item of fila) {
-    if (item.situacao !== 'aguardando') continue
+    if (item.situacao !== 'aguardando' || ehItemDeMaterial(item)) continue
     const sinal = item.tipo === 'retirada' ? -1 : item.tipo === 'devolucao' ? 1 : 0
     for (const i of item.itens) {
       if (i.tipo in livres)
@@ -115,6 +170,7 @@ export function possesComFila(
     if (p.pessoa === pessoa) sair(p.tipo, p.via, p.quantidade, hora(p.desde))
   }
   const pendentes = fila
+    .filter((i): i is ItemFilaFerramenta => !ehItemDeMaterial(i))
     .filter((i) => i.pessoa === pessoa && i.situacao === 'aguardando')
     .sort((a, b) => Date.parse(a.quando) - Date.parse(b.quando))
   for (const item of pendentes) {
@@ -157,12 +213,18 @@ export const MAX_TENTATIVAS_SERVIDOR = 5
 export function destinoDoEnvio(
   r: RespostaEnvio,
   tentativas = 0,
+  /**
+   * Material: duas chamadas com a mesma chave ao mesmo tempo podem dar `23505` na segunda.
+   * A primeira gravou, então o item sai da fila.
+   */
+  { repetidoJaGravado = false }: { repetidoJaGravado?: boolean } = {},
 ):
   | { acao: 'enviado' }
   | { acao: 'tentarDepois'; contar: boolean }
   | { acao: 'recusado'; erro: string } {
   if (r.ok) return { acao: 'enviado' }
   const codigo = r.codigo ?? ''
+  if (repetidoJaGravado && codigo === '23505') return { acao: 'enviado' }
   if (/^(AL\d{3}|22023|P0002|42501)$/.test(codigo)) {
     return { acao: 'recusado', erro: mensagemRecusa(codigo, r.mensagem) }
   }
@@ -188,7 +250,12 @@ function mensagemRecusa(codigo: string, mensagem?: string): string {
   switch (codigo) {
     case 'AL002':
       return `${mensagem ?? 'A ferramenta acabou.'} Nada foi registrado: confira com a pessoa e lance de novo.`
+    case 'AL101':
+      return 'Saldo insuficiente quando sincronizou. A saída não foi registrada.'
+    case 'AL103':
+      return 'Material desativado.'
     case 'AL012':
+    case 'AL107':
       return 'Ficou mais de 24 h sem enviar (ou o relógio do celular está errado). Nada foi registrado: lance de novo.'
     case 'AL013':
       return 'O QR lido não é o capacete desta pessoa. Nada foi registrado.'

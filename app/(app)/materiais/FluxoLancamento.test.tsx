@@ -2,6 +2,7 @@
 import { act, cleanup, fireEvent, render, screen } from '@testing-library/react'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import type { SaldoMaterial } from '@/lib/dominio/materiais'
+import type { ItemFila } from '@/lib/dominio/offline'
 import { FluxoLancamento } from './FluxoLancamento'
 
 const push = vi.fn()
@@ -13,6 +14,14 @@ vi.mock('./acoes', () => ({
   registrarSaida: (...a: unknown[]) => registrarSaida(...a),
   registrarEntrada: vi.fn(),
   pedirCadastro: vi.fn(),
+}))
+
+const guardarNaFila = vi.fn()
+const listarFila = vi.fn()
+vi.mock('@/lib/offline/banco', () => ({
+  CANAL_FILA: 'almox-fila',
+  guardarNaFila: (...a: unknown[]) => guardarNaFila(...a),
+  listarFila: () => listarFila(),
 }))
 
 const cimento: SaldoMaterial = {
@@ -29,6 +38,10 @@ type Envio = { materialId: string; quantidade: number; chave: string }
 beforeEach(() => {
   registrarSaida.mockReset()
   push.mockReset()
+  guardarNaFila.mockReset()
+  guardarNaFila.mockResolvedValue(undefined)
+  listarFila.mockReset()
+  listarFila.mockResolvedValue([])
 })
 afterEach(cleanup)
 
@@ -40,6 +53,8 @@ function montar() {
       ordemMaisUsados={[]}
       podeCadastrar={false}
       quem="Marcos"
+      obraId="o1"
+      usuarioId="u1"
     />,
   )
 }
@@ -53,7 +68,74 @@ async function registrar() {
   })
 }
 
-describe('FluxoLancamento: falha de rede', () => {
+describe('FluxoLancamento: sem sinal vai para a fila do celular', () => {
+  it('falha de rede: guarda na fila com a mesma chave e mostra que ficou no celular', async () => {
+    registrarSaida.mockRejectedValueOnce(new TypeError('Failed to fetch'))
+    montar()
+    abrirCimento()
+    fireEvent.change(campo(), { target: { value: '100' } })
+    await registrar()
+
+    const enviado = registrarSaida.mock.calls[0]![0] as Envio
+    expect(guardarNaFila).toHaveBeenCalledTimes(1)
+    expect(guardarNaFila.mock.calls[0]![0]).toMatchObject({
+      chave: enviado.chave,
+      obra: 'o1',
+      usuario: 'u1',
+      tipo: 'material_saida',
+      material: 'm1',
+      materialNome: 'Cimento CP-II',
+      quantidade: 100,
+      situacao: 'aguardando',
+    })
+    expect(screen.getByRole('status').textContent).toBe(
+      'Guardado no celular. Envia quando tiver sinal.',
+    )
+    expect(screen.getByText('−100 sc · Cimento CP-II')).toBeTruthy()
+    expect(push).not.toHaveBeenCalled()
+  })
+
+  it('celular sem rede: nem chama o servidor, guarda direto', async () => {
+    const onLine = vi.spyOn(navigator, 'onLine', 'get').mockReturnValue(false)
+    try {
+      montar()
+      abrirCimento()
+      fireEvent.change(campo(), { target: { value: '5' } })
+      await registrar()
+    } finally {
+      onLine.mockRestore()
+    }
+    expect(registrarSaida).not.toHaveBeenCalled()
+    expect(guardarNaFila.mock.calls[0]![0]).toMatchObject({ tipo: 'material_saida', quantidade: 5 })
+    expect(screen.getByRole('status').textContent).toBe(
+      'Guardado no celular. Envia quando tiver sinal.',
+    )
+  })
+
+  it('prévia: o saldo da lista desconta as saídas aguardando na fila', async () => {
+    const fila: ItemFila[] = [
+      {
+        chave: 'k1',
+        obra: 'o1',
+        usuario: 'u1',
+        tipo: 'material_saida',
+        material: 'm1',
+        quantidade: 100,
+        quando: '2026-11-04T10:00:00.000Z',
+        situacao: 'aguardando',
+      },
+    ]
+    listarFila.mockResolvedValue(fila)
+    await act(async () => montar())
+    expect(screen.getByText('saldo 18 sc')).toBeTruthy()
+  })
+})
+
+describe('FluxoLancamento: falha de rede sem conseguir guardar no celular', () => {
+  beforeEach(() => {
+    guardarNaFila.mockRejectedValue(new Error('IndexedDB indisponível'))
+  })
+
   it('trava a quantidade, mantém a chave ao reabrir e reenvia igual', async () => {
     registrarSaida.mockRejectedValueOnce(new TypeError('Failed to fetch'))
     montar()
@@ -64,7 +146,9 @@ describe('FluxoLancamento: falha de rede', () => {
     expect(campo().disabled).toBe(true)
     const rapido = screen.getByRole('button', { name: '+10' }) as HTMLButtonElement
     expect(rapido.disabled).toBe(true)
-    expect(screen.getByText('Sem sinal. Toque de novo para enviar a mesma quantidade.')).toBeTruthy()
+    expect(
+      screen.getByText('Sem sinal. Toque de novo para enviar a mesma quantidade.'),
+    ).toBeTruthy()
     const primeira = registrarSaida.mock.calls[0]![0] as Envio
 
     // Fecha e reabre o mesmo material: continua travado com a mesma quantidade.

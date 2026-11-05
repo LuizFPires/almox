@@ -2,7 +2,7 @@
 
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
-import { useState, useTransition } from 'react'
+import { useEffect, useState, useTransition } from 'react'
 import { Botao } from '@/components/Botao'
 import { GavetaQuantidade } from '@/components/GavetaQuantidade'
 import { IconeInterface } from '@/components/IconeInterface'
@@ -12,8 +12,11 @@ import {
   type SaldoMaterial,
   type TipoLancamento,
 } from '@/lib/dominio/materiais'
+import { saldoComFila, type ItemFila } from '@/lib/dominio/offline'
 import { formatarQuantidade } from '@/lib/formatos/quantidade'
+import { CANAL_FILA, guardarNaFila, listarFila } from '@/lib/offline/banco'
 import { pedirCadastro, registrarEntrada, registrarSaida } from './acoes'
+import { GuardadoNoCelular } from './GuardadoNoCelular'
 
 type Props = {
   tipo: TipoLancamento
@@ -24,10 +27,42 @@ type Props = {
   podeCadastrar: boolean
   /** Nome de quem lança (conferência da entrada). */
   quem: string
+  /** Obra e login de quem lança: sem sinal, o lançamento vai para a fila do celular. */
+  obraId: string
+  usuarioId: string
 }
 
 /** Envio sem resposta (rede caiu): mesma chave e mesma quantidade até o servidor responder. */
 type Pendente = { chave: string; quantidade: number }
+/** Lançamento que ficou na fila do celular. */
+type Guardado = { quantidade: number; nome: string; unidade: string }
+
+/** Fila do celular desta obra, relida quando muda (envio, outra tela). */
+function useFilaDaObra(obraId: string): ItemFila[] {
+  const [fila, setFila] = useState<ItemFila[]>([])
+  useEffect(() => {
+    let vivo = true
+    const ler = () =>
+      void listarFila()
+        .then((f) => {
+          if (vivo) setFila(f.filter((i) => i.obra === obraId))
+        })
+        .catch(() => undefined)
+    ler()
+    let canal: BroadcastChannel | null = null
+    try {
+      canal = new BroadcastChannel(CANAL_FILA)
+      canal.onmessage = ler
+    } catch {
+      canal = null
+    }
+    return () => {
+      vivo = false
+      canal?.close()
+    }
+  }, [obraId])
+  return fila
+}
 
 function ehErroDoNext(e: unknown): boolean {
   const digest = (e as { digest?: unknown } | null)?.digest
@@ -35,7 +70,15 @@ function ehErroDoNext(e: unknown): boolean {
 }
 
 /** Entrada e saída de material: busca, lista e gaveta de quantidade (protótipo › escolher). */
-export function FluxoLancamento({ tipo, materiais, ordemMaisUsados, podeCadastrar, quem }: Props) {
+export function FluxoLancamento({
+  tipo,
+  materiais: doServidor,
+  ordemMaisUsados,
+  podeCadastrar,
+  quem,
+  obraId,
+  usuarioId,
+}: Props) {
   const router = useRouter()
   const [busca, setBusca] = useState('')
   const [escolhido, setEscolhido] = useState<SaldoMaterial | null>(null)
@@ -44,8 +87,14 @@ export function FluxoLancamento({ tipo, materiais, ordemMaisUsados, podeCadastra
   // Por material: fechar e reabrir a gaveta não troca a chave nem a quantidade pendentes.
   const [pendentes, setPendentes] = useState<ReadonlyMap<string, Pendente>>(new Map())
   const [erro, setErro] = useState<string | null>(null)
+  const [guardado, setGuardado] = useState<Guardado | null>(null)
   const [enviando, iniciar] = useTransition()
   const saida = tipo === 'saida'
+  // Prévia: o saldo do servidor com as entradas e saídas que ainda estão na fila do celular.
+  const fila = useFilaDaObra(obraId)
+  const materiais = fila.some((i) => i.situacao === 'aguardando')
+    ? doServidor.map((m) => ({ ...m, saldo: saldoComFila(m.saldo, fila, m.id) }))
+    : doServidor
 
   const lista = filtrarMateriais(ordenarParaLancamento(tipo, materiais, ordemMaisUsados), busca)
 
@@ -73,7 +122,36 @@ export function FluxoLancamento({ tipo, materiais, ordemMaisUsados, podeCadastra
     const quantidade = pendente?.quantidade ?? digitada
     const chaveEnvio = pendente?.chave ?? chave
     setErro(null)
+
+    /** Sem sinal: guarda com a mesma chave (se a 1ª chamada chegou ao servidor, não duplica). */
+    async function guardarSemSinal() {
+      try {
+        await guardarNaFila({
+          chave: chaveEnvio,
+          obra: obraId,
+          usuario: usuarioId,
+          tipo: saida ? 'material_saida' : 'material_entrada',
+          material: material.id,
+          materialNome: material.nome,
+          quantidade,
+          quando: new Date().toISOString(),
+          situacao: 'aguardando',
+        })
+      } catch {
+        // Nem o celular guardou: trava a quantidade e guarda a chave para tentar de novo.
+        marcarPendente(material.id, { chave: chaveEnvio, quantidade })
+        return
+      }
+      marcarPendente(material.id, null)
+      setAberta(false)
+      setGuardado({ quantidade, nome: material.nome, unidade: material.unidade })
+    }
+
     iniciar(async () => {
+      if (typeof navigator !== 'undefined' && navigator.onLine === false) {
+        await guardarSemSinal()
+        return
+      }
       try {
         const p = { materialId: material.id, quantidade, chave: chaveEnvio }
         const r = saida ? await registrarSaida(p) : await registrarEntrada(p)
@@ -97,10 +175,34 @@ export function FluxoLancamento({ tipo, materiais, ordemMaisUsados, podeCadastra
         router.push(`/materiais/pronto?${params.toString()}`)
       } catch (e) {
         if (ehErroDoNext(e)) throw e
-        // Pode ter gravado antes de a rede cair: trava a quantidade e guarda a chave.
-        marcarPendente(material.id, { chave: chaveEnvio, quantidade })
+        // Pode ter gravado antes de a rede cair: vai para a fila com a mesma chave.
+        await guardarSemSinal()
       }
     })
+  }
+
+  if (guardado) {
+    return (
+      <GuardadoNoCelular
+        titulo={saida ? 'Saída guardada' : 'Entrada guardada'}
+        linha={`${saida ? '−' : '+'}${formatarQuantidade(guardado.quantidade)} ${guardado.unidade} · ${guardado.nome}`}
+        acoes={
+          <button
+            type="button"
+            onClick={() => {
+              setGuardado(null)
+              setEscolhido(null)
+              setBusca('')
+            }}
+            className={`flex min-h-14 items-center justify-center rounded-cartao px-5 text-lg font-bold text-white ${
+              saida ? 'bg-escuro' : 'bg-sucesso'
+            }`}
+          >
+            {saida ? 'Outra saída' : 'Outra entrada'}
+          </button>
+        }
+      />
+    )
   }
 
   // A gaveta usa o saldo mais novo que a página trouxer.

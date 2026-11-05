@@ -14,8 +14,11 @@ import {
   normalizarToken,
   podeDevolver,
   possesComFila,
+  ehItemDeMaterial,
   textoFila,
   type ItemFila,
+  type ItemFilaFerramenta,
+  type ItemFilaMaterial,
   type PessoaOffline,
 } from '@/lib/dominio/offline'
 import { primeiroNome } from '@/lib/dominio/leitura'
@@ -27,6 +30,7 @@ import {
   textoDisponivel,
 } from '@/lib/dominio/retirada'
 import { formatarDataHora, formatarHora } from '@/lib/formatos/datas'
+import { formatarQuantidade } from '@/lib/formatos/quantidade'
 import { contemTexto } from '@/lib/formatos/texto'
 import {
   CANAL_FILA,
@@ -134,7 +138,7 @@ export function FluxoCampo() {
   }
 
   async function lancar(
-    item: Omit<ItemFila, 'chave' | 'obra' | 'usuario' | 'quando' | 'situacao'>,
+    item: Omit<ItemFilaFerramenta, 'chave' | 'obra' | 'usuario' | 'quando' | 'situacao'>,
     texto: string,
   ) {
     if (!dados || gravandoRef.current) return
@@ -476,6 +480,8 @@ export function FluxoCampo() {
   const aguardando = fila.filter((i) => i.situacao === 'aguardando').length
   const recusados = fila.filter((i) => i.situacao === 'recusado').length
   const nomeTipo = (id: string) => dados.tipos.find((t) => t.id === id)?.nome ?? 'Ferramenta'
+  const unidadeMaterial = (id: string | undefined) =>
+    dados.materiais?.find((m) => m.id === id)?.unidade ?? ''
   return (
     <>
       <Cabecalho
@@ -523,19 +529,26 @@ export function FluxoCampo() {
             >
               <div className="flex items-center justify-between gap-2">
                 <span className="font-bold">
-                  {item.tipo === 'retirada'
-                    ? 'Retirada'
-                    : item.tipo === 'devolucao'
-                      ? 'Devolução'
-                      : 'Não é ele'}{' '}
-                  · {item.pessoaNome}
+                  {ehItemDeMaterial(item)
+                    ? tituloMaterial(item)
+                    : `${
+                        item.tipo === 'retirada'
+                          ? 'Retirada'
+                          : item.tipo === 'devolucao'
+                            ? 'Devolução'
+                            : 'Não é ele'
+                      } · ${item.pessoaNome}`}
                 </span>
                 <span className="text-sm text-texto-2">{formatarHora(item.quando)}</span>
               </div>
-              {item.itens.length > 0 && (
-                <span className="text-[15px]">
-                  {item.itens.map((i) => `${nomeTipo(i.tipo)} ×${i.quantidade}`).join(', ')}
-                </span>
+              {ehItemDeMaterial(item) ? (
+                <span className="text-[15px]">{detalheMaterial(item, unidadeMaterial)}</span>
+              ) : (
+                item.itens.length > 0 && (
+                  <span className="text-[15px]">
+                    {item.itens.map((i) => `${nomeTipo(i.tipo)} ×${i.quantidade}`).join(', ')}
+                  </span>
+                )
               )}
               {item.situacao === 'aguardando' ? (
                 <span className={`${SELO_FILA} self-start`}>aguardando envio</span>
@@ -577,6 +590,25 @@ export function FluxoCampo() {
       </main>
     </>
   )
+}
+
+/** Material na fila: entrada, saída ou contagem lançada sem resposta do servidor. */
+function tituloMaterial(item: ItemFilaMaterial): string {
+  if (item.tipo === 'material_contagem') return 'Contagem de materiais'
+  const nome = item.materialNome ?? 'Material'
+  return `${item.tipo === 'material_entrada' ? 'Entrada' : 'Saída'} · ${nome}`
+}
+
+function detalheMaterial(
+  item: ItemFilaMaterial,
+  unidade: (id: string | undefined) => string,
+): string {
+  if (item.tipo === 'material_contagem') {
+    const n = item.itens?.length ?? 0
+    return `${n} ${n === 1 ? 'material' : 'materiais'} · ${item.modo === 'ajustar' ? 'ajustar o saldo' : 'só conferir'}`
+  }
+  const sinal = item.tipo === 'material_entrada' ? '+' : '−'
+  return `${sinal}${formatarQuantidade(item.quantidade ?? 0)} ${unidade(item.material)}`.trim()
 }
 
 function ListaPessoas({

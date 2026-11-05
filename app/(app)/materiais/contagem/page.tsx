@@ -13,7 +13,7 @@ export const metadata: Metadata = { title: 'Contagem · Almox' }
 
 /** Contagem do fim do dia: o almoxarife digita o que contou e escolhe ajustar ou só conferir. */
 export default async function PaginaContagem() {
-  const { obraAtual } = await obterSessao()
+  const { obraAtual, usuario } = await obterSessao()
   if (!podeLancar(obraAtual.perfil)) redirect('/materiais')
   const materiais = await listarSaldos(obraAtual.id)
   const dia = diaDaObra(new Date())
@@ -22,7 +22,7 @@ export default async function PaginaContagem() {
     <>
       <ChaveModo modo="materiais" />
       <AoVivo obraId={obraAtual.id} tabelas={['material', 'movimento_material']} />
-      <FluxoContagem obraId={obraAtual.id} dia={dia} materiais={materiais} />
+      <FluxoContagem obraId={obraAtual.id} usuarioId={usuario.id} dia={dia} materiais={materiais} />
       <BarraInferior modo="materiais" ativa="contagem" podeLancar />
     </>
   )

@@ -15,9 +15,17 @@ import {
   type SaldoMaterial,
 } from '@/lib/dominio/materiais'
 import { formatarQuantidade, lerQuantidade, quantidadeValida } from '@/lib/formatos/quantidade'
+import { guardarNaFila } from '@/lib/offline/banco'
 import { registrarContagem } from '../acoes'
+import { TEXTO_GUARDADO } from '../GuardadoNoCelular'
 
-type Props = { obraId: string; dia: string; materiais: SaldoMaterial[] }
+type Props = {
+  obraId: string
+  /** Login de quem conta: sem sinal, a contagem vai para a fila do celular. */
+  usuarioId: string
+  dia: string
+  materiais: SaldoMaterial[]
+}
 type Modo = 'ajustar' | 'conferir'
 type Etapa = 'contar' | 'revisar' | 'pronto'
 /** Itens e chave congelados ao entrar na revisão: repetir o envio devolve o mesmo lançamento. */
@@ -59,7 +67,7 @@ function gravarRascunho(chave: string, r: RascunhoContagem) {
 const sinal = (n: number): string => (n > 0 ? `+${formatarQuantidade(n)}` : formatarQuantidade(n))
 
 /** Contagem do dia: contar, revisar (ajustar ou só conferir) e pronto. */
-export function FluxoContagem({ obraId, dia, materiais }: Props) {
+export function FluxoContagem({ obraId, usuarioId, dia, materiais }: Props) {
   const chaveLocal = chaveRascunhoContagem(obraId, dia)
   const [rascunho, setRascunho] = useState<RascunhoContagem>({})
   const [carregado, setCarregado] = useState(false)
@@ -68,7 +76,12 @@ export function FluxoContagem({ obraId, dia, materiais }: Props) {
   const [envio, setEnvio] = useState<Envio | null>(null)
   const [semResposta, setSemResposta] = useState(false)
   const [erro, setErro] = useState<string | null>(null)
-  const [resultado, setResultado] = useState<{ comDiferenca: number; modo: Modo } | null>(null)
+  const [resultado, setResultado] = useState<{
+    comDiferenca: number
+    modo: Modo
+    /** Ficou na fila do celular (sem sinal). */
+    naFila: boolean
+  } | null>(null)
   const [enviando, iniciar] = useTransition()
 
   useEffect(() => {
@@ -114,7 +127,38 @@ export function FluxoContagem({ obraId, dia, materiais }: Props) {
     // Sem diferença nada muda no saldo: grava só como conferência.
     const modoEnvio: Modo = comDiferenca > 0 && modo ? modo : 'conferir'
     setErro(null)
+
+    /** Sem sinal: guarda com a chave da revisão (se a 1ª chamada chegou, não duplica). */
+    async function guardarSemSinal() {
+      if (!envio) return
+      try {
+        await guardarNaFila({
+          chave: envio.chave,
+          obra: obraId,
+          usuario: usuarioId,
+          tipo: 'material_contagem',
+          modo: modoEnvio,
+          itens: envio.itens,
+          quando: new Date().toISOString(),
+          situacao: 'aguardando',
+        })
+      } catch {
+        // Nem o celular guardou: mantém chave e itens para repetir igual.
+        setSemResposta(true)
+        return
+      }
+      setSemResposta(false)
+      gravarRascunho(chaveLocal, {})
+      setRascunho({})
+      setResultado({ comDiferenca, modo: modoEnvio, naFila: true })
+      setEtapa('pronto')
+    }
+
     iniciar(async () => {
+      if (typeof navigator !== 'undefined' && navigator.onLine === false) {
+        await guardarSemSinal()
+        return
+      }
       try {
         const r = await registrarContagem({ modo: modoEnvio, itens: envio.itens, chave: envio.chave })
         setSemResposta(false)
@@ -127,12 +171,12 @@ export function FluxoContagem({ obraId, dia, materiais }: Props) {
         }
         gravarRascunho(chaveLocal, {})
         setRascunho({})
-        setResultado({ comDiferenca, modo: modoEnvio })
+        setResultado({ comDiferenca, modo: modoEnvio, naFila: false })
         setEtapa('pronto')
       } catch (e) {
         if (ehErroDoNext(e)) throw e
-        // Pode ter gravado antes de a rede cair: mantém chave e itens para repetir igual.
-        setSemResposta(true)
+        // Pode ter gravado antes de a rede cair: vai para a fila com a mesma chave.
+        await guardarSemSinal()
       }
     })
   }
@@ -141,19 +185,40 @@ export function FluxoContagem({ obraId, dia, materiais }: Props) {
     return (
       <>
         <main className="flex flex-1 flex-col items-center justify-center gap-2.5 px-5 py-8 text-center">
-          <span className="flex size-16 items-center justify-center rounded-full bg-sucesso-claro text-sucesso">
-            <IconeInterface nome="check" tamanho={34} />
-          </span>
-          <p role="status" className="text-xl font-extrabold">
-            Contagem salva
-          </p>
+          {resultado.naFila ? (
+            <>
+              <span className="flex size-16 items-center justify-center rounded-full bg-aviso-claro text-aviso">
+                <IconeInterface nome="offline" tamanho={34} />
+              </span>
+              <h1 className="text-xl font-extrabold">Contagem guardada</h1>
+              <p
+                role="status"
+                className="rounded-xl bg-aviso-claro px-3.5 py-2.5 text-sm font-semibold text-aviso"
+              >
+                {TEXTO_GUARDADO}
+              </p>
+            </>
+          ) : (
+            <>
+              <span className="flex size-16 items-center justify-center rounded-full bg-sucesso-claro text-sucesso">
+                <IconeInterface nome="check" tamanho={34} />
+              </span>
+              <p role="status" className="text-xl font-extrabold">
+                Contagem salva
+              </p>
+            </>
+          )}
           <p className="text-[15px]">
             {resultado.comDiferenca} {resultado.comDiferenca === 1 ? 'material' : 'materiais'} com diferença
           </p>
           <p className="max-w-xs text-sm leading-snug text-texto-2">
-            {resultado.modo === 'ajustar'
-              ? 'Saldos ajustados. No extrato aparece como "Contagem · ajuste".'
-              : 'Saldos mantidos. No extrato aparece como "Conferência · divergência".'}
+            {resultado.naFila
+              ? resultado.modo === 'ajustar'
+                ? 'Ao enviar, os saldos são ajustados pela contagem.'
+                : 'Ao enviar, os saldos ficam como estão e a diferença fica registrada.'
+              : resultado.modo === 'ajustar'
+                ? 'Saldos ajustados. No extrato aparece como "Contagem · ajuste".'
+                : 'Saldos mantidos. No extrato aparece como "Conferência · divergência".'}
           </p>
         </main>
         <div className="flex flex-col gap-2.5 px-5 pb-5">

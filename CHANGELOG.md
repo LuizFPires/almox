@@ -2,6 +2,24 @@
 
 Registro do que foi entregue em cada milestone (ver `PLAN.md`).
 
+## Ajustes do M13, acesso e segurança (05/11/2026)
+
+### Adicionado
+- **Extrato de materiais em linha do tempo:** período por atalho (Hoje, 7 dias, 30 dias, Este mês) ou De/Até num cartão legível; filtro por material e por tipo; resumo recolhível (com um material, vira extrato de banco: saldo no início, entradas, saídas, ajustes, saldo no fim); lançamentos por dia com bolinha colorida e o saldo logo depois de cada um. O engenheiro edita tocando no lançamento.
+- **Sino em Saldos** (engenheiro): abre o aviso de limite na gaveta inferior.
+- **Novo material em gaveta inferior**, igual à de entrada e saída; na entrada, o material recém-cadastrado já abre a gaveta de quantidade.
+
+### Mudado
+- **Limite por % sempre inteiro, arredondado para cima** (25% de 55 sc → 14 sc), no disparo, no push e na tela.
+- Opções do aviso de limite em cartões grandes ("Chegar a uma quantidade" / "Chegar a um %").
+- Selo de perfil volta a ser ícone; contagem: "Registre a quantidade que realmente tem no canteiro de obras".
+
+### Corrigido
+- **"Dar acesso" e "ligar engenheiro" em produção**, que tinham parado de funcionar depois da migration de convites.
+
+### Segurança
+- Next 16.4.5 (falha crítica de execução remota de código na 16.4.0), Sentry 10.78.0 e `fast-uri` 3.1.9.
+
 ## M13 — Controle de materiais (concluído em 04/11/2026)
 
 Saldo de cada material de consumo da obra (cimento, areia, brita, arame…), como um extrato de débito e crédito, com aviso a todos da obra quando um material chega ao limite. Não importa quem levou. O fluxo de ferramentas não mudou.

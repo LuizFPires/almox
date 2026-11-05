@@ -4,9 +4,10 @@ import { BarraInferior } from '@/components/BarraInferior'
 import { ChaveModo } from '@/components/ChaveModo'
 import { ListaSaldos } from '@/components/ListaSaldos'
 import { listarSaldos } from '@/lib/dados/materiais'
-import { estadoSaldo } from '@/lib/dominio/materiais'
+import { estadoSaldo, type SaldoMaterial } from '@/lib/dominio/materiais'
 import { podeCadastrar, podeLancar } from '@/lib/dominio/permissoes'
 import { obterSessao } from '@/lib/sessao'
+import { BotaoAviso } from './BotaoAviso'
 
 export const metadata: Metadata = { title: 'Saldos · Almox' }
 
@@ -18,6 +19,10 @@ export default async function PaginaSaldos() {
   const materiais = await listarSaldos(obraAtual.id)
   const abaixo = materiais.filter((m) => estadoSaldo(m) === 'abaixo')
   const normais = materiais.filter((m) => estadoSaldo(m) !== 'abaixo')
+  // Só o engenheiro configura o aviso de limite (o servidor confere de novo).
+  const acao = podeCadastrar(obraAtual.perfil)
+    ? (m: SaldoMaterial) => <BotaoAviso material={m} obraNome={obraAtual.nome} />
+    : undefined
 
   return (
     <>
@@ -32,14 +37,14 @@ export default async function PaginaSaldos() {
             <h2 id="titulo-abaixo" className={TITULO}>
               Abaixo do limite
             </h2>
-            <ListaSaldos materiais={abaixo} />
+            <ListaSaldos materiais={abaixo} acao={acao} />
           </section>
         )}
         <section className="flex flex-col gap-2" aria-labelledby="titulo-normais">
           <h2 id="titulo-normais" className={TITULO}>
             {abaixo.length > 0 ? 'Normais' : 'Todos os materiais'}
           </h2>
-          <ListaSaldos materiais={normais} />
+          <ListaSaldos materiais={normais} acao={acao} />
         </section>
       </main>
       <BarraInferior

@@ -1,4 +1,5 @@
 import Link from 'next/link'
+import { IconeInterface } from '@/components/IconeInterface'
 import { rotuloPerfil, type Perfil } from '@/lib/dominio/permissoes'
 
 const CORES: Record<Perfil, string> = {
@@ -13,10 +14,11 @@ export function SeloPerfil({ perfil, empresa }: { perfil: Perfil; empresa?: stri
   return (
     <Link
       href="/conta"
-      aria-label={`${rotulo}: conta e obra`}
-      className={`flex min-h-toque max-w-[45%] shrink-0 items-center rounded-full px-3.5 text-sm font-semibold ${CORES[perfil]}`}
+      aria-label={`Minha conta e obra: ${rotulo}`}
+      title="Minha conta e obra"
+      className={`flex min-h-toque min-w-toque shrink-0 items-center justify-center rounded-full focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-escuro ${CORES[perfil]}`}
     >
-      <span className="truncate">{rotulo}</span>
+      <IconeInterface nome="user" />
     </Link>
   )
 }

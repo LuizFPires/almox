@@ -155,7 +155,7 @@ As demais regras invioláveis continuam valendo e se estendem aos materiais quan
   - O material nasce com saldo 0. O saldo só muda por movimento.
 - **Aviso de limite** (opcional, um por material):
   - **"Chegar a uma quantidade":** avisa quando o saldo ficar ≤ N.
-  - **"Chegar a uma %":** avisa quando o saldo ficar ≤ X% do **saldo logo depois da última entrada** (o "estoque cheio"). Decidido pelo dono. Exemplo: sobravam 2 m³ de areia e chegaram 12, então o estoque cheio é 14 m³ e 50% avisa em 7 m³. Uma entrada pequena quase não mexe no limite. A tela mostra o número real: "50% de 14 m³ = avisa ao chegar em 7 m³".
+  - **"Chegar a uma %":** avisa quando o saldo ficar ≤ X% do **saldo logo depois da última entrada** (o "estoque cheio"). Decidido pelo dono. Exemplo: sobravam 2 m³ de areia e chegaram 12, então o estoque cheio é 14 m³ e 50% avisa em 7 m³. Uma entrada pequena quase não mexe no limite. A tela mostra o número real: "50% de 14 m³ → avisa ao chegar em 7 m³". **O limite por % é sempre inteiro, arredondado para cima** (decidido pelo dono em 05/11/2026): 25% de 55 sc = 13,75 → avisa em 14 sc; 13,01 → 14. Conta única no banco (`privado.limite_aviso_material`), espelhada em `limiteDoAviso`. Rótulo da opção: "Chegar a um %".
   - Mostra quem recebe: **todos da obra** (engenheiro, almoxarifes e consulta).
   - Botão "Remover aviso".
 - **Disparo:**

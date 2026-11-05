@@ -32,6 +32,16 @@ const areia: SaldoMaterial = {
 describe('materiais', () => {
   it('limite por quantidade', () => expect(limiteDoAviso(cimento)).toBe(20))
   it('limite por % do estoque cheio', () => expect(limiteDoAviso(areia)).toBe(7))
+  it('limite por % é inteiro, arredondado para cima', () => {
+    const pct = (estoqueCheio: number, valor: number) =>
+      limiteDoAviso({ aviso: { tipo: 'percentual', valor }, estoqueCheio })
+    expect(pct(55, 25)).toBe(14) // 13,75
+    expect(pct(1301, 1)).toBe(14) // 13,01
+    expect(pct(56, 25)).toBe(14) // 14 exato
+    expect(pct(0.3, 10)).toBe(1) // 0,03
+    expect(pct(100.01, 1)).toBe(2) // 1,0001
+    expect(pct(70, 20)).toBe(14) // 14,000000000000002 no ponto flutuante
+  })
   it('sem aviso', () => expect(limiteDoAviso({ aviso: null, estoqueCheio: 10 })).toBeNull())
   it('estados', () => {
     expect(estadoSaldo(cimento)).toBe('abaixo')

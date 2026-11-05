@@ -1,7 +1,7 @@
 'use client'
 
 import { useRouter } from 'next/navigation'
-import { useState, useTransition } from 'react'
+import { useId, useState, useTransition, type ReactNode } from 'react'
 import { salvarAviso } from '@/app/(app)/materiais/acoes'
 import { Botao } from '@/components/Botao'
 import { CLASSE_CAMPO, ErroFormulario } from '@/components/Formulario'
@@ -23,15 +23,32 @@ type Props = {
   estoqueCheio: number
   aviso: Aviso
   obraNome: string
+  /**
+   * Dentro da gaveta (tela Saldos): botões no fim do conteúdo, sem rodapé fixo, e ao salvar
+   * chama `onConcluido` em vez de voltar para o cadastro.
+   */
+  onConcluido?(): void
+  /** Avisa quem abriu que o salvamento está a caminho (a gaveta não fecha no meio). */
+  onOcupado?(ocupado: boolean): void
 }
 
 const OPCOES: { tipo: Tipo; rotulo: string }[] = [
   { tipo: 'quantidade', rotulo: 'Chegar a uma quantidade' },
-  { tipo: 'percentual', rotulo: 'Chegar a uma %' },
+  { tipo: 'percentual', rotulo: 'Chegar a um %' },
 ]
 
-export function FormAviso({ materialId, unidade, estoqueCheio, aviso, obraNome }: Props) {
+export function FormAviso({
+  materialId,
+  unidade,
+  estoqueCheio,
+  aviso,
+  obraNome,
+  onConcluido,
+  onOcupado,
+}: Props) {
   const router = useRouter()
+  const nomeRadio = useId()
+  const naGaveta = onConcluido !== undefined
   const [tipo, setTipo] = useState<Tipo>(aviso?.tipo ?? 'quantidade')
   const [texto, setTexto] = useState(aviso ? formatarQuantidade(aviso.valor) : '')
   const [erro, setErro] = useState('')
@@ -66,14 +83,22 @@ export function FormAviso({ materialId, unidade, estoqueCheio, aviso, obraNome }
 
   function enviar(tipoSalvo: Tipo | null, valorSalvo: number | null) {
     setErro('')
+    onOcupado?.(true)
     iniciar(async () => {
-      const r = await salvarAviso({ materialId, tipo: tipoSalvo, valor: valorSalvo })
+      let r: Awaited<ReturnType<typeof salvarAviso>>
+      try {
+        r = await salvarAviso({ materialId, tipo: tipoSalvo, valor: valorSalvo })
+      } catch {
+        r = { ok: false, erro: 'Sem conexão. Tente de novo.' }
+      }
+      onOcupado?.(false)
       if (!r.ok) {
         setErro(r.erro)
         return
       }
-      router.push(`/cadastros/materiais/${materialId}`)
       router.refresh()
+      if (onConcluido) onConcluido()
+      else router.push(`/cadastros/materiais/${materialId}`)
     })
   }
 
@@ -87,29 +112,32 @@ export function FormAviso({ materialId, unidade, estoqueCheio, aviso, obraNome }
 
   return (
     <div className="flex flex-1 flex-col">
-      <div className="flex flex-1 flex-col gap-5 px-5 pt-2 pb-6">
+      <div className={`flex flex-1 flex-col ${naGaveta ? 'gap-4' : 'gap-5 px-5 pt-2 pb-6'}`}>
         <fieldset className="flex flex-col gap-2">
           <legend className="mb-1.5 text-[13px] font-bold tracking-[1.2px] text-texto-2 uppercase">
             Avisar quando
           </legend>
-          <div className="grid grid-cols-2 gap-2">
+          <div className="grid grid-cols-2 gap-2.5">
             {OPCOES.map((o) => (
               <label
                 key={o.tipo}
-                className={`flex min-h-toque cursor-pointer items-center justify-center rounded-botao border px-2 text-center text-[15px] font-semibold ${
+                className={`flex min-h-[104px] cursor-pointer flex-col items-center justify-center gap-1.5 rounded-cartao border-[1.5px] bg-white px-2 pt-3.5 pb-3 text-center text-[14px] leading-tight font-extrabold transition-colors ${
                   tipo === o.tipo
-                    ? 'border-2 border-escuro bg-cartao'
-                    : 'border-borda bg-cartao text-texto-2'
-                } has-[:focus-visible]:outline-3 has-[:focus-visible]:outline-foco`}
+                    ? 'border-escuro text-escuro shadow-[inset_0_0_0_1px_var(--color-escuro)]'
+                    : 'border-[#D1D5DB] text-texto-2'
+                } has-[:focus-visible]:outline-3 has-[:focus-visible]:outline-offset-3 has-[:focus-visible]:outline-foco`}
               >
                 <input
                   type="radio"
-                  name="tipo"
+                  name={nomeRadio}
                   value={o.tipo}
                   checked={tipo === o.tipo}
                   onChange={() => setTipo(o.tipo)}
                   className="sr-only"
                 />
+                <span aria-hidden="true" className="text-[30px] leading-none font-black">
+                  {o.tipo === 'percentual' ? '%' : unidade}
+                </span>
                 {o.rotulo}
               </label>
             ))}
@@ -156,7 +184,7 @@ export function FormAviso({ materialId, unidade, estoqueCheio, aviso, obraNome }
               'Informe a porcentagem para ver quando o aviso dispara.'
             ) : (
               <>
-                {formatarQuantidade(valor ?? 0)}% de {formatarQuantidade(estoqueCheio)} {unidade} ={' '}
+                {formatarQuantidade(valor ?? 0)}% de {formatarQuantidade(estoqueCheio)} {unidade} →{' '}
                 <b>
                   avisa ao chegar em {formatarQuantidade(limite)} {unidade}
                 </b>
@@ -174,7 +202,7 @@ export function FormAviso({ materialId, unidade, estoqueCheio, aviso, obraNome }
         <ErroFormulario mensagem={erro} />
       </div>
 
-      <RodapeAcao>
+      <Rodape naGaveta={naGaveta}>
         <Botao variante="engenheiro" tamanho="g" larguraTotal disabled={pendente} onClick={salvar}>
           {pendente ? 'Salvando…' : 'Salvar aviso'}
         </Botao>
@@ -188,7 +216,13 @@ export function FormAviso({ materialId, unidade, estoqueCheio, aviso, obraNome }
             Remover aviso
           </Botao>
         )}
-      </RodapeAcao>
+      </Rodape>
     </div>
   )
+}
+
+/** Página: rodapé fixo. Gaveta: botões logo abaixo do conteúdo. */
+function Rodape({ naGaveta, children }: { naGaveta: boolean; children: ReactNode }) {
+  if (naGaveta) return <div className="mt-4 flex flex-col gap-2">{children}</div>
+  return <RodapeAcao>{children}</RodapeAcao>
 }

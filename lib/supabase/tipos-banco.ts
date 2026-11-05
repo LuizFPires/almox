@@ -1884,6 +1884,25 @@ export type Database = {
         Args: { p_motivo: string; p_movimento: string; p_obra: string }
         Returns: string
       }
+      extrato_material_periodo: {
+        Args: { p_ate: string; p_de: string; p_material?: string; p_obra: string }
+        Returns: {
+          apagado: boolean
+          criado_em: string
+          desfeito: boolean
+          editado_em: string
+          editado_por_nome: string
+          id: string
+          material_id: string
+          obra_id: string
+          quantidade: number
+          quantidade_original: number
+          registrado_no_aparelho_em: string
+          saldo_depois: number
+          tipo: string
+          usuario_nome: string
+        }[]
+      }
       fechar_medicao: {
         Args: { p_empresa: string; p_obra: string; p_proxima: string }
         Returns: string
@@ -2023,6 +2042,18 @@ export type Database = {
       }
       remover_inscricao_push: { Args: { p_endpoint: string }; Returns: undefined }
       resumo_fechamento: { Args: { p_fechamento: string }; Returns: Json }
+      resumo_material_periodo: {
+        Args: { p_ate: string; p_de: string; p_obra: string }
+        Returns: {
+          ajustes: number
+          entradas: number
+          lancamentos: number
+          material_id: string
+          saidas: number
+          saldo_fim: number
+          saldo_inicio: number
+        }[]
+      }
       revogar_dispositivo: { Args: { p_dispositivo: string }; Returns: undefined }
       salvar_aviso_material: {
         Args: { p_material: string; p_obra: string; p_tipo: string; p_valor: number }

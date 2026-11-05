@@ -372,7 +372,7 @@ export function FluxoContagem({ obraId, usuarioId, dia, materiais }: Props) {
       <Cabecalho titulo={`Contagem · ${dataTitulo}`} voltarPara="/materiais" />
       <main className="flex flex-1 flex-col gap-2.5 px-5 pt-2 pb-5">
         <p className="text-sm leading-snug text-texto-2">
-          Conte o que tem no almox e digite. Em branco = não contei hoje.
+          Registre a quantidade que realmente tem no canteiro de obras. Em branco = não contei hoje.
         </p>
         {erro && (
           <p

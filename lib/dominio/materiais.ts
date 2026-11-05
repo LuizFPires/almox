@@ -21,11 +21,17 @@ export type EstadoSaldo = 'abaixo' | 'perto' | 'ok' | 'sem_aviso'
 
 const arredondar = (x: number): number => Math.round(x * 100) / 100
 
-/** Limite do aviso: quantidade fixa ou % do estoque cheio (2 casas). */
+/**
+ * Limite do aviso: quantidade fixa ou % do estoque cheio. Por %, sempre inteiro arredondado
+ * para cima (25% de 55 sc = 13,75 → 14 sc). Mesma conta de privado.limite_aviso_material.
+ */
 export function limiteDoAviso(m: Pick<SaldoMaterial, 'aviso' | 'estoqueCheio'>): number | null {
   if (!m.aviso) return null
   if (m.aviso.tipo === 'quantidade') return m.aviso.valor
-  return arredondar((m.estoqueCheio * m.aviso.valor) / 100)
+  // Estoque e % têm 2 casas: a conta exata tem no máx. 6. Corta o ruído de ponto flutuante
+  // (14,000000001 não pode virar 15) sem perder frações de verdade (13,0001 → 14, como no banco).
+  const exato = Math.round(m.estoqueCheio * m.aviso.valor * 1e4) / 1e6
+  return Math.ceil(exato)
 }
 
 /** Resumo do aviso nas listas de cadastro: "aviso em 20 un", "aviso em 15%" ou "sem aviso". */

@@ -140,20 +140,124 @@ export async function extrato(
     .overrideTypes<LinhaExtratoBanco[], { merge: false }>()
   if (error) throw new Error('Não foi possível carregar o extrato.')
 
-  // A view não tem FK para embutir: busca nome e unidade dos materiais citados.
-  const ids = [...new Set(data.map((l) => l.material_id))]
-  const nomes = new Map<string, { nome: string; unidade: UnidadeMaterial }>()
-  if (ids.length > 0) {
-    const res = await supabase
-      .from('material')
-      .select('id, nome, unidade')
-      .eq('obra_id', obraId)
-      .in('id', ids)
-      .overrideTypes<{ id: string; nome: string; unidade: UnidadeMaterial }[], { merge: false }>()
-    if (res.error) throw new Error('Não foi possível carregar o extrato.')
-    for (const m of res.data) nomes.set(m.id, { nome: m.nome, unidade: m.unidade })
-  }
+  const nomes = await nomesDosMateriais(
+    supabase,
+    obraId,
+    data.map((l) => l.material_id),
+  )
   return data.map((l) => paraLinha(l, nomes))
+}
+
+type Cliente = Awaited<ReturnType<typeof criarClienteServidor>>
+type NomeMaterial = { nome: string; unidade: UnidadeMaterial }
+
+/** A view não tem FK para embutir: busca nome e unidade dos materiais citados. */
+async function nomesDosMateriais(
+  supabase: Cliente,
+  obraId: string,
+  idsCitados: string[],
+): Promise<Map<string, NomeMaterial>> {
+  const ids = [...new Set(idsCitados)]
+  const nomes = new Map<string, NomeMaterial>()
+  if (ids.length === 0) return nomes
+  const res = await supabase
+    .from('material')
+    .select('id, nome, unidade')
+    .eq('obra_id', obraId)
+    .in('id', ids)
+    .overrideTypes<{ id: string; nome: string; unidade: UnidadeMaterial }[], { merge: false }>()
+  if (res.error) throw new Error('Não foi possível carregar o extrato.')
+  for (const m of res.data) nomes.set(m.id, { nome: m.nome, unidade: m.unidade })
+  return nomes
+}
+
+export type LinhaExtratoPeriodo = LinhaExtrato & {
+  /** Saldo do material logo depois deste lançamento. */
+  saldoDepois: number
+}
+
+/** Quantos lançamentos o extrato por período mostra (a função do banco devolve um a mais). */
+export const LIMITE_EXTRATO_PERIODO = 1000
+
+/**
+ * Extrato de um período (dias da obra, inclusive), mais recente primeiro, com o saldo do
+ * material depois de cada lançamento. `cortado`: o período tem mais que o limite.
+ */
+export async function extratoPeriodo(
+  obraId: string,
+  de: string,
+  ate: string,
+  materialId?: string | null,
+): Promise<{ linhas: LinhaExtratoPeriodo[]; cortado: boolean }> {
+  const supabase = await criarClienteServidor()
+  const { data, error } = await supabase
+    .rpc('extrato_material_periodo', {
+      p_obra: obraId,
+      p_de: de,
+      p_ate: ate,
+      ...(materialId ? { p_material: materialId } : {}),
+    })
+    .overrideTypes<(LinhaExtratoBanco & { saldo_depois: number | string })[], { merge: false }>()
+  if (error) throw new Error('Não foi possível carregar o extrato.')
+  const cortado = data.length > LIMITE_EXTRATO_PERIODO
+  const vistas = data.slice(0, LIMITE_EXTRATO_PERIODO)
+  const nomes = await nomesDosMateriais(
+    supabase,
+    obraId,
+    vistas.map((l) => l.material_id),
+  )
+  return {
+    linhas: vistas.map((l) => ({ ...paraLinha(l, nomes), saldoDepois: Number(l.saldo_depois) })),
+    cortado,
+  }
+}
+
+export type ResumoMaterialPeriodo = {
+  materialId: string
+  nome: string
+  unidade: UnidadeMaterial
+  saldoInicio: number
+  entradas: number
+  saidas: number
+  ajustes: number
+  saldoFim: number
+  lancamentos: number
+}
+
+/** Por material: saldo no início e no fim do período, entradas, saídas e ajustes. */
+export async function resumoPeriodo(
+  obraId: string,
+  de: string,
+  ate: string,
+): Promise<ResumoMaterialPeriodo[]> {
+  const supabase = await criarClienteServidor()
+  const { data, error } = await supabase.rpc('resumo_material_periodo', {
+    p_obra: obraId,
+    p_de: de,
+    p_ate: ate,
+  })
+  if (error) throw new Error('Não foi possível carregar o resumo do extrato.')
+  const nomes = await nomesDosMateriais(
+    supabase,
+    obraId,
+    data.map((r) => r.material_id),
+  )
+  return data
+    .map((r) => {
+      const m = nomes.get(r.material_id)
+      return {
+        materialId: r.material_id,
+        nome: m?.nome ?? '—',
+        unidade: m?.unidade ?? 'un',
+        saldoInicio: Number(r.saldo_inicio),
+        entradas: Number(r.entradas),
+        saidas: Number(r.saidas),
+        ajustes: Number(r.ajustes),
+        saldoFim: Number(r.saldo_fim),
+        lancamentos: r.lancamentos,
+      }
+    })
+    .sort((a, b) => a.nome.localeCompare(b.nome, 'pt-BR'))
 }
 
 /** Ficha do material: saldo, última divergência de conferência e extrato. */

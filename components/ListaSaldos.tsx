@@ -1,4 +1,5 @@
 import Link from 'next/link'
+import type { ReactNode } from 'react'
 import {
   estadoSaldo,
   limiteDoAviso,
@@ -26,9 +27,12 @@ function Selo({ m }: { m: SaldoMaterial }) {
 export function ListaSaldos({
   materiais,
   destaque = true,
+  acao,
 }: {
   materiais: SaldoMaterial[]
   destaque?: boolean
+  /** Botão à direita de cada material (ex.: sino do aviso de limite, só engenheiro). */
+  acao?: (m: SaldoMaterial) => ReactNode
 }) {
   if (materiais.length === 0) {
     return (
@@ -42,10 +46,10 @@ export function ListaSaldos({
       {ordenarSaldos(materiais).map((m) => {
         const abaixo = destaque && estadoSaldo(m) === 'abaixo'
         return (
-          <li key={m.id}>
+          <li key={m.id} className="flex items-center gap-2">
             <Link
               href={`/materiais/${m.id}`}
-              className={`flex min-h-toque items-center gap-3 rounded-cartao px-4 py-3 ${
+              className={`flex min-h-toque min-w-0 flex-1 items-center gap-3 rounded-cartao px-4 py-3 ${
                 abaixo ? 'bg-erro-claro' : 'bg-cartao'
               }`}
             >
@@ -58,6 +62,7 @@ export function ListaSaldos({
                 <span className="text-sm font-semibold">{m.unidade}</span>
               </span>
             </Link>
+            {acao?.(m)}
           </li>
         )
       })}

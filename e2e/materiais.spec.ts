@@ -134,7 +134,7 @@ test.describe('materiais: lançamentos', () => {
 
     await page.getByRole('link', { name: 'Ver extrato' }).click()
     const linha = page.getByRole('listitem').filter({ hasText: CIMENTO }).first()
-    await expect(linha).toContainText('Conferência · divergência')
+    await expect(linha).toContainText('contagem com diferença')
     await expect(linha).toContainText('−3')
 
     await page.goto(`/materiais/${cimento}`)

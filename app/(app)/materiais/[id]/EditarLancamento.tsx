@@ -32,17 +32,16 @@ function materialDaLinha(l: Linha, materiais: SaldoMaterial[]): SaldoMaterial {
   )
 }
 
-/** Lista o extrato; para o engenheiro, abre a gaveta de edição nas linhas que não são conferência. */
-export function EditarLancamento({ linhas, materiais, comNome, podeEditar, vazio }: Props) {
+/**
+ * Gaveta de edição de um lançamento (engenheiro): `abrir(linha)` e o elemento `gaveta` para
+ * pôr na tela. Usada pela lista do extrato e pela linha do tempo.
+ */
+export function useEdicaoLancamento(materiais: SaldoMaterial[]) {
   const router = useRouter()
   const [aberta, setAberta] = useState<Linha | null>(null)
   const [visivel, setVisivel] = useState(false)
   const [erro, setErro] = useState<string | null>(null)
   const [ocupado, iniciar] = useTransition()
-
-  if (linhas.length === 0) {
-    return <p className="py-6 text-center text-[15px] text-texto-2">{vazio}</p>
-  }
 
   function abrir(l: Linha) {
     setErro(null)
@@ -75,6 +74,34 @@ export function EditarLancamento({ linhas, materiais, comNome, podeEditar, vazio
     enviar(l, negativo ? -q : q, extra?.motivo)
   }
 
+  const gaveta = aberta && (
+    <GavetaQuantidade
+      tipo="edicao"
+      material={materialDaLinha(aberta, materiais)}
+      aberta={visivel}
+      ocupado={ocupado}
+      erro={erro}
+      quantidadeInicial={Math.abs(aberta.quantidade)}
+      escolheSinal={aberta.tipo === 'ajuste'}
+      negativoInicial={aberta.quantidade < 0}
+      onAlterar={() => setErro(null)}
+      onFechar={() => setVisivel(false)}
+      onConfirmar={(q, extra) => salvar(aberta, q, extra)}
+      onApagar={(motivo) => enviar(aberta, 0, motivo)}
+    />
+  )
+
+  return { abrir, gaveta }
+}
+
+/** Lista o extrato; para o engenheiro, abre a gaveta de edição nas linhas que não são conferência. */
+export function EditarLancamento({ linhas, materiais, comNome, podeEditar, vazio }: Props) {
+  const { abrir, gaveta } = useEdicaoLancamento(materiais)
+
+  if (linhas.length === 0) {
+    return <p className="py-6 text-center text-[15px] text-texto-2">{vazio}</p>
+  }
+
   return (
     <>
       <ul className="flex flex-col gap-2">
@@ -89,22 +116,7 @@ export function EditarLancamento({ linhas, materiais, comNome, podeEditar, vazio
           </li>
         ))}
       </ul>
-      {aberta && (
-        <GavetaQuantidade
-          tipo="edicao"
-          material={materialDaLinha(aberta, materiais)}
-          aberta={visivel}
-          ocupado={ocupado}
-          erro={erro}
-          quantidadeInicial={Math.abs(aberta.quantidade)}
-          escolheSinal={aberta.tipo === 'ajuste'}
-          negativoInicial={aberta.quantidade < 0}
-          onAlterar={() => setErro(null)}
-          onFechar={() => setVisivel(false)}
-          onConfirmar={(q, extra) => salvar(aberta, q, extra)}
-          onApagar={(motivo) => enviar(aberta, 0, motivo)}
-        />
-      )}
+      {gaveta}
     </>
   )
 }

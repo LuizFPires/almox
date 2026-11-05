@@ -57,12 +57,12 @@ Um sistema com três partes:
 - Painel da TV em loop (cartões por pessoa + colunas por empresa).
 - Perfis e permissões (engenheiro, almoxarife, consulta).
 - Histórico e auditoria de todos os movimentos.
+- **Materiais de consumo** (M13, decidido pelo dono em 04/11/2026): entrada, saída, contagem, saldo, extrato, aviso de limite e terceira tela da TV (§7.3).
 
 ### 4.2 Fora da versão 1
 
 - QR Code nas ferramentas: decidido **não fazer por ora**. A identificação é só por pessoa, e as unidades são controladas por quantidade.
 - Biometria (digital) e foto do rosto: **descartadas** por LGPD e pela resistência dos trabalhadores.
-- Materiais de consumo (cimento, areia, parafusos).
 - Integração automática com o sistema de medição. Na v1 o desconto é informado no aviso e entra num relatório para o engenheiro aplicar na medição.
 - Compra, manutenção e baixa patrimonial completas. Esse é o escopo do sistema **Controle de Equipamentos**, uma integração futura.
 
@@ -79,8 +79,16 @@ Um sistema com três partes:
 | Imprimir / reimprimir adesivo | ✅ | ❌ | ❌ |
 | Configurar impressora | ✅ | ❌ | ❌ |
 | Receber avisos de não devolução | ✅ (pendências da construtora) | ❌ | ✅ dono e encarregado da própria empreiteira |
+| Materiais: ver saldos, ficha e extrato | ✅ | ✅ | ✅ obra inteira² |
+| Materiais: entrada, saída e contagem | ✅ | ✅ | ❌ |
+| Materiais: desfazer a própria saída em até 60 s | ✅ | ✅ | ❌ |
+| Materiais: editar ou apagar lançamento | ✅ | ❌ | ❌ |
+| Materiais: cadastrar material e aviso de limite | ✅ | ❌ (pede o cadastro) | ❌ |
+| Receber aviso de limite de material | ✅ | ✅ | ✅² |
 
 ¹ Consulta: encarregados, mestres de obra, donos de empreiteira e qualquer outro login. Dono e encarregado de empreiteira veem apenas os dados da própria empresa; os demais veem a obra inteira.
+
+² Material não é de nenhuma empresa: a consulta de empreiteira também vê os saldos da obra inteira e recebe o aviso de limite.
 
 ## 6. Regras de negócio
 
@@ -105,7 +113,7 @@ Estas regras são invariantes: nenhuma tela ou API pode violá-las.
 | **RN-15** | Pendências de **funcionários próprios da construtora** não geram desconto: vão só para o engenheiro. |
 | **RN-16** | O valor de reposição é cadastrado **por tipo de ferramenta, por unidade**, apenas pelo engenheiro. O aviso usa o valor vigente no momento do encerramento do dia. |
 | **RN-17** | O QR do capacete contém **apenas um token opaco** (sem nome, CPF ou dados). Lido fora do app, não revela nada. |
-| **RN-18** | Todo movimento registra: pessoa, usuário que lançou, data/hora, via (QR/manual), itens e quantidades. **Movimentos não são apagados nem editados**; correções são feitas por novo movimento de estorno, com motivo. |
+| **RN-18** | Todo movimento registra: pessoa, usuário que lançou, data/hora, via (QR/manual), itens e quantidades. **Movimentos não são apagados nem editados**; correções são feitas por novo movimento de estorno, com motivo. Exceção só para materiais: o engenheiro edita ou apaga o lançamento, e cada edição fica gravada como versão (F-16). |
 
 ## 7. Funcionalidades
 
@@ -194,13 +202,40 @@ Estas regras são invariantes: nenhuma tela ou API pode violá-las.
 | Velocidade das colunas por empresa | 45 px/s | ✅ (15–150) |
 | Pausa antes / depois da rolagem | 2,5 s / 3 s | ✅ |
 
-Sequência: páginas de cartões por pessoa (1–12, 13–24, …) → colunas por empresa rolando para a esquerda (empresa com mais de 6 pessoas ocupa coluna dupla) → volta ao início, em loop infinito.
+Sequência: páginas de cartões por pessoa (1–12, 13–24, …) → colunas por empresa rolando para a esquerda (empresa com mais de 6 pessoas ocupa coluna dupla) → **Materiais na obra** (M13) → volta ao início, em loop infinito.
 
 - **Cartão por pessoa:** nome, função, empresa (cor + nome), ferramentas (ícone grande + nome, ×N quando houver mais de uma) e "Retirou às 07:05", ou faixa vermelha "Não devolvido · desde ontem".
 - **Cabeçalho fino:** ALMOX, obra, título da tela ("Pessoas 13–24 de 30"), pontos de página e hora atual.
 - **Rodapé:** barra de progresso até a próxima troca.
-- **Sem** totais e **sem** lista de estoque: esses números ficam só no app.
+- **Sem** totais e **sem** lista de estoque **de ferramentas**: esses números ficam só no app.
+- **Materiais na obra** (terceira tela, M13): um cartão por material com o saldo em letra grande e a unidade, a barra até o estoque cheio com o traço no limite e a linha de estado. Ordem: abaixo do limite → perto do limite → demais, em ordem alfabética. Até 12 cartões por página; com alerta, 8. Obra sem material ativo pula a tela.
+- **Alerta de material:** faixa vermelha pulsando no topo da terceira tela ("! 2 materiais abaixo do limite · Cimento CP-II (18 sc) · Areia média (6 m³). Pedir reposição.") e cartões em alerta com a borda pulsando; nas outras telas, uma faixa fina no rodapé.
 - Dados ao vivo (realtime). Reconecta sozinho, e sem conexão mostra o último estado com o aviso "sem conexão desde HH:MM".
+
+### 7.3 Materiais de consumo (M13)
+
+Saldo atual de cada material da obra (cimento, areia, brita, arame…), como um extrato de débito e crédito, e aviso a todos da obra quando um material chega ao limite. **Não importa quem levou**: sem capacete, pessoa ou destino, sem ordem de compra e sem valor em R$. O fluxo de ferramentas não muda.
+
+**F-14 — Chave Ferramentas | Materiais e Início de materiais**
+- A chave no topo troca o modo do app inteiro (início, barra e telas); o app abre no último modo usado.
+- Modo Materiais: barra Início · Saldos · Extrato · Fechamento (contagem) · Cadastros.
+- Início: botões **Entrada**, **Saída** e **Contagem**; faixa de aviso se houver material abaixo do limite; lista "Saldo agora" com os abaixo do limite primeiro. Selos "limite N", "perto do limite" (até 1,5 × o limite) e "ok".
+
+**F-15 — Entrada, saída e contagem**
+- **Entrada:** lista com busca → gaveta de quantidade (número digitável, − e +, rápidos +10/+50/+100/+500, prévia "Saldo: 18 → 518 sc") → conferência na própria gaveta → pronto com "Outra entrada". Aceita `1.500`, `1500` e `2,5`. O estoque cheio passa a ser o saldo depois da entrada.
+- **Saída:** mais usados primeiro; material sem saldo fica apagado. A mesma gaveta, sem conferência: "Registrar saída" grava direto (no máximo 5 toques desde o Início). Avisa antes se vai cruzar o limite e bloqueia se passar do saldo. O pronto mostra o selo "Aviso enviado a todos da obra" (se disparou) e **Desfazer (60 s)** para quem lançou.
+- **Contagem:** Material · Sistema · Contei (em branco = não contei); rascunho salvo no aparelho. Na revisão, quem conta escolhe **Ajustar o saldo pela contagem** (a diferença vira um lançamento "Ajuste", + ou −) ou **Só conferir** (o saldo fica e a diferença entra como "Conferência · divergência"). O celular envia o saldo que viu e o contado, e o servidor lança a diferença. Não faz parte do fechamento do dia de ferramentas.
+- Sem sinal, entradas, saídas e contagens vão para a fila do celular, e o servidor confere o saldo de novo ao sincronizar: a saída que não cabe mais é recusada com o motivo.
+
+**F-16 — Saldos, ficha, extrato e edição**
+- **Saldos:** "Abaixo do limite" e "Normais". **Ficha:** saldo grande, aviso, barra até o estoque cheio com o traço no limite, selo da última divergência e extrato do material.
+- **Extrato:** todos os movimentos, do mais novo para o mais antigo, com quem lançou e a quantidade com sinal. Tipos: Entrada, Saída, Ajuste, Conferência · divergência e Conferência ok.
+- **Edição (só o engenheiro):** muda a quantidade ou apaga qualquer lançamento, com motivo opcional, sem nunca deixar o saldo negativo. Cada edição grava uma versão; o extrato mostra "editado por … às … (era −100)", e o lançamento apagado fica riscado.
+
+**F-17 — Cadastros de materiais e aviso de limite (só o engenheiro)**
+- Material: nome (único na obra, comparado sem acento) e unidade. Nasce com saldo 0; só é desativado com saldo 0.
+- **Aviso de limite** (um por material): ao chegar a uma **quantidade** ou a uma **%** do estoque cheio (saldo logo depois da última entrada). Dispara **uma vez** quando um movimento faz o saldo cruzar o limite e manda push a **todos da obra**; volta a valer quando o saldo fica acima do limite. Aviso salvo em material que ainda não teve entrada só passa a valer depois da primeira entrada.
+- **Pedir cadastro:** o almoxarife que não acha o material pede pelo nome; o engenheiro recebe push e vê o pedido no topo de Cadastros › Materiais (Cadastrar ou Dispensar); o almoxarife é avisado quando o material é cadastrado.
 
 ## 8. Modelo de dados (entidades)
 
@@ -223,6 +258,14 @@ Sequência: páginas de cartões por pessoa (1–12, 13–24, …) → colunas p
 | `impressora` | id, obra_id, nome, ip, porta, linguagem (`ZPL`/`TSPL`), rolo |
 | `trabalho_impressao` | id, impressora_id, payload, copias, status (`pendente`/`enviado`/`erro`), criado_em |
 | `dispositivo_tv` | id, obra_id, token, ultimo_ping |
+
+| `material` | id, obra_id, nome (único na obra, sem acento), unidade (`sc`/`un`/`barra`/`rolo`/`lata`/`m³`/`kg`/`m`/`m²`/`l`), saldo, estoque_cheio, aviso_tipo (`quantidade`/`percentual`), aviso_valor, aviso_disparado, ativo |
+| `movimento_material` | id, obra_id, material_id, tipo (`entrada`/`saida`/`ajuste`/`conferencia`), quantidade (com sinal), contagem_id, usuario_id, criado_em, registrado_no_aparelho_em, chave_cliente (imutável) |
+| `movimento_material_versao` | movimento_id, quantidade, motivo, desfeito, usuario_id, criado_em (edição do engenheiro ou desfazer; imutável) |
+| `contagem_material` | id, obra_id, modo (`ajustar`/`conferir`), usuario_id, criado_em |
+| `pedido_cadastro_material` | id, obra_id, nome, pedido_por, status (`aberto`/`cadastrado`/`dispensado`), material_id |
+
+Quantidades de material são `numeric(12,2)`, de 0,01 a 999.999 (inteiras em `sc`, `un`, `barra`, `rolo` e `lata`), exibidas como `1.500` e `2,5`. O saldo nunca fica negativo e é sempre a soma do extrato.
 
 Valores monetários são guardados em **centavos (inteiro)** e exibidos no padrão brasileiro: `R$ 1.234,56`.
 

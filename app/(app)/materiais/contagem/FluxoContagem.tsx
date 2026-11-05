@@ -173,7 +173,11 @@ export function FluxoContagem({ obraId, usuarioId, dia, materiais }: Props) {
         return
       }
       try {
-        const r = await registrarContagem({ modo: modoEnvio, itens: envio.itens, chave: envio.chave })
+        const r = await registrarContagem({
+          modo: modoEnvio,
+          itens: envio.itens,
+          chave: envio.chave,
+        })
         setSemResposta(false)
         if (!r.ok) {
           // Nada foi gravado (a contagem inteira volta atrás): conta de novo, com outra chave.
@@ -225,7 +229,8 @@ export function FluxoContagem({ obraId, usuarioId, dia, materiais }: Props) {
             </>
           )}
           <p className="text-[15px]">
-            {resultado.comDiferenca} {resultado.comDiferenca === 1 ? 'material' : 'materiais'} com diferença
+            {resultado.comDiferenca} {resultado.comDiferenca === 1 ? 'material' : 'materiais'} com
+            diferença
           </p>
           <p className="max-w-xs text-sm leading-snug text-texto-2">
             {resultado.naFila
@@ -268,7 +273,9 @@ export function FluxoContagem({ obraId, usuarioId, dia, materiais }: Props) {
         <main className="flex flex-1 flex-col gap-2.5 px-5 pt-2 pb-5">
           {envio.itens.length === 0 ? (
             <>
-              <p className="py-5 text-center text-sm text-texto-2">Nenhum material contado ainda.</p>
+              <p className="py-5 text-center text-sm text-texto-2">
+                Nenhum material contado ainda.
+              </p>
               <Botao variante="secundaria" larguraTotal onClick={voltarParaContar}>
                 Voltar e contar
               </Botao>
@@ -289,10 +296,13 @@ export function FluxoContagem({ obraId, usuarioId, dia, materiais }: Props) {
                     <span className="flex min-w-0 flex-col">
                       <span className="truncate text-sm font-semibold">{nomeDe(d.materialId)}</span>
                       <span className="text-xs text-texto-2">
-                        sistema {formatarQuantidade(d.saldoVisto)} · contei {formatarQuantidade(d.contado)}
+                        sistema {formatarQuantidade(d.saldoVisto)} · contei{' '}
+                        {formatarQuantidade(d.contado)}
                       </span>
                     </span>
-                    <b className={`shrink-0 text-lg ${d.diferenca < 0 ? 'text-erro' : 'text-aviso'}`}>
+                    <b
+                      className={`shrink-0 text-lg ${d.diferenca < 0 ? 'text-erro' : 'text-aviso'}`}
+                    >
                       {sinal(d.diferenca)} {unidadeDe(d.materialId)}
                     </b>
                   </li>
@@ -304,7 +314,11 @@ export function FluxoContagem({ obraId, usuarioId, dia, materiais }: Props) {
                 </p>
               )}
               {temDiferenca && (
-                <div role="radiogroup" aria-labelledby="titulo-modo" className="mt-1 flex flex-col gap-2">
+                <div
+                  role="radiogroup"
+                  aria-labelledby="titulo-modo"
+                  className="mt-1 flex flex-col gap-2"
+                >
                   <h2
                     id="titulo-modo"
                     className="mb-1 text-[11px] font-extrabold tracking-[0.5px] text-texto-2 uppercase"
@@ -361,7 +375,10 @@ export function FluxoContagem({ obraId, usuarioId, dia, materiais }: Props) {
           Conte o que tem no almox e digite. Em branco = não contei hoje.
         </p>
         {erro && (
-          <p role="alert" className="rounded-xl bg-erro-claro px-3.5 py-3 text-sm font-semibold text-erro">
+          <p
+            role="alert"
+            className="rounded-xl bg-erro-claro px-3.5 py-3 text-sm font-semibold text-erro"
+          >
             {erro} Nada foi salvo. Confira e conte de novo.
           </p>
         )}
@@ -378,7 +395,8 @@ export function FluxoContagem({ obraId, usuarioId, dia, materiais }: Props) {
               const valor = rascunho[m.id]?.valor ?? ''
               const lido = valor.trim() === '' ? null : lerQuantidade(valor)
               const invalido =
-                valor.trim() !== '' && (lido === null || (lido !== 0 && !quantidadeValida(lido, m.unidade)))
+                valor.trim() !== '' &&
+                (lido === null || (lido !== 0 && !quantidadeValida(lido, m.unidade)))
               return (
                 <li
                   key={m.id}
@@ -388,7 +406,9 @@ export function FluxoContagem({ obraId, usuarioId, dia, materiais }: Props) {
                     <span className="truncate">{m.nome}</span>
                     <span className="text-[11px] text-texto-2">{m.unidade}</span>
                   </span>
-                  <span className="text-center font-semibold text-texto-2">{formatarQuantidade(m.saldo)}</span>
+                  <span className="text-center font-semibold text-texto-2">
+                    {formatarQuantidade(m.saldo)}
+                  </span>
                   <input
                     inputMode="decimal"
                     autoComplete="off"

@@ -33,7 +33,12 @@ export default async function PaginaSaidaMaterial() {
         obraId={obraAtual.id}
         usuarioId={usuario.id}
       />
-      <BarraInferior modo="materiais" ativa="inicio-materiais" podeLancar podeCadastrar={podeCadastrar(obraAtual.perfil)} />
+      <BarraInferior
+        modo="materiais"
+        ativa="inicio-materiais"
+        podeLancar
+        podeCadastrar={podeCadastrar(obraAtual.perfil)}
+      />
     </>
   )
 }

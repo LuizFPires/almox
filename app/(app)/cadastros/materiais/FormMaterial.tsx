@@ -151,8 +151,8 @@ export function FormMaterial({ material, temMovimentos = false, pedido }: Props)
               </Botao>
             ) : (
               <p className="text-sm text-texto-2">
-                Para desativar, o saldo precisa ser zero (agora: {formatarQuantidade(material.saldo)}{' '}
-                {material.unidade}).
+                Para desativar, o saldo precisa ser zero (agora:{' '}
+                {formatarQuantidade(material.saldo)} {material.unidade}).
               </p>
             )}
           </div>

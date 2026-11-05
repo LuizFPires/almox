@@ -149,7 +149,8 @@ export function GavetaQuantidade(props: PropsGavetaQuantidade) {
   const qtd = q ?? 0
   const previa = previaLancamento(edicao ? 'entrada' : tipo, material, qtd)
   const valida = q !== null && quantidadeValida(q, material.unidade)
-  const pode = !ocupado && (travada !== null || (valida && q !== null && q > 0 && (edicao || !previa.excede)))
+  const pode =
+    !ocupado && (travada !== null || (valida && q !== null && q > 0 && (edicao || !previa.excede)))
   const bloqueado = ocupado || travada !== null
   // Travada, o saldo pode já ter caído pela própria saída que talvez tenha entrado.
   const excedeMostrado = previa.excede && travada === null && !edicao

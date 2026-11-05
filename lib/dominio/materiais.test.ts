@@ -12,8 +12,22 @@ import {
   type SaldoMaterial,
 } from './materiais'
 
-const cimento: SaldoMaterial = { id: '1', nome: 'Cimento CP-II 50 kg', unidade: 'sc', saldo: 18, estoqueCheio: 500, aviso: { tipo: 'quantidade', valor: 20 } }
-const areia: SaldoMaterial = { id: '2', nome: 'Areia média', unidade: 'm³', saldo: 7, estoqueCheio: 14, aviso: { tipo: 'percentual', valor: 50 } }
+const cimento: SaldoMaterial = {
+  id: '1',
+  nome: 'Cimento CP-II 50 kg',
+  unidade: 'sc',
+  saldo: 18,
+  estoqueCheio: 500,
+  aviso: { tipo: 'quantidade', valor: 20 },
+}
+const areia: SaldoMaterial = {
+  id: '2',
+  nome: 'Areia média',
+  unidade: 'm³',
+  saldo: 7,
+  estoqueCheio: 14,
+  aviso: { tipo: 'percentual', valor: 50 },
+}
 
 describe('materiais', () => {
   it('limite por quantidade', () => expect(limiteDoAviso(cimento)).toBe(20))
@@ -33,7 +47,11 @@ describe('materiais', () => {
     expect(emAlertaDeLimite({ ...cimento, aviso: null })).toBe(false)
   })
   it('ordena abaixo, perto, resto; alfabético dentro', () => {
-    const base = { unidade: 'un', estoqueCheio: 100, aviso: { tipo: 'quantidade', valor: 10 } } as const
+    const base = {
+      unidade: 'un',
+      estoqueCheio: 100,
+      aviso: { tipo: 'quantidade', valor: 10 },
+    } as const
     const lista: SaldoMaterial[] = [
       { ...base, id: 'ok-b', nome: 'Brita', saldo: 90 },
       { ...base, id: 'perto', nome: 'Água', saldo: 14 },
@@ -41,7 +59,13 @@ describe('materiais', () => {
       { ...base, id: 'abaixo-a', nome: 'Ácido', saldo: 10 },
       { ...base, id: 'ok-a', nome: 'Areia', saldo: 50 },
     ]
-    expect(ordenarSaldos(lista).map((m) => m.id)).toEqual(['abaixo-a', 'abaixo-z', 'perto', 'ok-a', 'ok-b'])
+    expect(ordenarSaldos(lista).map((m) => m.id)).toEqual([
+      'abaixo-a',
+      'abaixo-z',
+      'perto',
+      'ok-a',
+      'ok-b',
+    ])
   })
   it('contagem separa menos/mais/bateu pela diferença contado − saldoVisto', () => {
     const r = diferencasContagem([
@@ -60,7 +84,12 @@ describe('lançamento de material', () => {
   const saco: SaldoMaterial = { ...cimento, saldo: 118, aviso: { tipo: 'quantidade', valor: 20 } }
 
   it('prévia da entrada soma ao saldo e não cruza limite', () => {
-    expect(previaLancamento('entrada', saco, 500)).toEqual({ depois: 618, excede: false, cruzaLimite: false, limite: 20 })
+    expect(previaLancamento('entrada', saco, 500)).toEqual({
+      depois: 618,
+      excede: false,
+      cruzaLimite: false,
+      limite: 20,
+    })
   })
   it('prévia da saída que cruza o limite', () => {
     const p = previaLancamento('saida', saco, 100)
@@ -89,10 +118,20 @@ describe('lançamento de material', () => {
   ]
 
   it('entrada em ordem alfabética sem acento', () => {
-    expect(ordenarParaLancamento('entrada', lista, ['c']).map((m) => m.id)).toEqual(['d', 'a', 'b', 'c'])
+    expect(ordenarParaLancamento('entrada', lista, ['c']).map((m) => m.id)).toEqual([
+      'd',
+      'a',
+      'b',
+      'c',
+    ])
   })
   it('saída: com saldo primeiro, mais usados, depois alfabética; ignora ids que não estão na lista', () => {
-    expect(ordenarParaLancamento('saida', lista, ['inativo', 'b', 'c']).map((m) => m.id)).toEqual(['c', 'd', 'a', 'b'])
+    expect(ordenarParaLancamento('saida', lista, ['inativo', 'b', 'c']).map((m) => m.id)).toEqual([
+      'c',
+      'd',
+      'a',
+      'b',
+    ])
   })
   it('busca normalizada', () => {
     expect(filtrarMateriais(lista, ' ACIDO ').map((m) => m.id)).toEqual(['d'])

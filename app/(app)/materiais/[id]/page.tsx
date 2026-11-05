@@ -86,7 +86,9 @@ export default async function PaginaFichaMaterial({ params }: { params: Promise<
           vazio="Sem movimentos."
         />
       </main>
-      <BarraInferior modo="materiais" ativa="saldos"
+      <BarraInferior
+        modo="materiais"
+        ativa="saldos"
         podeLancar={podeLancar(obraAtual.perfil)}
         podeCadastrar={podeCadastrar(obraAtual.perfil)}
       />

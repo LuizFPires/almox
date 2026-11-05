@@ -319,11 +319,12 @@ test.describe('painel da TV', () => {
 
       await page.route('**/tv/dados?**', (rota) => rota.abort('internetdisconnected'))
       // Filtra: a tira de materiais abaixo do limite (M13) também é um role=status.
-      await expect(
-        page.getByRole('status').filter({ hasText: 'Sem conexão' }),
-      ).toContainText(/Sem conexão desde \d{2}:\d{2}/, {
-        timeout: 6_000,
-      })
+      await expect(page.getByRole('status').filter({ hasText: 'Sem conexão' })).toContainText(
+        /Sem conexão desde \d{2}:\d{2}/,
+        {
+          timeout: 6_000,
+        },
+      )
       await expect(page.locator('article')).toHaveCount(cartoes)
 
       await page.unroute('**/tv/dados?**')

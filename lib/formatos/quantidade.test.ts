@@ -1,5 +1,10 @@
 import { describe, expect, it } from 'vitest'
-import { formatarQuantidade, lerQuantidade, quantidadeValida, unidadeAceitaDecimal } from './quantidade'
+import {
+  formatarQuantidade,
+  lerQuantidade,
+  quantidadeValida,
+  unidadeAceitaDecimal,
+} from './quantidade'
 
 describe('formatarQuantidade', () => {
   it('milhar com ponto', () => expect(formatarQuantidade(1500)).toBe('1.500'))
@@ -11,10 +16,16 @@ describe('formatarQuantidade', () => {
 })
 
 describe('lerQuantidade', () => {
-  it.each([['1.500', 1500], ['1500', 1500], ['2,5', 2.5], ['1.234,75', 1234.75], [' 10 ', 10]])('%s', (t, n) =>
-    expect(lerQuantidade(t)).toBe(n),
+  it.each([
+    ['1.500', 1500],
+    ['1500', 1500],
+    ['2,5', 2.5],
+    ['1.234,75', 1234.75],
+    [' 10 ', 10],
+  ])('%s', (t, n) => expect(lerQuantidade(t)).toBe(n))
+  it.each(['', 'abc', '1,234', '-3', '1.5.0', '1.5'])('recusa %s', (t) =>
+    expect(lerQuantidade(t)).toBeNull(),
   )
-  it.each(['', 'abc', '1,234', '-3', '1.5.0', '1.5'])('recusa %s', (t) => expect(lerQuantidade(t)).toBeNull())
 })
 
 describe('unidadeAceitaDecimal', () => {

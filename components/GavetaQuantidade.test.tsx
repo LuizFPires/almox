@@ -179,9 +179,7 @@ describe('GavetaQuantidade', () => {
     const { campo } = abrir('entrada')
     fireEvent.change(campo, { target: { value: '5' } })
     fireEvent.click(screen.getByRole('button', { name: 'Continuar' }))
-    expect(document.activeElement).toBe(
-      screen.getByRole('button', { name: 'Confirmar entrada' }),
-    )
+    expect(document.activeElement).toBe(screen.getByRole('button', { name: 'Confirmar entrada' }))
   })
 })
 

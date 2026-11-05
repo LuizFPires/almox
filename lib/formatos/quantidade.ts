@@ -3,7 +3,18 @@
  * Exibição e leitura em formato brasileiro (`1.500`, `2,5`), sem `Intl`.
  */
 
-export const UNIDADES_MATERIAL = ['sc', 'm³', 'kg', 'un', 'm', 'm²', 'l', 'barra', 'rolo', 'lata'] as const
+export const UNIDADES_MATERIAL = [
+  'sc',
+  'm³',
+  'kg',
+  'un',
+  'm',
+  'm²',
+  'l',
+  'barra',
+  'rolo',
+  'lata',
+] as const
 export type UnidadeMaterial = (typeof UNIDADES_MATERIAL)[number]
 
 const UNIDADES_DECIMAIS: readonly UnidadeMaterial[] = ['m³', 'kg', 'm', 'm²', 'l']

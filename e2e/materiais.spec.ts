@@ -192,7 +192,10 @@ test.describe('materiais: consulta e chave de modo', () => {
 
   test('a chave volta para Ferramentas: Início com "Ler QR do capacete"', async ({ page }) => {
     await entrarComo(page, 'almoxarife', '/materiais')
-    await page.getByRole('group', { name: 'Modo' }).getByRole('button', { name: 'Ferramentas' }).click()
+    await page
+      .getByRole('group', { name: 'Modo' })
+      .getByRole('button', { name: 'Ferramentas' })
+      .click()
     await expect(page).toHaveURL(/\/inicio$/)
     await expect(page.getByText('Ler QR do capacete')).toBeVisible()
     await expect(

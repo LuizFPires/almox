@@ -17,7 +17,9 @@ const COLUNAS_MATERIAL = 'id, nome, unidade, saldo, estoque_cheio, aviso_tipo, a
 
 function paraSaldo(m: LinhaMaterial): SaldoMaterial {
   const aviso: Aviso =
-    m.aviso_tipo && m.aviso_valor !== null ? { tipo: m.aviso_tipo, valor: Number(m.aviso_valor) } : null
+    m.aviso_tipo && m.aviso_valor !== null
+      ? { tipo: m.aviso_tipo, valor: Number(m.aviso_valor) }
+      : null
   return {
     id: m.id,
     nome: m.nome,
@@ -98,7 +100,10 @@ const COLUNAS_EXTRATO =
   'id, obra_id, material_id, tipo, quantidade_original, quantidade, apagado, desfeito, ' +
   'editado_por_nome, editado_em, usuario_nome, criado_em, registrado_no_aparelho_em'
 
-function paraLinha(l: LinhaExtratoBanco, nomes: Map<string, { nome: string; unidade: UnidadeMaterial }>): LinhaExtrato {
+function paraLinha(
+  l: LinhaExtratoBanco,
+  nomes: Map<string, { nome: string; unidade: UnidadeMaterial }>,
+): LinhaExtrato {
   const m = nomes.get(l.material_id)
   return {
     id: l.id,
@@ -120,7 +125,11 @@ function paraLinha(l: LinhaExtratoBanco, nomes: Map<string, { nome: string; unid
 }
 
 /** Extrato (mais recente primeiro) da obra, ou de um material. Inclui materiais inativos. */
-export async function extrato(obraId: string, materialId?: string, limite = 100): Promise<LinhaExtrato[]> {
+export async function extrato(
+  obraId: string,
+  materialId?: string,
+  limite = 100,
+): Promise<LinhaExtrato[]> {
   const supabase = await criarClienteServidor()
   let consulta = supabase.from('extrato_material').select(COLUNAS_EXTRATO).eq('obra_id', obraId)
   if (materialId) consulta = consulta.eq('material_id', materialId)
@@ -151,7 +160,11 @@ export async function extrato(obraId: string, materialId?: string, limite = 100)
 export async function fichaMaterial(
   obraId: string,
   id: string,
-): Promise<{ material: SaldoMaterial; ultimaDivergencia: LinhaExtrato | null; extrato: LinhaExtrato[] } | null> {
+): Promise<{
+  material: SaldoMaterial
+  ultimaDivergencia: LinhaExtrato | null
+  extrato: LinhaExtrato[]
+} | null> {
   const supabase = await criarClienteServidor()
   const { data, error } = await supabase
     .from('material')
@@ -164,7 +177,8 @@ export async function fichaMaterial(
   if (!data) return null
   const linhas = await extrato(obraId, id)
   // O extrato já vem do mais recente para o mais antigo.
-  const ultimaDivergencia = linhas.find((l) => l.tipo === 'conferencia' && l.quantidade !== 0) ?? null
+  const ultimaDivergencia =
+    linhas.find((l) => l.tipo === 'conferencia' && l.quantidade !== 0) ?? null
   return { material: paraSaldo(data), ultimaDivergencia, extrato: linhas }
 }
 
@@ -183,7 +197,12 @@ export async function pedidosAbertos(
     .order('criado_em')
     .overrideTypes<PedidoBanco[], { merge: false }>()
   if (error) throw new Error('Não foi possível carregar os pedidos de cadastro.')
-  return data.map((p) => ({ id: p.id, nome: p.nome, pedidoPor: p.autor?.nome ?? '—', criadoEm: p.criado_em }))
+  return data.map((p) => ({
+    id: p.id,
+    nome: p.nome,
+    pedidoPor: p.autor?.nome ?? '—',
+    criadoEm: p.criado_em,
+  }))
 }
 
 /** Janela para desfazer a própria saída (igual a `desfazer_saida_material`). */
@@ -210,7 +229,10 @@ export async function lancamentoFeito(obraId: string, id: string): Promise<Lanca
     .eq('id', id)
     .maybeSingle()
     .overrideTypes<
-      Pick<LinhaExtratoBanco, 'id' | 'tipo' | 'quantidade_original' | 'desfeito' | 'criado_em' | 'material_id'>,
+      Pick<
+        LinhaExtratoBanco,
+        'id' | 'tipo' | 'quantidade_original' | 'desfeito' | 'criado_em' | 'material_id'
+      >,
       { merge: false }
     >()
   if (error) throw new Error('Não foi possível carregar o lançamento.')

@@ -147,7 +147,14 @@ describe('notificações e apoio', () => {
 describe('notificações de material', () => {
   it('limite', () => {
     expect(
-      notificacaoLimiteMaterial({ material: 'Cimento CP-II', saldo: '18', limite: '20', unidade: 'sc', obra: 'Obra Betim', materialId: 'm1' }),
+      notificacaoLimiteMaterial({
+        material: 'Cimento CP-II',
+        saldo: '18',
+        limite: '20',
+        unidade: 'sc',
+        obra: 'Obra Betim',
+        materialId: 'm1',
+      }),
     ).toEqual({
       titulo: 'Cimento CP-II abaixo do limite',
       corpo: 'Obra Betim: restam 18 sc (limite 20). Hora de pedir mais.',
@@ -162,7 +169,9 @@ describe('notificações de material', () => {
     })
   })
   it('material cadastrado', () => {
-    expect(notificacaoMaterialCadastrado({ nome: 'Cal hidratada 20 kg', materialId: 'm9' })).toEqual({
+    expect(
+      notificacaoMaterialCadastrado({ nome: 'Cal hidratada 20 kg', materialId: 'm9' }),
+    ).toEqual({
       titulo: 'Material cadastrado',
       corpo: 'Cal hidratada 20 kg já pode ser lançado.',
       url: '/materiais/m9',

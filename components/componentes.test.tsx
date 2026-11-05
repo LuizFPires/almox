@@ -204,20 +204,37 @@ describe('LinhaExtrato', () => {
   }
 
   it('divergência de conferência mostra "não altera o saldo"', () => {
-    render(<LinhaExtrato linha={{ ...base, tipo: 'conferencia', quantidade: -22, quantidadeOriginal: -22 }} comNome={false} editavel={false} />)
+    render(
+      <LinhaExtrato
+        linha={{ ...base, tipo: 'conferencia', quantidade: -22, quantidadeOriginal: -22 }}
+        comNome={false}
+        editavel={false}
+      />,
+    )
     expect(screen.getByText('Conferência · divergência')).toBeTruthy()
     expect(screen.getByText(/não altera o saldo/)).toBeTruthy()
   })
 
   it('conferência sem diferença mostra "Conferência ok"', () => {
-    render(<LinhaExtrato linha={{ ...base, tipo: 'conferencia', quantidade: 0, quantidadeOriginal: 0 }} comNome={false} editavel={false} />)
+    render(
+      <LinhaExtrato
+        linha={{ ...base, tipo: 'conferencia', quantidade: 0, quantidadeOriginal: 0 }}
+        comNome={false}
+        editavel={false}
+      />,
+    )
     expect(screen.getByText('Conferência ok')).toBeTruthy()
   })
 
   it('editada mostra "(era −100)" e quem editou', () => {
     render(
       <LinhaExtrato
-        linha={{ ...base, quantidade: -80, editadoPorNome: 'Marcos', editadoEm: new Date().toISOString() }}
+        linha={{
+          ...base,
+          quantidade: -80,
+          editadoPorNome: 'Marcos',
+          editadoEm: new Date().toISOString(),
+        }}
         comNome={false}
         editavel={false}
       />,
@@ -228,7 +245,12 @@ describe('LinhaExtrato', () => {
   it('apagada tem line-through e "apagado por"', () => {
     const { container } = render(
       <LinhaExtrato
-        linha={{ ...base, apagado: true, editadoPorNome: null, editadoEm: new Date().toISOString() }}
+        linha={{
+          ...base,
+          apagado: true,
+          editadoPorNome: null,
+          editadoEm: new Date().toISOString(),
+        }}
         comNome={false}
         editavel={false}
       />,
@@ -250,7 +272,9 @@ describe('LinhaExtrato', () => {
 
   it('nome vazio vira "—" e o botão Editar chama onEditar', () => {
     const onEditar = vi.fn()
-    render(<LinhaExtrato linha={{ ...base, usuarioNome: null }} comNome editavel onEditar={onEditar} />)
+    render(
+      <LinhaExtrato linha={{ ...base, usuarioNome: null }} comNome editavel onEditar={onEditar} />,
+    )
     expect(screen.getByText(/· —/)).toBeTruthy()
     expect(screen.getByText('Cimento')).toBeTruthy()
     fireEvent.click(screen.getByRole('button', { name: /Editar/ }))

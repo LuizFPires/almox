@@ -33,7 +33,9 @@ export default async function PaginaExtrato() {
           vazio="Nada lançado ainda."
         />
       </main>
-      <BarraInferior modo="materiais" ativa="extrato"
+      <BarraInferior
+        modo="materiais"
+        ativa="extrato"
         podeLancar={podeLancar(obraAtual.perfil)}
         podeCadastrar={podeCadastrar(obraAtual.perfil)}
       />

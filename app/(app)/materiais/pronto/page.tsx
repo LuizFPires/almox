@@ -22,7 +22,14 @@ const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i
 export default async function PaginaLancamentoPronto({
   searchParams,
 }: PageProps<'/materiais/pronto'>) {
-  const { id, aviso, q, fila, tipo: tipoUrl, m: materialUrl } = (await searchParams) as {
+  const {
+    id,
+    aviso,
+    q,
+    fila,
+    tipo: tipoUrl,
+    m: materialUrl,
+  } = (await searchParams) as {
     id?: string
     aviso?: string
     q?: string
@@ -85,7 +92,9 @@ export default async function PaginaLancamentoPronto({
         </p>
         <p className="text-[15px]">
           Saldo:{' '}
-          <b className={abaixo ? 'text-erro' : ''}>{`${formatarQuantidade(m.saldo)} ${m.unidade}`}</b>
+          <b
+            className={abaixo ? 'text-erro' : ''}
+          >{`${formatarQuantidade(m.saldo)} ${m.unidade}`}</b>
         </p>
         {outraQuantidade && (
           <p
@@ -101,7 +110,9 @@ export default async function PaginaLancamentoPronto({
           </span>
         )}
         {entrada && m.aviso && (
-          <p className="text-[13px] text-texto-2">O aviso de limite deste material volta a valer.</p>
+          <p className="text-[13px] text-texto-2">
+            O aviso de limite deste material volta a valer.
+          </p>
         )}
       </div>
       <div className="flex flex-col gap-2.5">

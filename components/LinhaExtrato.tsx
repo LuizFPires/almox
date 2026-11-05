@@ -12,7 +12,9 @@ export function quantidadeComSinal(n: number): string {
 
 /** "hoje HH:mm" se for do dia de hoje na obra; senão "dd/MM/yyyy HH:mm". */
 function quando(iso: string): string {
-  return diaDaObra(iso) === diaDaObra(new Date()) ? `hoje ${formatarHora(iso)}` : formatarDataHora(iso)
+  return diaDaObra(iso) === diaDaObra(new Date())
+    ? `hoje ${formatarHora(iso)}`
+    : formatarDataHora(iso)
 }
 
 type Props = {

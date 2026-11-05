@@ -50,7 +50,10 @@ export function BotaoDesfazer({ movimentoId, restanteMs }: Props) {
 
   if (feito) {
     return (
-      <p role="status" className="rounded-xl bg-sutil px-3.5 py-3 text-center text-sm font-semibold">
+      <p
+        role="status"
+        className="rounded-xl bg-sutil px-3.5 py-3 text-center text-sm font-semibold"
+      >
         Saída desfeita. Fica no extrato como estorno.
       </p>
     )

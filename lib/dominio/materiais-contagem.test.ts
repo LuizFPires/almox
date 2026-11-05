@@ -55,7 +55,10 @@ describe('itensDoRascunho', () => {
 
   it('ignora material que não existe mais e texto inválido', () => {
     expect(
-      itensDoRascunho({ x: { valor: '3', saldoVisto: 1 }, a: { valor: 'abc', saldoVisto: 10 } }, saldos),
+      itensDoRascunho(
+        { x: { valor: '3', saldoVisto: 1 }, a: { valor: 'abc', saldoVisto: 10 } },
+        saldos,
+      ),
     ).toEqual([])
   })
 })

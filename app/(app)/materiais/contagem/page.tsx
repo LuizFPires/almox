@@ -23,7 +23,12 @@ export default async function PaginaContagem() {
       <ChaveModo modo="materiais" />
       <AoVivo obraId={obraAtual.id} tabelas={['material', 'movimento_material']} />
       <FluxoContagem obraId={obraAtual.id} usuarioId={usuario.id} dia={dia} materiais={materiais} />
-      <BarraInferior modo="materiais" ativa="contagem" podeLancar podeCadastrar={podeCadastrar(obraAtual.perfil)} />
+      <BarraInferior
+        modo="materiais"
+        ativa="contagem"
+        podeLancar
+        podeCadastrar={podeCadastrar(obraAtual.perfil)}
+      />
     </>
   )
 }

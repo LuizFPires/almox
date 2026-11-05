@@ -83,9 +83,7 @@ export function FormAviso({ materialId, unidade, estoqueCheio, aviso, obraNome }
   }
 
   const limite =
-    valor !== null && valor > 0
-      ? limiteDoAviso({ aviso: { tipo, valor }, estoqueCheio })
-      : null
+    valor !== null && valor > 0 ? limiteDoAviso({ aviso: { tipo, valor }, estoqueCheio }) : null
 
   return (
     <div className="flex flex-1 flex-col">
@@ -128,7 +126,9 @@ export function FormAviso({ materialId, unidade, estoqueCheio, aviso, obraNome }
             −
           </Botao>
           <input
-            aria-label={tipo === 'percentual' ? 'Porcentagem do estoque cheio' : `Quantidade em ${unidade}`}
+            aria-label={
+              tipo === 'percentual' ? 'Porcentagem do estoque cheio' : `Quantidade em ${unidade}`
+            }
             inputMode="decimal"
             value={texto}
             onChange={(e) => setTexto(e.target.value)}

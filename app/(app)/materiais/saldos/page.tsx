@@ -42,7 +42,9 @@ export default async function PaginaSaldos() {
           <ListaSaldos materiais={normais} />
         </section>
       </main>
-      <BarraInferior modo="materiais" ativa="saldos"
+      <BarraInferior
+        modo="materiais"
+        ativa="saldos"
         podeLancar={podeLancar(obraAtual.perfil)}
         podeCadastrar={podeCadastrar(obraAtual.perfil)}
       />

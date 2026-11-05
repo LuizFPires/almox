@@ -86,7 +86,12 @@ export function previaLancamento(
   const limite = limiteDoAviso(m)
   const excede = tipo === 'saida' && quantidade > m.saldo
   const cruzaLimite =
-    tipo === 'saida' && !excede && quantidade > 0 && limite !== null && m.saldo > limite && depois <= limite
+    tipo === 'saida' &&
+    !excede &&
+    quantidade > 0 &&
+    limite !== null &&
+    m.saldo > limite &&
+    depois <= limite
   return { depois, excede, cruzaLimite, limite }
 }
 
@@ -128,7 +133,11 @@ export function diferencasContagem(itens: ItemContagem[]): {
   mais: DiferencaContagem[]
   bateu: DiferencaContagem[]
 } {
-  const r = { menos: [] as DiferencaContagem[], mais: [] as DiferencaContagem[], bateu: [] as DiferencaContagem[] }
+  const r = {
+    menos: [] as DiferencaContagem[],
+    mais: [] as DiferencaContagem[],
+    bateu: [] as DiferencaContagem[],
+  }
   for (const i of itens) {
     const diferenca = arredondar(i.contado - i.saldoVisto)
     const d = { ...i, diferenca }
@@ -148,7 +157,10 @@ export function chaveRascunhoContagem(obraId: string, dia: string): string {
 }
 
 /** Itens da contagem a partir do rascunho. Ignora vazio, inválido e material que sumiu. Zero vale (acabou). */
-export function itensDoRascunho(rascunho: RascunhoContagem, saldos: SaldoMaterial[]): ItemContagem[] {
+export function itensDoRascunho(
+  rascunho: RascunhoContagem,
+  saldos: SaldoMaterial[],
+): ItemContagem[] {
   const itens: ItemContagem[] = []
   for (const m of saldos) {
     const campo = rascunho[m.id]

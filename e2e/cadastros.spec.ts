@@ -116,7 +116,9 @@ test.describe('cadastros do engenheiro', () => {
   test('busca geral acha pessoa, ferramenta e empresa sem acento', async ({ page }) => {
     await entrarComo(page, 'engenheiro', '/inicio')
     await page.goto('/cadastros/ferramentas')
-    const busca = page.getByRole('searchbox', { name: 'Buscar pessoa, ferramenta, material ou empresa' })
+    const busca = page.getByRole('searchbox', {
+      name: 'Buscar pessoa, ferramenta, material ou empresa',
+    })
     await busca.fill('eletrica lumen')
     // Empresa e as pessoas dela aparecem, cada uma no seu grupo, mesmo estando na aba Ferramentas.
     await expect(

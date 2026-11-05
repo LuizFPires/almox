@@ -141,7 +141,10 @@ export function montar(d: Dados): { email?: Email; notificacao?: Notificacao } {
       return { notificacao: notificacaoPedidoCadastro({ quem: d.quem ?? '', nome: d.nome ?? '' }) }
     case 'material_cadastrado':
       return {
-        notificacao: notificacaoMaterialCadastrado({ nome: d.nome ?? '', materialId: d.materialId ?? '' }),
+        notificacao: notificacaoMaterialCadastrado({
+          nome: d.nome ?? '',
+          materialId: d.materialId ?? '',
+        }),
       }
   }
 }

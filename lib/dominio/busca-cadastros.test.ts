@@ -70,7 +70,12 @@ describe('buscarCadastros', () => {
 
   it('agrupa em pessoas, ferramentas e empresas; ativos antes, depois por nome', () => {
     const resultado = buscarCadastros(INDICE, 'c')
-    expect(resultado.map((g) => g.titulo)).toEqual(['Pessoas', 'Ferramentas', 'Materiais', 'Empresas'])
+    expect(resultado.map((g) => g.titulo)).toEqual([
+      'Pessoas',
+      'Ferramentas',
+      'Materiais',
+      'Empresas',
+    ])
     expect(resultado[0]?.itens.map((i) => i.id)).toEqual(['p4', 'p2', 'p1', 'p3'])
   })
 

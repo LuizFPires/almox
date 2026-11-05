@@ -91,7 +91,11 @@ export async function registrarContagem(p: {
   const { data, error } = await supabase.rpc('registrar_contagem_material', {
     p_obra: obraAtual.id,
     p_modo: p.modo,
-    p_itens: p.itens.map((i) => ({ material: i.materialId, saldo_visto: i.saldoVisto, contado: i.contado })),
+    p_itens: p.itens.map((i) => ({
+      material: i.materialId,
+      saldo_visto: i.saldoVisto,
+      contado: i.contado,
+    })),
     p_chave: chaveValida(p.chave),
   })
   if (error || !data) return falha(error ?? {})
@@ -105,7 +109,8 @@ export async function editarMovimento(p: {
   motivo?: string
 }): Promise<Resultado> {
   const { obraAtual } = await obterSessao()
-  if (!podeCadastrar(obraAtual.perfil)) return { ok: false, erro: 'Só o engenheiro corrige lançamentos.' }
+  if (!podeCadastrar(obraAtual.perfil))
+    return { ok: false, erro: 'Só o engenheiro corrige lançamentos.' }
   const supabase = await criarClienteServidor()
   const { error } = await supabase.rpc('editar_movimento_material', {
     p_obra: obraAtual.id,
@@ -164,7 +169,10 @@ export async function inativarMaterial(id: string): Promise<Resultado> {
   const { obraAtual } = await obterSessao()
   if (!podeCadastrar(obraAtual.perfil)) return { ok: false, erro: SEM_PERMISSAO_CADASTRAR }
   const supabase = await criarClienteServidor()
-  const { error } = await supabase.rpc('inativar_material', { p_obra: obraAtual.id, p_material: id })
+  const { error } = await supabase.rpc('inativar_material', {
+    p_obra: obraAtual.id,
+    p_material: id,
+  })
   if (error) return falha(error)
   atualizar(true)
   return { ok: true }
@@ -174,7 +182,10 @@ export async function pedirCadastro(nome: string): Promise<Resultado<{ id: strin
   const { obraAtual } = await obterSessao()
   if (!podeLancar(obraAtual.perfil)) return { ok: false, erro: SEM_PERMISSAO_LANCAR }
   const supabase = await criarClienteServidor()
-  const { data, error } = await supabase.rpc('pedir_cadastro_material', { p_obra: obraAtual.id, p_nome: nome })
+  const { data, error } = await supabase.rpc('pedir_cadastro_material', {
+    p_obra: obraAtual.id,
+    p_nome: nome,
+  })
   if (error || !data) return falha(error ?? {})
   atualizar(true)
   return { ok: true, id: data }
@@ -184,7 +195,10 @@ export async function dispensarPedido(id: string): Promise<Resultado> {
   const { obraAtual } = await obterSessao()
   if (!podeCadastrar(obraAtual.perfil)) return { ok: false, erro: SEM_PERMISSAO_CADASTRAR }
   const supabase = await criarClienteServidor()
-  const { error } = await supabase.rpc('dispensar_pedido_material', { p_obra: obraAtual.id, p_pedido: id })
+  const { error } = await supabase.rpc('dispensar_pedido_material', {
+    p_obra: obraAtual.id,
+    p_pedido: id,
+  })
   if (error) return falha(error)
   atualizar(true)
   return { ok: true }

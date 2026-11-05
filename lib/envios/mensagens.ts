@@ -277,7 +277,10 @@ export function notificacaoPedidoCadastro(d: { quem: string; nome: string }): No
   }
 }
 
-export function notificacaoMaterialCadastrado(d: { nome: string; materialId: string }): Notificacao {
+export function notificacaoMaterialCadastrado(d: {
+  nome: string
+  materialId: string
+}): Notificacao {
   return {
     titulo: 'Material cadastrado',
     corpo: `${d.nome} já pode ser lançado.`,

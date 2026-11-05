@@ -5,8 +5,6 @@ import { redirect } from 'next/navigation'
 import { exigirAdministrador } from '@/lib/administracao'
 import { validarEmail } from '@/lib/dominio/cadastros'
 import { valoresDoForm, type Valores } from '@/lib/formulario'
-import { lerSenhaInicial } from '@/lib/senha-inicial'
-import { criarClienteAdmin } from '@/lib/supabase/admin'
 
 const texto = (form: FormData, chave: string) =>
   String(form.get(chave) ?? '')
@@ -102,58 +100,18 @@ export async function ligarEngenheiro(
   else if (nome.length > 120) campos.nome = 'Use até 120 caracteres.'
   const erroEmail = validarEmail(email, true)
   if (erroEmail) campos.email = erroEmail
-  const senhaInicial = lerSenhaInicial(form)
-  if ('erro' in senhaInicial) campos.senha_inicial = senhaInicial.erro
-  if (Object.keys(campos).length > 0 || !('senha' in senhaInicial)) return { campos, valores }
-
-  const admin = criarClienteAdmin()
-  const { data: existente, error: erroBusca } = await admin
-    .from('usuario')
-    .select('id')
-    .eq('email', email)
-    .maybeSingle()
-  if (erroBusca) return { erro: 'Não foi possível conferir o e-mail. Tente de novo.', valores }
-
-  let usuarioId = existente?.id ?? null
-  let senha: string | null = null
-  const jaExistia = Boolean(usuarioId)
-  if (!usuarioId) {
-    senha = senhaInicial.senha
-    const { data, error } = await admin.auth.admin.createUser({
-      email,
-      password: senha,
-      email_confirm: true,
-      user_metadata: { nome },
-      app_metadata: { trocar_senha: true },
-    })
-    if (error || !data.user) {
-      return error?.code === 'weak_password'
-        ? { campos: { senha_inicial: 'Senha fraca ou já vazada. Escolha outra.' }, valores }
-        : { erro: 'Não foi possível criar o login. Tente de novo.', valores }
-    }
-    usuarioId = data.user.id
-  }
-
-  // Com a sessão do administrador: a função confere que ele é administrador.
-  const { error } = await supabase.rpc('admin_ligar_engenheiro', {
+  if (Object.keys(campos).length > 0) return { campos, valores }
+  const { error } = await supabase.rpc('convidar_obra', {
     p_obra: obraId,
-    p_usuario: usuarioId,
+    p_email: email,
+    p_perfil: 'engenheiro',
   })
-  if (error) {
-    if (!jaExistia) {
-      const { error: erroDesfazer } = await admin.auth.admin.deleteUser(usuarioId)
-      if (erroDesfazer) {
-        return {
-          erro: 'O login foi criado, mas não ficou ligado à obra. Tente de novo e gere uma senha nova para ele.',
-          valores,
-        }
-      }
+  if (error)
+    return {
+      erro: 'Não foi possível convidar. Confira se já existe acesso ou convite pendente.',
+      valores,
     }
-    return { erro: 'Não foi possível ligar o engenheiro. Tente de novo.', valores }
-  }
-  // Sem revalidar aqui: a tela recarregada fecharia o bloco e esconderia a senha. O "Pronto"
-  // recarrega a obra.
-  return { criado: { email, senha, jaExistia } }
+  return { criado: { email, senha: null, jaExistia: true } }
 }
 
 export type EstadoSenhaAdmin = { erro?: string; senha?: string }
@@ -167,50 +125,7 @@ export async function senhaNovaAdmin(
   _: EstadoSenhaAdmin,
   form: FormData,
 ): Promise<EstadoSenhaAdmin> {
-  const { supabase, usuario } = await exigirAdministrador()
-  const obraId = texto(form, 'obra_id')
-  const usuarioId = texto(form, 'usuario_id')
-  if (!usuarioId || usuarioId === usuario.id) return { erro: 'Acesso não encontrado.' }
-
-  const { data: acessos, error: erroAcessos } = await supabase.rpc('admin_listar_acessos', {
-    p_obra: obraId,
-  })
-  if (erroAcessos) return { erro: 'Não foi possível conferir o acesso. Tente de novo.' }
-  if (!(acessos ?? []).some((a) => a.usuario_id === usuarioId)) {
-    return { erro: 'Acesso não encontrado nesta obra.' }
-  }
-  const admin = criarClienteAdmin()
-  const { data: outroAdmin, error: erroAdmin } = await admin
-    .from('administrador')
-    .select('usuario_id')
-    .eq('usuario_id', usuarioId)
-    .maybeSingle()
-  if (erroAdmin) return { erro: 'Não foi possível conferir o acesso. Tente de novo.' }
-  if (outroAdmin) return { erro: 'Senha de outro administrador não se troca por aqui.' }
-
-  const senhaInicial = lerSenhaInicial(form)
-  if ('erro' in senhaInicial) return { erro: senhaInicial.erro }
-  const { error } = await admin.auth.admin.updateUserById(usuarioId, {
-    password: senhaInicial.senha,
-    app_metadata: { trocar_senha: true },
-  })
-  if (error) {
-    return {
-      erro:
-        error.code === 'weak_password'
-          ? 'Senha fraca ou já vazada. Escolha outra.'
-          : 'Não foi possível trocar a senha. Tente de novo.',
-    }
-  }
-  await admin.from('alteracao').insert({
-    obra_id: obraId,
-    tabela: 'usuario',
-    registro_id: usuarioId,
-    campo: 'senha',
-    de: null,
-    para: 'nova senha gerada pelo administrador',
-    usuario_id: usuario.id,
-    usuario_nome: usuario.nome || null,
-  })
-  return { senha: senhaInicial.senha }
+  void _
+  void form
+  return { erro: 'A senha é pessoal. Use Recuperar acesso na tela de login.' }
 }

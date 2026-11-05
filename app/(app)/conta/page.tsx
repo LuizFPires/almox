@@ -18,6 +18,9 @@ export default async function PaginaConta() {
     <>
       <Cabecalho titulo="Conta e obra" voltarPara="/inicio" />
       <main className="flex flex-1 flex-col gap-4 px-5 pt-2 pb-6">
+        <Link href="/convites" className="min-h-12 font-bold">
+          Convites
+        </Link>
         <Cartao className="flex flex-col gap-0.5">
           <span className="text-lg font-bold">{usuario.nome || usuario.email}</span>
           <span className="text-sm text-texto-2">{usuario.email}</span>

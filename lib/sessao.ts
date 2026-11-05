@@ -56,7 +56,7 @@ export const obterSessao = cache(async (): Promise<Sessao> => {
   if (resUsuario.error || resVinculos.error || resAdmin.error) {
     throw new Error('Não foi possível carregar a sua sessão. Tente de novo.')
   }
-  if (!resUsuario.data) redirect('/sem-acesso')
+  if (!resUsuario.data) redirect('/convites')
   const usuario = { ...resUsuario.data, email }
   const vinculos = resVinculos.data
 
@@ -71,7 +71,7 @@ export const obterSessao = cache(async (): Promise<Sessao> => {
     .sort((a, b) => a.nome.localeCompare(b.nome, 'pt-BR'))
   const administrador = Boolean(resAdmin.data)
   // Administrador sem obra ativa: a Administração não depende de obra.
-  if (obras.length === 0) redirect(administrador ? '/administracao' : '/sem-acesso')
+  if (obras.length === 0) redirect(administrador ? '/administracao' : '/convites')
 
   const escolhida = (await cookies()).get(COOKIE_OBRA)?.value
   const obraAtual = obras.find((o) => o.id === escolhida) ?? obras[0]!

@@ -9,7 +9,6 @@ import { mudarSituacao } from '../../acoes'
 import { FormObra } from '../../FormObra'
 import { situacaoObra } from '../../situacao'
 import { FormEngenheiro } from './FormEngenheiro'
-import { SenhaNovaAdmin } from './SenhaNovaAdmin'
 
 export const metadata: Metadata = { title: 'Obra · Administração · Almox' }
 
@@ -22,7 +21,7 @@ export default async function PaginaObraAdmin({
 }: PageProps<'/administracao/obra/[obraId]'>) {
   const { obraId } = await params
   const { nova, erro } = (await searchParams) as { nova?: string; erro?: string }
-  const { supabase, usuario } = await exigirAdministrador()
+  const { supabase } = await exigirAdministrador()
   if (!/^[0-9a-f-]{36}$/i.test(obraId)) notFound()
   const [{ data: obras, error: erroObras }, { data: acessos, error: erroAcessos }] =
     await Promise.all([
@@ -55,7 +54,7 @@ export default async function PaginaObraAdmin({
 
         <details className={CLASSE_DETALHE} open={semEngenheiro}>
           <summary className={CLASSE_RESUMO}>
-            {semEngenheiro ? 'Ligar o engenheiro da obra' : 'Ligar outro engenheiro'}
+            {semEngenheiro ? 'Convidar responsável pela obra' : 'Convidar outro responsável'}
           </summary>
           {nova && semEngenheiro && (
             <p className="pb-2 text-sm text-texto-2">
@@ -77,11 +76,6 @@ export default async function PaginaObraAdmin({
                   {rotuloPerfil(a.perfil, a.empresa)} · {a.email}
                 </span>
               </summary>
-              {a.usuario_id === usuario.id ? (
-                <p className="pb-3 text-sm text-texto-2">É você: troque a sua senha em Conta.</p>
-              ) : (
-                <SenhaNovaAdmin obraId={obra.id} usuarioId={a.usuario_id} />
-              )}
             </details>
           ))}
           <p className="text-sm text-texto-2">

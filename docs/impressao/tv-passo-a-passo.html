@@ -1,0 +1,445 @@
+<!doctype html>
+<html lang="pt-BR">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Ligar a TV do Almox</title>
+    <meta name="claude:viewport-fit-sides" content="cover" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link
+      rel="stylesheet"
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&family=JetBrains+Mono:wght@500;700&display=swap"
+    />
+    <style>
+      body {
+        margin: 0;
+      }
+      /* Folha A4 de parede: faixa amarela da marca, 5 blocos numerados (é uma sequência real), figuras de traço. */
+      :root {
+        --papel: #ffffff;
+        --fundo: #f6f7f9;
+        --grafite: #1f2937;
+        --texto2: #586474;
+        --borda: #e5e7eb;
+        --amarelo: #f4b400;
+        --aviso-bg: #fef3c7;
+        --aviso: #854d0e;
+        --ok-bg: #dcfce7;
+        --ok: #166534;
+        --sans: 'Inter', 'Segoe UI', system-ui, sans-serif;
+        --mono: 'JetBrains Mono', ui-monospace, 'Cascadia Mono', monospace;
+        color-scheme: light;
+      }
+      body {
+        background: var(--fundo);
+        color: var(--grafite);
+        font-family: var(--sans);
+      }
+      .folha {
+        background: var(--papel);
+        max-width: 210mm;
+        margin: 16px auto;
+        padding-block: 14mm 12mm;
+        padding-left: max(16px, env(safe-area-inset-left, 0px));
+        padding-right: max(16px, env(safe-area-inset-right, 0px));
+        box-shadow: 0 1px 3px rgba(31, 41, 55, 0.12);
+        display: flex;
+        flex-direction: column;
+        gap: 14px;
+      }
+      @media (min-width: 640px) {
+        .folha {
+          padding-left: 14mm;
+          padding-right: 14mm;
+        }
+      }
+      header {
+        display: flex;
+        flex-wrap: wrap;
+        align-items: flex-end;
+        justify-content: space-between;
+        gap: 10px;
+        border-bottom: 6px solid var(--amarelo);
+        padding-bottom: 10px;
+      }
+      .marca {
+        font-weight: 800;
+        font-size: 13px;
+        letter-spacing: 0.14em;
+        text-transform: uppercase;
+        color: var(--texto2);
+      }
+      h1 {
+        margin: 2px 0 0;
+        font-size: 28px;
+        line-height: 1.1;
+        font-weight: 800;
+        text-wrap: balance;
+      }
+      .levar {
+        font-size: 12.5px;
+        color: var(--texto2);
+        max-width: 46ch;
+      }
+      .levar b {
+        color: var(--grafite);
+      }
+      .passos {
+        display: grid;
+        grid-template-columns: 1fr;
+        gap: 10px;
+      }
+      @media (min-width: 640px) {
+        .passos {
+          grid-template-columns: 1fr 1fr;
+        }
+      }
+      .passo {
+        border: 1.5px solid var(--borda);
+        border-radius: 12px;
+        padding: 12px 14px;
+        display: grid;
+        grid-template-columns: 34px 1fr;
+        gap: 4px 12px;
+        align-content: start;
+        min-width: 0;
+      }
+      .passo.largo {
+        grid-column: 1 / -1;
+      }
+      .num {
+        grid-row: span 3;
+        width: 34px;
+        height: 34px;
+        border-radius: 50%;
+        background: var(--grafite);
+        color: var(--amarelo);
+        display: grid;
+        place-items: center;
+        font-weight: 800;
+        font-size: 17px;
+      }
+      h2 {
+        margin: 0;
+        font-size: 15.5px;
+        font-weight: 800;
+      }
+      .tempo {
+        font-size: 11px;
+        font-weight: 600;
+        color: var(--texto2);
+        text-transform: uppercase;
+        letter-spacing: 0.06em;
+      }
+      ol {
+        margin: 4px 0 0;
+        padding-left: 18px;
+        display: flex;
+        flex-direction: column;
+        gap: 3px;
+        font-size: 13px;
+        line-height: 1.4;
+      }
+      ol b {
+        font-weight: 700;
+      }
+      .fig {
+        grid-column: 2;
+        margin-top: 6px;
+      }
+      .fig svg {
+        display: block;
+        max-width: 100%;
+        height: auto;
+      }
+      .url {
+        font-family: var(--mono);
+        font-weight: 700;
+        font-size: 14px;
+        background: var(--grafite);
+        color: var(--papel);
+        padding: 2px 8px;
+        border-radius: 6px;
+        white-space: nowrap;
+      }
+      .nota {
+        grid-column: 2;
+        font-size: 12px;
+        color: var(--texto2);
+        margin-top: 4px;
+      }
+      .rodape {
+        display: grid;
+        grid-template-columns: 1fr;
+        gap: 8px;
+      }
+      @media (min-width: 640px) {
+        .rodape {
+          grid-template-columns: 1fr 1fr 1fr;
+        }
+      }
+      .caso {
+        border-radius: 10px;
+        padding: 10px 12px;
+        font-size: 12.5px;
+        line-height: 1.4;
+      }
+      .caso b {
+        display: block;
+        font-size: 13px;
+        margin-bottom: 2px;
+      }
+      .caso.ok {
+        background: var(--ok-bg);
+        color: var(--ok);
+      }
+      .caso.aviso {
+        background: var(--aviso-bg);
+        color: var(--aviso);
+      }
+      .assina {
+        font-size: 11px;
+        color: var(--texto2);
+        border-top: 1px solid var(--borda);
+        padding-top: 8px;
+        display: flex;
+        flex-wrap: wrap;
+        justify-content: space-between;
+        gap: 6px;
+      }
+      @media print {
+        @page {
+          size: A4;
+          margin: 0;
+        }
+        body {
+          background: var(--papel);
+        }
+        .folha {
+          box-shadow: none;
+          margin: 0;
+          max-width: none;
+          padding: 9mm 12mm 7mm;
+          gap: 10px;
+        }
+        .passos {
+          gap: 8px;
+        }
+        .passo {
+          padding: 9px 12px;
+        }
+        ol {
+          font-size: 12.5px;
+          gap: 2px;
+        }
+        .fig svg {
+          max-height: 54px;
+          width: auto;
+        }
+        h1 {
+          font-size: 25px;
+        }
+        .passos {
+          grid-template-columns: 1fr 1fr;
+        }
+        .rodape {
+          grid-template-columns: 1fr 1fr 1fr;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <div class="folha">
+      <header>
+        <div>
+          <div class="marca">Almox · Painel do almoxarifado</div>
+          <h1>Ligar a TV do Almox</h1>
+        </div>
+        <p class="levar">
+          Separe <b>20 minutos</b>, a <b>senha do Wi-Fi</b> da obra e um
+          <b>celular com o Almox</b> logado como engenheiro ou almoxarife. Caixinha:
+          <b>Xiaomi TV Box S 2ª geração</b>.
+        </p>
+      </header>
+
+      <section class="passos">
+        <article class="passo">
+          <span class="num" aria-hidden="true">1</span>
+          <h2>Ligar a caixinha</h2>
+          <span class="tempo">5 min</span>
+          <ol>
+            <li>Cabo <b>HDMI</b> da caixinha até a TV. Anote o número da entrada (HDMI 1, 2…).</li>
+            <li>Fonte da caixinha na <b>tomada</b>.</li>
+            <li>No controle <b>da TV</b>: botão <b>Source/Input</b> até achar esse HDMI.</li>
+            <li>Pilhas no controle <b>da caixinha</b> e siga a tela para parear.</li>
+          </ol>
+          <div class="fig" aria-hidden="true">
+            <svg
+              viewBox="0 0 290 70"
+              fill="none"
+              stroke="#1F2937"
+              stroke-width="2.2"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+            >
+              <rect x="4" y="4" width="96" height="58" rx="4" />
+              <rect x="11" y="10" width="82" height="44" rx="2" fill="#F6F7F9" />
+              <path d="M100 40 h40 q10 0 10 10 v6" />
+              <rect x="138" y="54" width="44" height="12" rx="5" fill="#1F2937" />
+              <text
+                x="118"
+                y="34"
+                font-family="Inter, sans-serif"
+                font-size="10"
+                fill="#586474"
+                stroke="none"
+              >
+                HDMI
+              </text>
+              <path d="M182 60 h28 q8 0 8 -8 v-14" />
+              <rect x="211" y="22" width="16" height="16" rx="3" fill="#F4B400" />
+              <text
+                x="232"
+                y="34"
+                font-family="Inter, sans-serif"
+                font-size="10"
+                fill="#586474"
+                stroke="none"
+              >
+                tomada
+              </text>
+            </svg>
+          </div>
+        </article>
+
+        <article class="passo">
+          <span class="num" aria-hidden="true">2</span>
+          <h2>Configurar o Google TV</h2>
+          <span class="tempo">10 min</span>
+          <ol>
+            <li>Idioma: <b>Português (Brasil)</b>.</li>
+            <li><b>Wi-Fi da obra</b> e a senha.</li>
+            <li>Entrar com uma <b>conta Google do almoxarifado</b> (não a pessoal).</li>
+            <li>Pular assinaturas e apps sugeridos. Deixar <b>atualizar</b> até o fim.</li>
+          </ol>
+        </article>
+
+        <article class="passo">
+          <span class="num" aria-hidden="true">3</span>
+          <h2>Instalar o navegador</h2>
+          <span class="tempo">3 min</span>
+          <ol>
+            <li>Na <b>lupa</b> da tela inicial, digite <b>Fully Kiosk Browser</b> e instale.</li>
+            <li>
+              Abra e, em <b>Start URL</b>, digite:<br /><span class="url"
+                >almox-controle.vercel.app/tv</span
+              >
+            </li>
+          </ol>
+          <p class="nota">
+            Não achou? Instale o <b>TV Bro</b> (grátis) e digite o mesmo endereço na barra.
+          </p>
+        </article>
+
+        <article class="passo">
+          <span class="num" aria-hidden="true">4</span>
+          <h2>Conectar ao Almox</h2>
+          <span class="tempo">1 min</span>
+          <ol>
+            <li>A TV mostra <b>6 números</b> e um <b>QR Code</b>.</li>
+            <li>Aponte a <b>câmera do celular</b> para o QR e toque em <b>Conectar</b>.</li>
+            <li>
+              Sem câmera: no app, <b>Início › Gestão da obra › Conectar TV</b> e digite os 6
+              números.
+            </li>
+          </ol>
+          <div class="fig" aria-hidden="true">
+            <svg
+              viewBox="0 0 290 70"
+              fill="none"
+              stroke="#1F2937"
+              stroke-width="2.2"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+            >
+              <rect x="4" y="4" width="110" height="60" rx="4" />
+              <text
+                x="14"
+                y="28"
+                font-family="JetBrains Mono, monospace"
+                font-size="15"
+                font-weight="700"
+                fill="#1F2937"
+                stroke="none"
+              >
+                482 917
+              </text>
+              <rect x="80" y="14" width="26" height="26" fill="#F6F7F9" />
+              <path
+                d="M84 18h7v7h-7zM95 18h7v7h-7zM84 29h7v7h-7zM96 31h3v3h-3z"
+                fill="#1F2937"
+                stroke="none"
+              />
+              <path d="M126 34 h40" stroke-dasharray="4 5" />
+              <path d="M160 28 l7 6 l-7 6" />
+              <rect x="178" y="4" width="36" height="62" rx="6" />
+              <rect x="183" y="12" width="26" height="40" rx="2" fill="#DCFCE7" />
+              <path d="M189 33 l5 5 l9 -11" stroke="#166534" />
+              <text
+                x="220"
+                y="40"
+                font-family="Inter, sans-serif"
+                font-size="10"
+                fill="#586474"
+                stroke="none"
+              >
+                Conectar
+              </text>
+            </svg>
+          </div>
+        </article>
+
+        <article class="passo largo">
+          <span class="num" aria-hidden="true">5</span>
+          <h2>Deixar voltar sozinha depois de faltar luz</h2>
+          <span class="tempo">5 min · uma vez só</span>
+          <ol>
+            <li>
+              <b>Fully Kiosk</b> (configurações: deslize da borda esquerda): ligar
+              <b>Start on Boot</b> e <b>Keep Screen On</b>. Pede a licença Plus (~€ 8), paga no
+              próprio app.
+            </li>
+            <li>
+              <b>Google TV › Configurações › Sistema › Energia e luz</b>: protetor de tela e
+              desligar a tela em <b>Nunca</b>.
+            </li>
+            <li>
+              Na <b>TV</b>, se existir: ligar <b>HDMI-CEC</b> (Anynet+, Bravia Sync, SimpLink) para
+              ligar junto com a caixinha.
+            </li>
+          </ol>
+        </article>
+      </section>
+
+      <section class="rodape">
+        <div class="caso ok">
+          <b>Faltou luz</b>Volta sozinha e já lembra que está conectada. Não precisa fazer nada.
+        </div>
+        <div class="caso aviso">
+          <b>Apareceram os 6 números</b>Alguém desconectou a TV no app. Repita o passo 4.
+        </div>
+        <div class="caso aviso">
+          <b>"Sem conexão" na tela</b>É o Wi-Fi da obra. Quando a internet voltar, atualiza sozinha.
+        </div>
+      </section>
+
+      <footer class="assina">
+        <span
+          >Funciona em qualquer TV com entrada HDMI (smart ou não). TV de tubo ou só com entradas
+          coloridas não serve.</span
+        >
+        <span>Dúvida: fale com o engenheiro da obra.</span>
+      </footer>
+    </div>
+  </body>
+</html>

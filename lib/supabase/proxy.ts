@@ -8,7 +8,16 @@ import type { Database } from './tipos-banco'
  * TV (credencial própria, M8), o processador de envios (agendamento com segredo, M9) e os
  * relatórios da CSP (o navegador manda sem sessão).
  */
-const ROTAS_PUBLICAS = ['/login', '/recuperar-senha', '/auth', '/tv', '/api/envios', '/api/csp']
+const ROTAS_PUBLICAS = [
+  '/cadastro',
+  '/login',
+  '/recuperar-senha',
+  '/auth',
+  '/tv',
+  '/api/envios',
+  '/api/csp',
+  '/api/ioo', // Credencial de serviço e identidade assinada verificadas nas rotas.
+]
 
 export function ehRotaPublica(caminho: string): boolean {
   return ROTAS_PUBLICAS.some((rota) => caminho === rota || caminho.startsWith(`${rota}/`))
@@ -67,3 +76,4 @@ function copiarCookies(origem: NextResponse, destino: NextResponse) {
   }
   return destino
 }
+

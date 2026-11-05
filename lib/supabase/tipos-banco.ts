@@ -1460,6 +1460,21 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      convidar_obra: {
+        Args: {
+          p_obra: string
+          p_email: string
+          p_perfil: Database['public']['Enums']['perfil']
+          p_empresa?: string
+        }
+        Returns: undefined
+      }
+      meus_convites: {
+        Args: Record<string, never>
+        Returns: { id: string; obra: string; perfil: string }[]
+      }
+      responder_convite: { Args: { p_convite: string; p_aceitar: boolean }; Returns: undefined }
+
       adicionar_unidades: { Args: { p_quantidade: number; p_tipo: string }; Returns: string[] }
       admin_criar_obra: { Args: { p_endereco?: string; p_nome: string }; Returns: string }
       admin_editar_obra: {

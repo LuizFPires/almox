@@ -3,6 +3,8 @@ import { ehRotaPublica } from './proxy'
 
 describe('ehRotaPublica', () => {
   it('libera login, retorno do link mágico e TV', () => {
+    expect(ehRotaPublica('/cadastro')).toBe(true)
+    expect(ehRotaPublica('/convites')).toBe(false)
     expect(ehRotaPublica('/login')).toBe(true)
     expect(ehRotaPublica('/recuperar-senha')).toBe(true)
     expect(ehRotaPublica('/api/csp')).toBe(true)

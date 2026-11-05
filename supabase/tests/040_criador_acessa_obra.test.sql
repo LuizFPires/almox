@@ -1,0 +1,13 @@
+begin;
+select plan(3);
+create temp table nova_obra (id uuid);
+grant all on nova_obra to authenticated;
+set local role authenticated;
+select set_config('request.jwt.claims', '{"sub":"b0000000-0000-4000-8000-000000000001","role":"authenticated"}', true);
+insert into nova_obra select public.admin_criar_obra('Teste acesso do criador');
+select is((select perfil::text from public.usuario_obra where obra_id=(select id from nova_obra) and usuario_id=auth.uid()), 'engenheiro', 'criador recebe acesso de gerenciamento');
+select is((select count(*)::int from public.obra where id=(select id from nova_obra)), 1, 'criador consegue visualizar a obra pela RLS');
+select set_config('request.jwt.claims', '{"sub":"b0000000-0000-4000-8000-000000000002","role":"authenticated"}', true);
+select throws_ok($$select public.admin_criar_obra('Sem permissao')$$, '42501', null, 'criacao continua restrita ao administrador');
+select * from finish();
+rollback;

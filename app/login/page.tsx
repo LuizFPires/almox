@@ -1,3 +1,4 @@
+import Link from 'next/link'
 import type { Metadata } from 'next'
 import { Suspense } from 'react'
 import { Marca } from '@/components/Marca'
@@ -49,7 +50,7 @@ export default function PaginaLogin({ searchParams }: PageProps<'/login'>) {
         />
       </Suspense>
       <p className="text-sm text-texto-2">
-        O acesso é por convite do engenheiro da obra. Sem login? Fale com ele.
+        <Link href="/cadastro">Criar conta no ALMOX</Link>
       </p>
     </main>
   )

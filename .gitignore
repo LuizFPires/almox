@@ -56,3 +56,7 @@ supabase/.temp
 
 # playwright mcp (local)
 .playwright-mcp/
+
+.vercel
+.env*
+.superpowers/

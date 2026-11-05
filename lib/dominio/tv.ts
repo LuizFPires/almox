@@ -1,7 +1,13 @@
 import { formatarHora, inicioDoDiaDaObra } from '@/lib/formatos/datas'
 import { formatarQuantidade } from '@/lib/formatos/quantidade'
 import { ehPendencia, textoDesde } from './ficha'
-import { estadoSaldo, limiteDoAviso, ordenarSaldos, type SaldoMaterial } from './materiais'
+import {
+  emAlertaDeLimite,
+  estadoSaldo,
+  limiteDoAviso,
+  ordenarSaldos,
+  type SaldoMaterial,
+} from './materiais'
 
 /** O que a função `painel_tv` devolve (só leitura, pelo token do dispositivo). */
 export type PainelTv = {
@@ -259,15 +265,16 @@ export function proximaFase(
 export const MATERIAIS_POR_PAGINA = 12
 export const MATERIAIS_POR_PAGINA_COM_ALERTA = 8
 
-/** Os que estão abaixo do limite, na ordem da tela. */
+/** Os que estão abaixo do limite com o aviso disparado (estoque cheio > 0), na ordem da tela. */
 export function alertasMateriais(lista: SaldoMaterial[]): SaldoMaterial[] {
-  return ordenarSaldos(lista).filter((m) => estadoSaldo(m) === 'abaixo')
+  return ordenarSaldos(lista).filter(emAlertaDeLimite)
 }
 
 /** Páginas da terceira tela: abaixo → perto → resto (alfabético dentro de cada grupo). */
 export function paginasMateriais(lista: SaldoMaterial[]): SaldoMaterial[][] {
   const ordenados = ordenarSaldos(lista)
-  const comAlerta = ordenados.some((m) => estadoSaldo(m) === 'abaixo')
+  // Mesmo critério da faixa vermelha (alertasMateriais): página menor só quando ela aparece.
+  const comAlerta = ordenados.some(emAlertaDeLimite)
   return paginar(ordenados, comAlerta ? MATERIAIS_POR_PAGINA_COM_ALERTA : MATERIAIS_POR_PAGINA)
 }
 

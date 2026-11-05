@@ -1,5 +1,10 @@
 import { describe, expect, it } from 'vitest'
-import { chaveRascunhoContagem, itensDoRascunho, type SaldoMaterial } from './materiais'
+import {
+  chaveRascunhoContagem,
+  itensDoRascunho,
+  renovarSaldoVisto,
+  type SaldoMaterial,
+} from './materiais'
 
 const mat = (id: string, unidade: SaldoMaterial['unidade'], saldo: number): SaldoMaterial => ({
   id,
@@ -52,5 +57,29 @@ describe('itensDoRascunho', () => {
     expect(
       itensDoRascunho({ x: { valor: '3', saldoVisto: 1 }, a: { valor: 'abc', saldoVisto: 10 } }, saldos),
     ).toEqual([])
+  })
+})
+
+describe('renovarSaldoVisto', () => {
+  const saldos = [mat('a', 'sc', 4), mat('b', 'kg', 5)]
+
+  it('troca o saldo visto pelo atual e mantém o que foi digitado', () => {
+    expect(
+      renovarSaldoVisto(
+        { a: { valor: '3', saldoVisto: 10 }, b: { valor: '5', saldoVisto: 5 } },
+        saldos,
+      ),
+    ).toEqual({ a: { valor: '3', saldoVisto: 4 }, b: { valor: '5', saldoVisto: 5 } })
+  })
+
+  it('mantém material que sumiu da lista como estava', () => {
+    expect(renovarSaldoVisto({ x: { valor: '2', saldoVisto: 9 } }, saldos)).toEqual({
+      x: { valor: '2', saldoVisto: 9 },
+    })
+  })
+
+  it('a contagem refeita usa o saldo atual (não repete a diferença velha)', () => {
+    const r = renovarSaldoVisto({ a: { valor: '3', saldoVisto: 10 } }, saldos)
+    expect(itensDoRascunho(r, saldos)).toEqual([{ materialId: 'a', saldoVisto: 4, contado: 3 }])
   })
 })

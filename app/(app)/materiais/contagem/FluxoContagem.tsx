@@ -1,6 +1,7 @@
 'use client'
 
 import Link from 'next/link'
+import { useRouter } from 'next/navigation'
 import { useEffect, useState, useTransition } from 'react'
 import { Botao } from '@/components/Botao'
 import { Cabecalho } from '@/components/Cabecalho'
@@ -10,6 +11,7 @@ import {
   chaveRascunhoContagem,
   diferencasContagem,
   itensDoRascunho,
+  renovarSaldoVisto,
   type ItemContagem,
   type RascunhoContagem,
   type SaldoMaterial,
@@ -83,6 +85,7 @@ export function FluxoContagem({ obraId, usuarioId, dia, materiais }: Props) {
     naFila: boolean
   } | null>(null)
   const [enviando, iniciar] = useTransition()
+  const router = useRouter()
 
   useEffect(() => {
     // Rascunho só existe no navegador: lê depois da hidratação.
@@ -105,10 +108,20 @@ export function FluxoContagem({ obraId, usuarioId, dia, materiais }: Props) {
     })
   }
 
+  /** Rascunho com o saldo visto trocado pelo atual (depois de uma contagem recusada). */
+  function renovarRascunho(): RascunhoContagem {
+    const novo = renovarSaldoVisto(rascunho, materiais)
+    gravarRascunho(chaveLocal, novo)
+    setRascunho(novo)
+    return novo
+  }
+
   function revisar() {
+    // Depois de uma recusa, a lista pode ter chegado mais nova: renova o saldo visto de novo.
+    const atual = erro ? renovarRascunho() : rascunho
     setErro(null)
     setSemResposta(false)
-    setEnvio({ itens: itensDoRascunho(rascunho, materiais), chave: crypto.randomUUID() })
+    setEnvio({ itens: itensDoRascunho(atual, materiais), chave: crypto.randomUUID() })
     setEtapa('revisar')
   }
 
@@ -164,6 +177,9 @@ export function FluxoContagem({ obraId, usuarioId, dia, materiais }: Props) {
         setSemResposta(false)
         if (!r.ok) {
           // Nada foi gravado (a contagem inteira volta atrás): conta de novo, com outra chave.
+          // O saldo visto vira o saldo atual (o digitado fica), senão a nova tentativa falha igual.
+          renovarRascunho()
+          router.refresh()
           setErro(r.erro)
           setEtapa('contar')
           setEnvio(null)

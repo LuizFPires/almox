@@ -332,6 +332,19 @@ describe('terceira tela: materiais na obra', () => {
     expect(alertasMateriais(lista).map((m) => m.nome)).toEqual(['Areia', 'Cimento'])
   })
 
+  it('alertas: material nunca abastecido (estoque cheio 0) não entra, nem encolhe a página', () => {
+    const lista = [
+      material('Areia', 5),
+      material('Cal', 0, { estoqueCheio: 0 }),
+      material('Brita', 50),
+    ]
+    expect(alertasMateriais(lista).map((m) => m.nome)).toEqual(['Areia'])
+    const soNovo = Array.from({ length: 10 }, (_, i) => material(`Material ${i}`, 50))
+    soNovo[3] = material('Material 3', 0, { estoqueCheio: 0 })
+    expect(alertasMateriais(soNovo)).toEqual([])
+    expect(paginasMateriais(soNovo).map((p) => p.length)).toEqual([10])
+  })
+
   it('texto da faixa: singular e plural, com saldo e unidade', () => {
     expect(textoAlertaMateriais([material('Cimento CP-II', 18)])).toEqual({
       titulo: '1 material abaixo do limite',

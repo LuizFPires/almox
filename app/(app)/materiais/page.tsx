@@ -12,8 +12,8 @@ import { Relogio } from '@/components/Relogio'
 import { SeloFila } from '@/components/SeloFila'
 import { SeloPerfil } from '@/components/SeloPerfil'
 import { listarSaldos } from '@/lib/dados/materiais'
-import { estadoSaldo } from '@/lib/dominio/materiais'
-import { podeLancar } from '@/lib/dominio/permissoes'
+import { emAlertaDeLimite } from '@/lib/dominio/materiais'
+import { podeCadastrar, podeLancar } from '@/lib/dominio/permissoes'
 import { obterSessao } from '@/lib/sessao'
 
 export const metadata: Metadata = { title: 'Materiais · Almox' }
@@ -24,7 +24,9 @@ export default async function PaginaMateriais() {
   const materiais = await listarSaldos(obraAtual.id)
   const restrita = obraAtual.perfil === 'consulta' ? obraAtual.empresa : null
   const gestao = itensGestao(obraAtual.perfil, restrita)
-  const abaixo = materiais.filter((m) => estadoSaldo(m) === 'abaixo').length
+  // Só os que dispararam o aviso (mesmo critério da faixa da TV): material nunca abastecido
+  // fica "abaixo" na lista, mas ninguém foi avisado.
+  const abaixo = materiais.filter(emAlertaDeLimite).length
 
   return (
     <>
@@ -76,7 +78,12 @@ export default async function PaginaMateriais() {
         </section>
       </main>
 
-      <BarraInferior modo="materiais" ativa="inicio-materiais" podeLancar={lanca} />
+      <BarraInferior
+        modo="materiais"
+        ativa="inicio-materiais"
+        podeLancar={lanca}
+        podeCadastrar={podeCadastrar(obraAtual.perfil)}
+      />
     </>
   )
 }

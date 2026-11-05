@@ -258,7 +258,6 @@ Saldo atual de cada material da obra (cimento, areia, brita, arame…), como um 
 | `impressora` | id, obra_id, nome, ip, porta, linguagem (`ZPL`/`TSPL`), rolo |
 | `trabalho_impressao` | id, impressora_id, payload, copias, status (`pendente`/`enviado`/`erro`), criado_em |
 | `dispositivo_tv` | id, obra_id, token, ultimo_ping |
-
 | `material` | id, obra_id, nome (único na obra, sem acento), unidade (`sc`/`un`/`barra`/`rolo`/`lata`/`m³`/`kg`/`m`/`m²`/`l`), saldo, estoque_cheio, aviso_tipo (`quantidade`/`percentual`), aviso_valor, aviso_disparado, ativo |
 | `movimento_material` | id, obra_id, material_id, tipo (`entrada`/`saida`/`ajuste`/`conferencia`), quantidade (com sinal), contagem_id, usuario_id, criado_em, registrado_no_aparelho_em, chave_cliente (imutável) |
 | `movimento_material_versao` | movimento_id, quantidade, motivo, desfeito, usuario_id, criado_em (edição do engenheiro ou desfazer; imutável) |

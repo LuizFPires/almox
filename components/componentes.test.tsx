@@ -132,9 +132,20 @@ describe('modo Materiais', () => {
     expect(screen.queryByText('Cadastros')).toBeNull()
   })
 
-  it('BarraInferior de materiais mostra tudo para quem lança', () => {
+  it('BarraInferior de materiais mostra tudo para o engenheiro', () => {
+    render(<BarraInferior modo="materiais" ativa="saldos" podeLancar podeCadastrar />)
+    expect(screen.getByText('Fechamento')).toBeTruthy()
+    expect(screen.getByText('Cadastros')).toBeTruthy()
+  })
+
+  it('BarraInferior de materiais esconde Cadastros do almoxarife (lança, mas não cadastra)', () => {
     render(<BarraInferior modo="materiais" ativa="saldos" podeLancar />)
     expect(screen.getByText('Fechamento')).toBeTruthy()
+    expect(screen.queryByText('Cadastros')).toBeNull()
+  })
+
+  it('BarraInferior de ferramentas continua mostrando Cadastros ao almoxarife', () => {
+    render(<BarraInferior ativa="inicio" podeLancar />)
     expect(screen.getByText('Cadastros')).toBeTruthy()
   })
 

@@ -7,7 +7,7 @@ import { BarraInferior } from './BarraInferior'
 export function BarraCadastros() {
   const caminho = usePathname()
   if (caminho.startsWith('/cadastros/materiais')) {
-    return <BarraInferior modo="materiais" ativa="cadastros-materiais" podeLancar />
+    return <BarraInferior modo="materiais" ativa="cadastros-materiais" podeLancar podeCadastrar />
   }
   return <BarraInferior ativa="cadastros" podeLancar />
 }

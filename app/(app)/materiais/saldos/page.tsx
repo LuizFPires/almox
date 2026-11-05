@@ -5,7 +5,7 @@ import { ChaveModo } from '@/components/ChaveModo'
 import { ListaSaldos } from '@/components/ListaSaldos'
 import { listarSaldos } from '@/lib/dados/materiais'
 import { estadoSaldo } from '@/lib/dominio/materiais'
-import { podeLancar } from '@/lib/dominio/permissoes'
+import { podeCadastrar, podeLancar } from '@/lib/dominio/permissoes'
 import { obterSessao } from '@/lib/sessao'
 
 export const metadata: Metadata = { title: 'Saldos · Almox' }
@@ -42,7 +42,10 @@ export default async function PaginaSaldos() {
           <ListaSaldos materiais={normais} />
         </section>
       </main>
-      <BarraInferior modo="materiais" ativa="saldos" podeLancar={podeLancar(obraAtual.perfil)} />
+      <BarraInferior modo="materiais" ativa="saldos"
+        podeLancar={podeLancar(obraAtual.perfil)}
+        podeCadastrar={podeCadastrar(obraAtual.perfil)}
+      />
     </>
   )
 }

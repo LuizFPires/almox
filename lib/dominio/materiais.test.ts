@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest'
 import {
   diferencasContagem,
+  emAlertaDeLimite,
   filtrarMateriais,
   ordenarParaLancamento,
   previaLancamento,
@@ -24,6 +25,12 @@ describe('materiais', () => {
     expect(estadoSaldo({ ...cimento, saldo: 30 })).toBe('perto')
     expect(estadoSaldo({ ...cimento, saldo: 31 })).toBe('ok')
     expect(estadoSaldo({ ...cimento, aviso: null })).toBe('sem_aviso')
+  })
+  it('alerta de limite: abaixo e já abastecido (estoque cheio > 0)', () => {
+    expect(emAlertaDeLimite(cimento)).toBe(true)
+    expect(emAlertaDeLimite({ ...cimento, estoqueCheio: 0, saldo: 0 })).toBe(false)
+    expect(emAlertaDeLimite({ ...cimento, saldo: 30 })).toBe(false)
+    expect(emAlertaDeLimite({ ...cimento, aviso: null })).toBe(false)
   })
   it('ordena abaixo, perto, resto; alfabético dentro', () => {
     const base = { unidade: 'un', estoqueCheio: 100, aviso: { tipo: 'quantidade', valor: 10 } } as const

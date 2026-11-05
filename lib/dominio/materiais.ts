@@ -44,6 +44,15 @@ export function estadoSaldo(m: SaldoMaterial): EstadoSaldo {
   return 'ok'
 }
 
+/**
+ * Abaixo do limite com o aviso já disparado para a obra. O servidor só avalia o aviso depois que
+ * o material teve estoque (estoque cheio > 0: entrada ou aviso salvo com saldo); material nunca
+ * abastecido fica "abaixo" na lista, mas ninguém foi avisado. Usado no início de Materiais e na TV.
+ */
+export function emAlertaDeLimite(m: SaldoMaterial): boolean {
+  return estadoSaldo(m) === 'abaixo' && m.estoqueCheio > 0
+}
+
 const PESO: Record<EstadoSaldo, number> = { abaixo: 0, perto: 1, ok: 2, sem_aviso: 2 }
 
 /** Abaixo → perto → resto; alfabético (sem acento) dentro de cada grupo. */
@@ -150,6 +159,24 @@ export function itensDoRascunho(rascunho: RascunhoContagem, saldos: SaldoMateria
     itens.push({ materialId: m.id, saldoVisto: campo.saldoVisto, contado })
   }
   return itens
+}
+
+/**
+ * Depois de uma contagem recusada (ex.: AL101, saldo mudou no meio), o saldo visto de cada
+ * material do rascunho passa a ser o saldo atual; o que foi digitado fica. Assim, repetir não
+ * falha do mesmo jeito. Material que sumiu da lista fica como estava.
+ */
+export function renovarSaldoVisto(
+  rascunho: RascunhoContagem,
+  saldos: SaldoMaterial[],
+): RascunhoContagem {
+  const porId = new Map(saldos.map((m) => [m.id, m.saldo]))
+  const novo: RascunhoContagem = {}
+  for (const [id, campo] of Object.entries(rascunho)) {
+    const atual = porId.get(id)
+    novo[id] = atual === undefined ? campo : { valor: campo.valor, saldoVisto: atual }
+  }
+  return novo
 }
 
 const ERRO_PADRAO_MATERIAL = 'Não deu certo. Tente de novo.'

@@ -4,7 +4,7 @@ import { AoVivo } from '@/components/AoVivo'
 import { BarraInferior } from '@/components/BarraInferior'
 import { ChaveModo } from '@/components/ChaveModo'
 import { listarSaldos } from '@/lib/dados/materiais'
-import { podeLancar } from '@/lib/dominio/permissoes'
+import { podeCadastrar, podeLancar } from '@/lib/dominio/permissoes'
 import { diaDaObra } from '@/lib/formatos/datas'
 import { obterSessao } from '@/lib/sessao'
 import { FluxoContagem } from './FluxoContagem'
@@ -23,7 +23,7 @@ export default async function PaginaContagem() {
       <ChaveModo modo="materiais" />
       <AoVivo obraId={obraAtual.id} tabelas={['material', 'movimento_material']} />
       <FluxoContagem obraId={obraAtual.id} usuarioId={usuario.id} dia={dia} materiais={materiais} />
-      <BarraInferior modo="materiais" ativa="contagem" podeLancar />
+      <BarraInferior modo="materiais" ativa="contagem" podeLancar podeCadastrar={podeCadastrar(obraAtual.perfil)} />
     </>
   )
 }

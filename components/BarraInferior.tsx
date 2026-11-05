@@ -64,6 +64,7 @@ const ITENS_MATERIAIS = [
     href: '/cadastros/materiais',
     icone: 'menu',
     lanca: true,
+    cadastra: true,
   },
 ] as const
 
@@ -77,6 +78,8 @@ type ItemAba = {
   href: string
   icone: NomeIconeInterface
   lanca: boolean
+  /** Só aparece para quem cadastra (engenheiro). */
+  cadastra?: boolean
 }
 
 type Props = {
@@ -85,10 +88,20 @@ type Props = {
   modo?: ModoApp
   /** Perfil consulta não vê Fechamento nem Cadastros. */
   podeLancar: boolean
+  /**
+   * Engenheiro: vê a aba Cadastros do modo Materiais (o almoxarife lança, mas não cadastra
+   * materiais). Padrão: false.
+   */
+  podeCadastrar?: boolean
 }
 
 /** Presa ao pé da tela (sticky): não some ao rolar listas compridas. */
-export function BarraInferior({ ativa, podeLancar, modo = 'ferramentas' }: Props) {
+export function BarraInferior({
+  ativa,
+  podeLancar,
+  podeCadastrar = false,
+  modo = 'ferramentas',
+}: Props) {
   const itens: readonly ItemAba[] = modo === 'materiais' ? ITENS_MATERIAIS : ITENS
   return (
     <nav
@@ -96,7 +109,7 @@ export function BarraInferior({ ativa, podeLancar, modo = 'ferramentas' }: Props
       className="sticky bottom-0 z-20 mt-auto flex h-[calc(76px+env(safe-area-inset-bottom))] shrink-0 border-t border-borda bg-cartao pb-[max(0.5rem,env(safe-area-inset-bottom))]"
     >
       {itens
-        .filter((item) => podeLancar || !item.lanca)
+        .filter((item) => (podeLancar || !item.lanca) && (podeCadastrar || !item.cadastra))
         .map((item) => {
           const atual = item.chave === ativa
           return (

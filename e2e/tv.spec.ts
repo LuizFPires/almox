@@ -318,13 +318,43 @@ test.describe('painel da TV', () => {
       const cartoes = await page.locator('article').count()
 
       await page.route('**/tv/dados?**', (rota) => rota.abort('internetdisconnected'))
-      await expect(page.getByRole('status')).toContainText(/Sem conexão desde \d{2}:\d{2}/, {
+      // Filtra: a tira de materiais abaixo do limite (M13) também é um role=status.
+      await expect(
+        page.getByRole('status').filter({ hasText: 'Sem conexão' }),
+      ).toContainText(/Sem conexão desde \d{2}:\d{2}/, {
         timeout: 6_000,
       })
       await expect(page.locator('article')).toHaveCount(cartoes)
 
       await page.unroute('**/tv/dados?**')
       await expect(page.getByText(/Sem conexão desde/)).toHaveCount(0, { timeout: 6_000 })
+    } finally {
+      await configurar(eng, PADRAO)
+    }
+  })
+
+  // M13. Aqui, e não em materiais.spec.ts: muda a configuração da obra, que estes testes
+  // (em série) também mudam. Usa o Arame recozido do seed, sempre abaixo do limite.
+  test('terceira tela: "Materiais na obra" com a faixa de abaixo do limite', async ({
+    page,
+    request,
+  }, info) => {
+    test.setTimeout(120_000)
+    const eng = await apiEngenheiro(request)
+    await configurar(eng, { tempo: 3, velocidade: 150, antes: 500, depois: 500, cartoes: 12 })
+    try {
+      await conectarTv(page, eng, `TV materiais ${info.project.name}-${Date.now() % 100000}`)
+      // Fora da terceira tela, a tira do rodapé já avisa.
+      const alerta = page.getByRole('status').filter({ hasText: 'abaixo do limite' })
+      await expect(alerta).toContainText('Arame recozido 18')
+
+      await expect(page.getByRole('heading', { name: 'Materiais na obra' })).toBeVisible({
+        timeout: 90_000,
+      })
+      await expect(alerta).toContainText('Arame recozido 18 (8 kg)')
+      await expect(alerta).toContainText('Pedir reposição.')
+      await expect(page.getByRole('article', { name: 'Arame recozido 18' })).toBeVisible()
+      await expect(page.getByRole('article', { name: 'Brita 1' })).toBeVisible()
     } finally {
       await configurar(eng, PADRAO)
     }

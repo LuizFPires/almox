@@ -3,6 +3,8 @@ begin;
 select plan(6);
 
 -- Preparação como postgres: Cimento com aviso, Areia sem aviso, Cal inativa e Brita de outra obra.
+-- Os materiais do seed saem da conta (ficam inativos só dentro desta transação).
+update public.material set ativo = false where obra_id = 'a0000000-0000-4000-8000-000000000001';
 insert into public.material (id, obra_id, nome, unidade, saldo, estoque_cheio, aviso_tipo, aviso_valor)
 values ('ad000000-0000-4000-8000-000000000481', 'a0000000-0000-4000-8000-000000000001', 'Cimento', 'sc', 118, 118, 'quantidade', 20);
 insert into public.material (id, obra_id, nome, unidade, saldo, estoque_cheio)

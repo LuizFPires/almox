@@ -3,6 +3,9 @@
 begin;
 select plan(46);
 
+-- Os materiais do seed mudam de nome só dentro desta transação (o teste cria o próprio Cimento).
+update public.material set nome = 'Seed ' || nome where obra_id = 'a0000000-0000-4000-8000-000000000001';
+
 -- Engenheira -----------------------------------------------------------------------------------
 set local role authenticated;
 select set_config('request.jwt.claims', '{"sub":"b0000000-0000-4000-8000-000000000001","role":"authenticated"}', true);
@@ -12,7 +15,8 @@ select isnt(
   null, 'engenheira cria o Cimento'
 );
 select results_eq(
-  $$select nome, unidade, ativo from public.material where obra_id = 'a0000000-0000-4000-8000-000000000001'$$,
+  $$select nome, unidade, ativo from public.material
+     where obra_id = 'a0000000-0000-4000-8000-000000000001' and nome not like 'Seed %'$$,
   $$values ('Cimento CP-II 50 kg'::text, 'sc'::text, true)$$,
   'nome gravado sem espaços sobrando'
 );

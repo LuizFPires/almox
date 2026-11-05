@@ -3,6 +3,7 @@
 import { cookies } from 'next/headers'
 import { redirect } from 'next/navigation'
 import { endpointPushValido } from '@/lib/envios/endpoint'
+import { inicioDoUltimoModo } from '@/lib/modo'
 import { COOKIE_OBRA, obterSessao } from '@/lib/sessao'
 import { criarClienteServidor } from '@/lib/supabase/servidor'
 
@@ -19,7 +20,7 @@ export async function escolherObra(form: FormData) {
     path: '/',
     maxAge: 60 * 60 * 24 * 365,
   })
-  redirect('/')
+  redirect(await inicioDoUltimoModo())
 }
 
 export type ResultadoNotificacao = { erro?: string }

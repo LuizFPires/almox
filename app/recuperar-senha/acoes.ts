@@ -10,6 +10,7 @@ import {
   validarNovaSenha,
 } from '@/lib/dominio/senha'
 import { criarClienteAdmin } from '@/lib/supabase/admin'
+import { inicioDoUltimoModo } from '@/lib/modo'
 import { criarClienteServidor } from '@/lib/supabase/servidor'
 
 /**
@@ -101,7 +102,7 @@ export async function salvarSenha(_: EstadoRecuperar, form: FormData): Promise<E
   }
   // Quem troca a senha por suspeita de invasão derruba as outras sessões.
   await supabase.auth.signOut({ scope: 'others' })
-  redirect('/')
+  redirect(await inicioDoUltimoModo())
 }
 
 export type EstadoTrocarComSenha = { erro?: string; erroSenha?: string }
@@ -137,5 +138,5 @@ export async function trocarComSenhaAtual(
   const { error } = await supabase.auth.updateUser({ password: senha })
   if (error) return { erroSenha: mensagemErroNovaSenha(error) }
   await supabase.auth.signOut({ scope: 'others' })
-  redirect('/')
+  redirect(await inicioDoUltimoModo())
 }

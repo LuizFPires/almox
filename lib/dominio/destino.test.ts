@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { destinoSeguro } from './destino'
+import { destinoSeguro, inicioDoModo } from './destino'
 
 describe('destinoSeguro', () => {
   it('aceita caminhos internos', () => {
@@ -34,5 +34,14 @@ describe('destinoSeguro', () => {
     expect(destinoSeguro('/.//golpe.exemplo')).toBe('/')
     expect(destinoSeguro('/a/..//golpe.exemplo')).toBe('/')
     expect(destinoSeguro('/%2e//golpe.exemplo')).toBe('/')
+  })
+})
+
+describe('inicioDoModo', () => {
+  it('abre Materiais só com o cookie de materiais; o resto vai para Ferramentas', () => {
+    expect(inicioDoModo('materiais')).toBe('/materiais')
+    expect(inicioDoModo('ferramentas')).toBe('/inicio')
+    expect(inicioDoModo(undefined)).toBe('/inicio')
+    expect(inicioDoModo('qualquer')).toBe('/inicio')
   })
 })

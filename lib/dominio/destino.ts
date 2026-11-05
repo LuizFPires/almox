@@ -33,3 +33,15 @@ export function destinoSeguro(volta: string | null | undefined): string {
   }
   return caminho
 }
+
+/** Cookie com o último modo usado (gravado pela chave Ferramentas | Materiais). */
+export const COOKIE_MODO = 'almox_modo'
+
+/**
+ * Início do modo em que a pessoa estava. As Server Actions mandam para cá, e não para `/`: o
+ * redirecionamento da raiz (next.config) não vale na navegação feita depois de uma ação, e a
+ * tela ficaria com o endereço `/`.
+ */
+export function inicioDoModo(modo: string | null | undefined): '/inicio' | '/materiais' {
+  return modo === 'materiais' ? '/materiais' : '/inicio'
+}

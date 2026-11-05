@@ -1,8 +1,9 @@
 import Link from 'next/link'
 import type { ReactNode } from 'react'
 import { IconeInterface } from '@/components/IconeInterface'
+import { TEXTO_GUARDADO } from '@/lib/dominio/offline'
 
-export const TEXTO_GUARDADO = 'Guardado no celular. Envia quando tiver sinal.'
+export { TEXTO_GUARDADO }
 
 /**
  * Lançamento de material que ficou na fila do celular (sem sinal). Não há movimento no servidor

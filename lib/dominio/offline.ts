@@ -103,6 +103,9 @@ export type ItemFilaMaterial = {
 
 export type ItemFila = ItemFilaFerramenta | ItemFilaMaterial
 
+/** Material lançado sem sinal: o que a tela mostra depois de guardar na fila. */
+export const TEXTO_GUARDADO = 'Guardado no celular. Envia quando tiver sinal.'
+
 export function ehItemDeMaterial(item: ItemFila): item is ItemFilaMaterial {
   return item.tipo.startsWith('material_')
 }

@@ -15,6 +15,7 @@ import {
   podeDevolver,
   possesComFila,
   ehItemDeMaterial,
+  TEXTO_GUARDADO,
   textoFila,
   type ItemFila,
   type ItemFilaFerramenta,
@@ -43,6 +44,7 @@ import {
 } from '@/lib/offline/banco'
 import { usuarioDoCookie } from '@/lib/offline/sessao'
 import { enviarFila } from '@/lib/offline/sincronizar'
+import { MateriaisCampo } from './MateriaisCampo'
 
 type Escolhida = { pessoa: PessoaOffline; token: string | null }
 
@@ -56,7 +58,8 @@ type Etapa =
   | { tipo: 'acao'; escolhida: Escolhida }
   | { tipo: 'retirada'; escolhida: Escolhida }
   | { tipo: 'devolucao'; escolhida: Escolhida }
-  | { tipo: 'feito'; texto: string }
+  /** `linha`: lançamento de material (ex.: "−100 sc · Cimento"). */
+  | { tipo: 'feito'; texto: string; linha?: string }
 
 const SELO_FILA = 'rounded-full bg-aviso-claro px-2.5 py-0.5 text-xs font-bold text-aviso'
 
@@ -465,10 +468,17 @@ export function FluxoCampo() {
           <Cabecalho titulo="Lançar sem internet" />
           <main className="flex flex-1 flex-col items-center gap-4 px-5 pt-6 pb-6 text-center">
             <h2 className="text-[26px] font-bold">{etapa.texto}</h2>
+            {etapa.linha !== undefined && <p className="text-[17px]">{etapa.linha}</p>}
             <span className={SELO_FILA}>aguardando envio</span>
-            <p className="text-[17px] text-texto-2">
-              Vai para o Almox sozinho quando a internet voltar.
-            </p>
+            {etapa.linha !== undefined ? (
+              <p role="status" className="text-[17px] text-texto-2">
+                {TEXTO_GUARDADO}
+              </p>
+            ) : (
+              <p className="text-[17px] text-texto-2">
+                Vai para o Almox sozinho quando a internet voltar.
+              </p>
+            )}
             <Botao variante="escura" tamanho="g" larguraTotal onClick={voltarAoInicio}>
               Lançar outro
             </Botao>
@@ -514,6 +524,21 @@ export function FluxoCampo() {
         >
           Sem capacete? Escolher na lista
         </button>
+
+        <MateriaisCampo
+          obra={dados.obra}
+          usuario={dados.usuario}
+          materiais={dados.materiais ?? []}
+          fila={fila}
+          aoGuardar={(texto, linha) => {
+            void recarregar()
+            setEtapa({ tipo: 'feito', texto, linha })
+            if (navigator.onLine)
+              void enviarFila()
+                .catch(() => 0)
+                .then(recarregar)
+          }}
+        />
 
         <section aria-label="Fila do celular" className="flex flex-col gap-2">
           <h2 className="flex items-center justify-between text-[13px] font-bold tracking-[1.2px] text-texto-2">

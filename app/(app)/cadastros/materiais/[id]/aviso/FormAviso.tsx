@@ -27,7 +27,7 @@ type Props = {
 
 const OPCOES: { tipo: Tipo; rotulo: string }[] = [
   { tipo: 'quantidade', rotulo: 'Chegar a uma quantidade' },
-  { tipo: 'percentual', rotulo: 'Chegar a uma %' },
+  { tipo: 'percentual', rotulo: 'Chegar a um %' },
 ]
 
 export function FormAviso({ materialId, unidade, estoqueCheio, aviso, obraNome }: Props) {
@@ -92,15 +92,15 @@ export function FormAviso({ materialId, unidade, estoqueCheio, aviso, obraNome }
           <legend className="mb-1.5 text-[13px] font-bold tracking-[1.2px] text-texto-2 uppercase">
             Avisar quando
           </legend>
-          <div className="grid grid-cols-2 gap-2">
+          <div className="grid grid-cols-2 gap-2.5">
             {OPCOES.map((o) => (
               <label
                 key={o.tipo}
-                className={`flex min-h-toque cursor-pointer items-center justify-center rounded-botao border px-2 text-center text-[15px] font-semibold ${
+                className={`flex min-h-[104px] cursor-pointer flex-col items-center justify-center gap-1.5 rounded-cartao border-[1.5px] bg-white px-2 pt-3.5 pb-3 text-center text-[14px] leading-tight font-extrabold transition-colors ${
                   tipo === o.tipo
-                    ? 'border-2 border-escuro bg-cartao'
-                    : 'border-borda bg-cartao text-texto-2'
-                } has-[:focus-visible]:outline-3 has-[:focus-visible]:outline-foco`}
+                    ? 'border-escuro text-escuro shadow-[inset_0_0_0_1px_var(--color-escuro)]'
+                    : 'border-[#D1D5DB] text-texto-2'
+                } has-[:focus-visible]:outline-3 has-[:focus-visible]:outline-offset-3 has-[:focus-visible]:outline-foco`}
               >
                 <input
                   type="radio"
@@ -110,6 +110,9 @@ export function FormAviso({ materialId, unidade, estoqueCheio, aviso, obraNome }
                   onChange={() => setTipo(o.tipo)}
                   className="sr-only"
                 />
+                <span aria-hidden="true" className="text-[30px] leading-none font-black">
+                  {o.tipo === 'percentual' ? '%' : unidade}
+                </span>
                 {o.rotulo}
               </label>
             ))}
@@ -156,7 +159,7 @@ export function FormAviso({ materialId, unidade, estoqueCheio, aviso, obraNome }
               'Informe a porcentagem para ver quando o aviso dispara.'
             ) : (
               <>
-                {formatarQuantidade(valor ?? 0)}% de {formatarQuantidade(estoqueCheio)} {unidade} ={' '}
+                {formatarQuantidade(valor ?? 0)}% de {formatarQuantidade(estoqueCheio)} {unidade} →{' '}
                 <b>
                   avisa ao chegar em {formatarQuantidade(limite)} {unidade}
                 </b>

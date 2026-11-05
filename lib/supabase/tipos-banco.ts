@@ -362,6 +362,68 @@ export type Database = {
           },
         ]
       }
+      convite_obra: {
+        Row: {
+          cancelado_em: string | null
+          criado_em: string
+          criado_por: string
+          email: string
+          empresa_id: string | null
+          expira_em: string
+          id: string
+          obra_id: string
+          perfil: Database['public']['Enums']['perfil']
+          respondido_em: string | null
+        }
+        ComputedFields: never
+        Insert: {
+          cancelado_em?: string | null
+          criado_em?: string
+          criado_por: string
+          email: string
+          empresa_id?: string | null
+          expira_em?: string
+          id?: string
+          obra_id: string
+          perfil: Database['public']['Enums']['perfil']
+          respondido_em?: string | null
+        }
+        Update: {
+          cancelado_em?: string | null
+          criado_em?: string
+          criado_por?: string
+          email?: string
+          empresa_id?: string | null
+          expira_em?: string
+          id?: string
+          obra_id?: string
+          perfil?: Database['public']['Enums']['perfil']
+          respondido_em?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: 'convite_obra_criado_por_fkey'
+            columns: ['criado_por']
+            isOneToOne: false
+            referencedRelation: 'usuario'
+            referencedColumns: ['id']
+          },
+          {
+            foreignKeyName: 'convite_obra_empresa_id_obra_id_fkey'
+            columns: ['empresa_id', 'obra_id']
+            isOneToOne: false
+            referencedRelation: 'empresa'
+            referencedColumns: ['id', 'obra_id']
+          },
+          {
+            foreignKeyName: 'convite_obra_obra_id_fkey'
+            columns: ['obra_id']
+            isOneToOne: false
+            referencedRelation: 'obra'
+            referencedColumns: ['id']
+          },
+        ]
+      }
       desconto: {
         Row: {
           cancelado_em: string | null
@@ -1765,21 +1827,6 @@ export type Database = {
       }
     }
     Functions: {
-      convidar_obra: {
-        Args: {
-          p_obra: string
-          p_email: string
-          p_perfil: Database['public']['Enums']['perfil']
-          p_empresa?: string
-        }
-        Returns: undefined
-      }
-      meus_convites: {
-        Args: Record<string, never>
-        Returns: { id: string; obra: string; perfil: string }[]
-      }
-      responder_convite: { Args: { p_convite: string; p_aceitar: boolean }; Returns: undefined }
-
       adicionar_unidades: { Args: { p_quantidade: number; p_tipo: string }; Returns: string[] }
       admin_criar_obra: { Args: { p_endereco?: string; p_nome: string }; Returns: string }
       admin_editar_obra: {
@@ -1829,6 +1876,7 @@ export type Database = {
         Args: { p_codigo: string; p_nome?: string; p_obra: string }
         Returns: string
       }
+      cancelar_convite: { Args: { p_convite: string }; Returns: undefined }
       concluir_envio: {
         Args: { p_envio: string; p_erro?: string; p_ok: boolean; p_sem_destino?: boolean }
         Returns: undefined
@@ -1845,6 +1893,25 @@ export type Database = {
         }[]
       }
       consultar_pareamento_tv: { Args: { p_segredo: string }; Returns: Json }
+      convidar_obra: {
+        Args: {
+          p_email: string
+          p_empresa?: string
+          p_obra: string
+          p_perfil: Database['public']['Enums']['perfil']
+        }
+        Returns: undefined
+      }
+      convites_pendentes: {
+        Args: { p_obra: string }
+        Returns: {
+          criado_em: string
+          email: string
+          expira_em: string
+          id: string
+          perfil: Database['public']['Enums']['perfil']
+        }[]
+      }
       criar_dispositivo: { Args: { p_nome: string; p_obra: string }; Returns: string }
       dados_adesivo: {
         Args: { p_pessoa: string }
@@ -1947,6 +2014,15 @@ export type Database = {
       }
       importar_cadastro: { Args: { p_dados: Json; p_obra: string }; Returns: Json }
       inativar_material: { Args: { p_material: string; p_obra: string }; Returns: undefined }
+      ioo_periodos_empresa: {
+        Args: { p_obra: string }
+        Returns: {
+          ate: string
+          de: string
+          empresa_id: string
+          pessoa_id: string
+        }[]
+      }
       ler_capacete: {
         Args: { p_obra: string; p_token: string }
         Returns: {
@@ -1974,6 +2050,14 @@ export type Database = {
       marcar_adesivos_impressos: { Args: { p_obra: string; p_pessoas: string[] }; Returns: number }
       marcar_fotos_apagadas: { Args: { p_caminhos: string[] }; Returns: number }
       metricas_piloto: { Args: { p_ate: string; p_de: string; p_obra: string }; Returns: Json }
+      meus_convites: {
+        Args: Record<PropertyKey, never>
+        Returns: {
+          id: string
+          obra: string
+          perfil: Database['public']['Enums']['perfil']
+        }[]
+      }
       painel_tv: { Args: { p_token: string; p_versao?: string }; Returns: Json }
       pedir_cadastro_material: { Args: { p_nome: string; p_obra: string }; Returns: string }
       pedir_pareamento_tv: { Args: { p_ip?: string; p_segredo: string }; Returns: string }
@@ -2056,6 +2140,7 @@ export type Database = {
         Returns: Json
       }
       remover_inscricao_push: { Args: { p_endpoint: string }; Returns: undefined }
+      responder_convite: { Args: { p_aceitar: boolean; p_convite: string }; Returns: undefined }
       resumo_fechamento: { Args: { p_fechamento: string }; Returns: Json }
       resumo_material_periodo: {
         Args: { p_ate: string; p_de: string; p_obra: string }

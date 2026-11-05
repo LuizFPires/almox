@@ -30,12 +30,12 @@ export const datasets = {
     'Fechamentos de medição de reposição de ferramentas, empresa, data e total em centavos. Não são medições físicas do cronograma nem contratos.',
   fechamentos:
     'Encerramentos diários do almoxarifado: data, horário e automático/manual. Fechamento não devolve ferramentas nem baixa posses.',
-} as const;
-export type Dataset = keyof typeof datasets;
+} as const
+export type Dataset = keyof typeof datasets
 export function filtrosPermitidos(dataset: string) {
-  const p = ['project_id', 'search'];
-  if (dataset === 'obras') return p;
-  if (dataset !== 'estoque') p.push('from', 'to');
+  const p = ['project_id', 'search']
+  if (dataset === 'obras') return p
+  if (dataset !== 'estoque') p.push('from', 'to')
   if (
     [
       'estoque',
@@ -47,7 +47,7 @@ export function filtrosPermitidos(dataset: string) {
       'descontos',
     ].includes(dataset)
   )
-    p.push('tool');
+    p.push('tool')
   if (
     [
       'posses',
@@ -59,7 +59,7 @@ export function filtrosPermitidos(dataset: string) {
       'descontos',
     ].includes(dataset)
   )
-    p.push('person');
+    p.push('person')
   if (
     [
       'posses',
@@ -74,10 +74,10 @@ export function filtrosPermitidos(dataset: string) {
       'medicoes',
     ].includes(dataset)
   )
-    p.push('company');
+    p.push('company')
   if (['estoque', 'historico', 'avisos', 'descontos', 'ferramentas'].includes(dataset))
-    p.push('status');
-  return p;
+    p.push('status')
+  return p
 }
 export const manifest = {
   connector: 'almox',
@@ -108,5 +108,4 @@ export const manifest = {
     ].filter((p) => filtrosPermitidos(dataset).includes(p.name)),
   })),
   events: [],
-};
-
+}

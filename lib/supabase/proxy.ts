@@ -76,4 +76,3 @@ function copiarCookies(origem: NextResponse, destino: NextResponse) {
   }
   return destino
 }
-

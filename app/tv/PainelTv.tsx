@@ -5,14 +5,18 @@ import { CirculoFerramenta } from '@/components/IconeFerramenta'
 import { ehIcone } from '@/components/icones-ferramenta'
 import { Marca } from '@/components/Marca'
 import { Relogio } from '@/components/Relogio'
+import { AlertaMateriais } from './AlertaMateriais'
+import { CartaoMaterial } from './CartaoMaterial'
 import { Pareamento } from './Pareamento'
 import {
+  alertasMateriais,
   deslocamentoMaximo,
   empacotar,
   larguraColuna,
   montarCartoes,
   montarColunas,
   paginar,
+  paginasMateriais,
   PESSOAS_POR_SUBCOLUNA,
   subtituloPagina,
   type CartaoTv,
@@ -36,7 +40,11 @@ const GRADES: Record<number, string> = {
   16: 'grid-rows-4',
 }
 
-/** Painel da TV em loop: páginas de cartões por pessoa → colunas por empresa → recomeça. */
+/**
+ * Painel da TV em loop: páginas de cartões por pessoa → colunas por empresa → materiais na
+ * obra → recomeça. Com material abaixo do limite, faixa vermelha na terceira tela e tira no
+ * rodapé das outras.
+ */
 export function PainelTv({ inicial }: { inicial: DadosPainel }) {
   useTvLigada()
   const { painel, semConexaoDesde, naoAutorizado, diferencaMs } = usePainel(inicial)
@@ -48,9 +56,13 @@ export function PainelTv({ inicial }: { inicial: DadosPainel }) {
   const porPagina = painel.config.cartoesPorPagina
   const paginas = useMemo(() => paginar(cartoes, porPagina), [cartoes, porPagina])
   const colunas = useMemo(() => montarColunas(cartoes, painel), [cartoes, painel])
+  const materiais = painel.materiais
+  const paginasMat = useMemo(() => paginasMateriais(materiais), [materiais])
+  const alertas = useMemo(() => alertasMateriais(materiais), [materiais])
   const { fase, visivel, trilho, progresso } = useLoopTv({
     nPaginas: paginas.length,
     temColunas: colunas.length > 0,
+    nPaginasMateriais: paginasMat.length,
     // Estimativa; o motor mede o trilho de verdade quando as colunas estão na tela.
     maxOff: deslocamentoMaximo(colunas),
     config: painel.config,
@@ -66,15 +78,34 @@ export function PainelTv({ inicial }: { inicial: DadosPainel }) {
   }
 
   const indice = fase.tipo === 'pagina' ? Math.min(fase.indice, Math.max(0, paginas.length - 1)) : 0
-  const titulo = fase.tipo === 'empresas' ? 'POR EMPRESA' : 'QUEM ESTÁ COM O QUÊ'
+  const indiceMat =
+    fase.tipo === 'materiais' ? Math.min(fase.indice, Math.max(0, paginasMat.length - 1)) : 0
+  const titulo =
+    fase.tipo === 'empresas'
+      ? 'POR EMPRESA'
+      : fase.tipo === 'materiais'
+        ? 'Materiais na obra'
+        : 'QUEM ESTÁ COM O QUÊ'
   const subtitulo =
     fase.tipo === 'pagina' && cartoes.length > 0
       ? subtituloPagina(indice, porPagina, cartoes.length)
       : ''
+  // Pontos: páginas de pessoas + colunas (ou só a página vazia, se há materiais) + materiais.
+  const fasesPessoas = paginas.length > 0 ? paginas.length + 1 : paginasMat.length > 0 ? 1 : 0
+  const totalPontos = fasesPessoas + paginasMat.length
   const pontos =
-    paginas.length > 0
-      ? { total: paginas.length + 1, ativo: fase.tipo === 'empresas' ? paginas.length : indice }
+    totalPontos > 0
+      ? {
+          total: totalPontos,
+          ativo:
+            fase.tipo === 'empresas'
+              ? paginas.length
+              : fase.tipo === 'materiais'
+                ? fasesPessoas + indiceMat
+                : indice,
+        }
       : null
+  const paginaMat = paginasMat[indiceMat] ?? []
 
   return (
     <Tela
@@ -85,12 +116,28 @@ export function PainelTv({ inicial }: { inicial: DadosPainel }) {
       semConexaoDesde={semConexaoDesde}
       diferencaMs={diferencaMs}
       progresso={progresso}
+      rodape={
+        fase.tipo !== 'materiais' && alertas.length > 0 ? (
+          <AlertaMateriais alertas={alertas} variante="rodape" />
+        ) : null
+      }
     >
       <div
         className="relative h-full w-full transition-opacity duration-[600ms] ease-in-out"
         style={{ opacity: visivel ? 1 : 0 }}
       >
-        {cartoes.length === 0 ? (
+        {fase.tipo === 'materiais' ? (
+          <div className="absolute inset-0 flex flex-col gap-4">
+            <AlertaMateriais alertas={alertas} variante="faixa" />
+            <div
+              className={`grid min-h-0 flex-1 grid-cols-4 gap-4 ${alertas.length > 0 ? 'grid-rows-2' : 'grid-rows-3'}`}
+            >
+              {paginaMat.map((m) => (
+                <CartaoMaterial key={m.id} material={m} />
+              ))}
+            </div>
+          </div>
+        ) : cartoes.length === 0 ? (
           <p className="flex h-full items-center justify-center text-4xl text-tv-texto-2">
             Nenhuma ferramenta fora do almoxarifado
           </p>
@@ -175,6 +222,7 @@ export function Tela({
   semConexaoDesde = null,
   diferencaMs = 0,
   progresso,
+  rodape = null,
   children,
 }: {
   obra: string
@@ -184,6 +232,8 @@ export function Tela({
   semConexaoDesde?: Date | null
   diferencaMs?: number
   progresso?: React.Ref<HTMLDivElement>
+  /** Tira no pé da tela (alerta de materiais nas telas de pessoas e empresas). */
+  rodape?: React.ReactNode
   children: React.ReactNode
 }) {
   return (
@@ -226,6 +276,7 @@ export function Tela({
           />
         </header>
         <main className="relative min-h-0 flex-1">{children}</main>
+        {rodape}
         <div className="h-2 shrink-0 overflow-hidden rounded bg-tv-chip">
           <div ref={progresso} className="h-2 rounded bg-amarelo" style={{ width: '0%' }} />
         </div>

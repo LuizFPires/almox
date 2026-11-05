@@ -1,6 +1,8 @@
 import 'server-only'
 import { createClient } from '@supabase/supabase-js'
+import type { SaldoMaterial } from '@/lib/dominio/materiais'
 import type { PainelTv } from '@/lib/dominio/tv'
+import type { UnidadeMaterial } from '@/lib/formatos/quantidade'
 import { criarClienteAdmin } from '@/lib/supabase/admin'
 import { lerAmbientePublico } from '@/lib/supabase/ambiente'
 import type { Database } from '@/lib/supabase/tipos-banco'
@@ -48,9 +50,37 @@ export async function lerPainel(
     p_versao: versao && /^v\d{1,18}$/.test(versao) ? versao : undefined,
   })
   if (error) return error.code === 'AL008' ? { tipo: 'nao_autorizado' } : { tipo: 'erro' }
-  const resposta = data as unknown as PainelTv | { versao: string; agora: string }
+  const resposta = data as unknown as RespostaPainel | { versao: string; agora: string }
   if (!('pessoas' in resposta)) return { tipo: 'igual', agora: resposta.agora }
-  return { tipo: 'ok', painel: resposta }
+  const { materiais, ...resto } = resposta
+  return { tipo: 'ok', painel: { ...resto, materiais: (materiais ?? []).map(materialDaLinha) } }
+}
+
+/** Material como vem do banco (`painel_tv`), em snake_case. */
+type LinhaMaterialTv = {
+  id: string
+  nome: string
+  unidade: UnidadeMaterial
+  saldo: number
+  estoque_cheio: number
+  aviso_tipo: 'quantidade' | 'percentual' | null
+  aviso_valor: number | null
+}
+
+type RespostaPainel = Omit<PainelTv, 'materiais'> & { materiais?: LinhaMaterialTv[] }
+
+export function materialDaLinha(l: LinhaMaterialTv): SaldoMaterial {
+  return {
+    id: l.id,
+    nome: l.nome,
+    unidade: l.unidade,
+    saldo: Number(l.saldo),
+    estoqueCheio: Number(l.estoque_cheio),
+    aviso:
+      l.aviso_tipo && l.aviso_valor !== null
+        ? { tipo: l.aviso_tipo, valor: Number(l.aviso_valor) }
+        : null,
+  }
 }
 
 /** Troca o código de pareamento pela credencial da TV (null: vencido, usado ou revogado). */

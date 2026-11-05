@@ -1,10 +1,10 @@
 'use client'
 
-import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import { useState, useTransition } from 'react'
 import { dispensarPedido } from '@/app/(app)/materiais/acoes'
 import { Botao } from '@/components/Botao'
+import { BotaoNovoMaterial } from '@/components/GavetaNovoMaterial'
 import { formatarDataHora } from '@/lib/formatos/datas'
 
 type Pedido = { id: string; nome: string; pedidoPor: string; criadoEm: string }
@@ -46,12 +46,13 @@ export function PedidosCadastro({ pedidos }: { pedidos: Pedido[] }) {
             </span>
           </div>
           <div className="grid grid-cols-2 gap-2">
-            <Link
-              href={`/cadastros/materiais/novo?pedido=${encodeURIComponent(p.id)}&nome=${encodeURIComponent(p.nome)}`}
+            <BotaoNovoMaterial
+              pedido={{ id: p.id, nome: p.nome }}
+              rotulo={`Cadastrar ${p.nome}`}
               className="inline-flex min-h-toque items-center justify-center rounded-botao bg-engenheiro text-[15px] font-bold text-white"
             >
               Cadastrar
-            </Link>
+            </BotaoNovoMaterial>
             <Botao variante="secundaria" disabled={pendente} onClick={() => dispensar(p.id)}>
               Dispensar
             </Botao>

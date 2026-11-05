@@ -4,6 +4,7 @@ import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 import { type ReactNode, useDeferredValue, useEffect, useMemo, useRef, useState } from 'react'
 import { AbasCadastros } from '@/components/AbasCadastros'
+import { BotaoNovoMaterial } from '@/components/GavetaNovoMaterial'
 import { CirculoFerramenta } from '@/components/IconeFerramenta'
 import { IconeInterface } from '@/components/IconeInterface'
 import { ehIcone } from '@/components/icones-ferramenta'
@@ -119,7 +120,15 @@ export function BuscaCadastros({ indice, children }: Props) {
               className="min-w-0 flex-1 bg-transparent text-base outline-none focus-visible:outline-none"
             />
           </label>
-          {novo && (
+          {novo && caminho === '/cadastros/materiais' ? (
+            <BotaoNovoMaterial
+              rotulo={novo.completo}
+              className="flex h-12 shrink-0 items-center gap-1 rounded-botao bg-amarelo px-3.5 text-[15px] font-bold text-escuro"
+            >
+              <IconeInterface nome="plus" tamanho={18} />
+              {novo.rotulo}
+            </BotaoNovoMaterial>
+          ) : novo ? (
             <Link
               href={novo.href}
               aria-label={novo.completo}
@@ -128,7 +137,7 @@ export function BuscaCadastros({ indice, children }: Props) {
               <IconeInterface nome="plus" tamanho={18} />
               {novo.rotulo}
             </Link>
-          )}
+          ) : null}
         </div>
       </div>
       <main className="flex flex-1 flex-col gap-2 px-5 pb-6">

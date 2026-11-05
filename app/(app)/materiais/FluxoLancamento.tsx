@@ -1,9 +1,9 @@
 'use client'
 
-import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import { useEffect, useState, useTransition } from 'react'
 import { Botao } from '@/components/Botao'
+import { BotaoNovoMaterial } from '@/components/GavetaNovoMaterial'
 import { GavetaQuantidade } from '@/components/GavetaQuantidade'
 import { IconeInterface } from '@/components/IconeInterface'
 import {
@@ -88,6 +88,8 @@ export function FluxoLancamento({
   const [pendentes, setPendentes] = useState<ReadonlyMap<string, Pendente>>(new Map())
   const [erro, setErro] = useState<string | null>(null)
   const [guardado, setGuardado] = useState<Guardado | null>(null)
+  // Material recém-cadastrado: abre a gaveta de entrada assim que a lista o trouxer.
+  const [recemCadastrado, setRecemCadastrado] = useState<string | null>(null)
   const [enviando, iniciar] = useTransition()
   const saida = tipo === 'saida'
   // Prévia: o saldo do servidor com as entradas e saídas que ainda estão na fila do celular.
@@ -95,6 +97,14 @@ export function FluxoLancamento({
   const materiais = fila.some((i) => i.situacao === 'aguardando')
     ? doServidor.map((m) => ({ ...m, saldo: saldoComFila(m.saldo, fila, m.id) }))
     : doServidor
+
+  if (recemCadastrado) {
+    const novo = doServidor.find((m) => m.id === recemCadastrado)
+    if (novo) {
+      setRecemCadastrado(null)
+      abrir(novo)
+    }
+  }
 
   const lista = filtrarMateriais(ordenarParaLancamento(tipo, materiais, ordemMaisUsados), busca)
 
@@ -260,12 +270,12 @@ export function FluxoLancamento({
       )}
       {!saida &&
         (podeCadastrar ? (
-          <Link
-            href="/cadastros/materiais/novo"
+          <BotaoNovoMaterial
+            onSalvo={setRecemCadastrado}
             className="flex min-h-[52px] items-center justify-center rounded-botao border border-borda bg-cartao px-4 font-extrabold"
           >
             ＋ Cadastrar material novo
-          </Link>
+          </BotaoNovoMaterial>
         ) : (
           <PedirCadastro />
         ))}

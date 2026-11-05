@@ -1,6 +1,7 @@
 import type { Metadata } from 'next'
 import Link from 'next/link'
 import { Cartao } from '@/components/Cartao'
+import { BotaoNovoMaterial } from '@/components/GavetaNovoMaterial'
 import { IconeInterface } from '@/components/IconeInterface'
 import { listarSaldos, pedidosAbertos } from '@/lib/dados/materiais'
 import { textoAviso } from '@/lib/dominio/materiais'
@@ -42,12 +43,9 @@ export default async function PaginaMateriais() {
           <IconeInterface nome="chevron-right" tamanho={18} className="shrink-0 text-texto-2" />
         </Link>
       ))}
-      <Link
-        href="/cadastros/materiais/novo"
-        className="mt-1 inline-flex min-h-toque items-center justify-center rounded-botao bg-engenheiro px-4 text-[15px] font-bold text-white"
-      >
+      <BotaoNovoMaterial className="mt-1 inline-flex min-h-toque items-center justify-center rounded-botao bg-engenheiro px-4 text-[15px] font-bold text-white">
         ＋ Novo material
-      </Link>
+      </BotaoNovoMaterial>
     </>
   )
 }

@@ -29,7 +29,9 @@ test.describe('login e perfis', () => {
 
   test('engenheiro vê todas as abas e o perfil', async ({ page }) => {
     await entrarComo(page, 'engenheiro')
-    await expect(page.getByRole('link', { name: /conta e obra/ })).toHaveText('Engenheiro')
+    await expect(page.getByRole('link', { name: /conta e obra/ })).toHaveAccessibleName(
+      'Minha conta e obra: Engenheiro',
+    )
     await expect(page.getByRole('navigation').getByRole('link')).toHaveText([
       'Início',
       'Lista',
@@ -41,7 +43,9 @@ test.describe('login e perfis', () => {
 
   test('almoxarife lança, mas não cadastra', async ({ page }) => {
     await entrarComo(page, 'almoxarife')
-    await expect(page.getByRole('link', { name: /conta e obra/ })).toHaveText('Almoxarife')
+    await expect(page.getByRole('link', { name: /conta e obra/ })).toHaveAccessibleName(
+      'Minha conta e obra: Almoxarife',
+    )
     await expect(page.getByRole('link', { name: /Escolher na lista/ })).toBeVisible()
     await page.getByRole('link', { name: 'Cadastros' }).click()
     await expect(page.getByText('Só o engenheiro cadastra')).toBeVisible()
@@ -60,8 +64,8 @@ test.describe('login e perfis', () => {
 
   test('consulta de empreiteira mostra a própria empresa', async ({ page }) => {
     await entrarComo(page, 'formas')
-    await expect(page.getByRole('link', { name: /conta e obra/ })).toHaveText(
-      'Consulta · Fôrmas Ribeiro',
+    await expect(page.getByRole('link', { name: /conta e obra/ })).toHaveAccessibleName(
+      'Minha conta e obra: Consulta · Fôrmas Ribeiro',
     )
   })
 
@@ -71,7 +75,9 @@ test.describe('login e perfis', () => {
     await page.getByRole('button', { name: /Obra Demonstração B/ }).click()
     await page.waitForURL((url) => url.pathname === '/inicio')
     await expect(page.locator('header').getByText(/^Obra Demonstração B/)).toBeVisible()
-    await expect(page.getByRole('link', { name: /conta e obra/ })).toHaveText('Consulta')
+    await expect(page.getByRole('link', { name: /conta e obra/ })).toHaveAccessibleName(
+      'Minha conta e obra: Consulta',
+    )
     await expect(page.getByRole('navigation').getByRole('link')).toHaveCount(3)
   })
 

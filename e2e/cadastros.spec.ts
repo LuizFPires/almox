@@ -199,8 +199,8 @@ test.describe('cadastros do engenheiro', () => {
     await campo(page, 'Repita a nova senha').fill('senha-nova-de-teste')
     await page.getByRole('button', { name: 'Salvar nova senha' }).click()
     await page.waitForURL((u) => u.pathname === '/inicio')
-    await expect(page.getByRole('link', { name: /conta e obra/ })).toHaveText(
-      'Consulta · Fôrmas Ribeiro',
+    await expect(page.getByRole('link', { name: /conta e obra/ })).toHaveAccessibleName(
+      'Minha conta e obra: Consulta · Fôrmas Ribeiro',
     )
   })
 })

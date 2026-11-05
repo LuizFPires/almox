@@ -11,6 +11,7 @@ import {
   type FiltroExtrato,
   type TipoFiltro,
 } from '@/lib/dominio/extrato'
+import { formatarData, formatarDiaCurto } from '@/lib/formatos/datas'
 
 type Props = {
   filtro: FiltroExtrato
@@ -68,27 +69,24 @@ export function FiltrosExtrato({ filtro, hoje, materiais }: Props) {
           </button>
         ))}
       </div>
-      <div className="grid grid-cols-2 gap-2">
-        <label className="flex min-w-0 flex-col gap-1">
-          <span className={ROTULO}>De</span>
-          <input
-            type="date"
-            value={filtro.de}
-            max={hoje}
-            onChange={(e) => mudarData('de', e.currentTarget.value)}
-            className={CAMPO}
-          />
-        </label>
-        <label className="flex min-w-0 flex-col gap-1">
-          <span className={ROTULO}>Até</span>
-          <input
-            type="date"
-            value={filtro.ate}
-            max={hoje}
-            onChange={(e) => mudarData('ate', e.currentTarget.value)}
-            className={CAMPO}
-          />
-        </label>
+      <div
+        role="group"
+        aria-label="Datas do período"
+        className="flex items-stretch rounded-cartao border-[1.5px] border-borda bg-cartao"
+      >
+        <CampoData rotulo="De" valor={filtro.de} hoje={hoje} onMudar={(v) => mudarData('de', v)} />
+        <span
+          aria-hidden="true"
+          className="flex w-8 shrink-0 items-center justify-center border-x border-borda text-lg font-bold text-texto-2"
+        >
+          →
+        </span>
+        <CampoData
+          rotulo="Até"
+          valor={filtro.ate}
+          hoje={hoje}
+          onMudar={(v) => mudarData('ate', v)}
+        />
       </div>
       <div className="grid grid-cols-[1.3fr_1fr] gap-2">
         <label className="flex min-w-0 flex-col gap-1">
@@ -125,5 +123,48 @@ export function FiltrosExtrato({ filtro, hoje, materiais }: Props) {
         {carregando ? 'Atualizando o extrato…' : ''}
       </p>
     </div>
+  )
+}
+
+/**
+ * Uma ponta do período: rótulo, data grande e dia da semana. O campo de data nativo fica por
+ * cima, invisível, e abre o calendário do celular ao toque.
+ */
+function CampoData({
+  rotulo,
+  valor,
+  hoje,
+  onMudar,
+}: {
+  rotulo: string
+  valor: string
+  hoje: string
+  onMudar(valor: string): void
+}) {
+  const meioDia = `${valor}T12:00:00-03:00`
+  const semana = valor === hoje ? 'hoje' : formatarDiaCurto(meioDia).split(' ')[0]
+  return (
+    <label className="relative flex min-h-16 min-w-0 flex-1 cursor-pointer flex-col justify-center px-3.5 py-2 has-[:focus-visible]:outline-3 has-[:focus-visible]:outline-offset-3 has-[:focus-visible]:outline-foco">
+      <span className={ROTULO}>{rotulo}</span>
+      <span className="text-[17px] leading-tight font-extrabold tabular-nums">
+        {formatarData(meioDia)}
+      </span>
+      <span className="text-xs font-semibold text-texto-2">{semana}</span>
+      <input
+        type="date"
+        aria-label={`${rotulo}: ${formatarData(meioDia)}`}
+        value={valor}
+        max={hoje}
+        onChange={(e) => onMudar(e.currentTarget.value)}
+        onClick={(e) => {
+          try {
+            e.currentTarget.showPicker()
+          } catch {
+            // Navegador sem showPicker: o toque no campo já abre o calendário.
+          }
+        }}
+        className="absolute inset-0 h-full w-full cursor-pointer opacity-0"
+      />
+    </label>
   )
 }
